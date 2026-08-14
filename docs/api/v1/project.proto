@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package aoyorouter.docs.api.v1;
+
+import "docs/api/v1/types.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter;aoyorouter";
+
+service AoyoRouterService {
+    rpc HealthCheck(google.protobuf.Empty) returns (HealthCheckResponse) {
+        option (google.api.http) = {
+            get: "/api/aoyo/v1/healthz"
+        };
+    }
+
+    rpc SignIn(SignInRequest) returns (SignInResponse) {
+        option (google.api.http) = {
+            post: "/api/aoyo/v1/signin"
+            body: "*"
+        };
+    }
+
+    rpc CreateProvider(CreateProviderRequest) returns (CreateProviderResponse) {
+        option (google.api.http) = {
+            post: "/api/aoyo/v1/providers"
+            body: "*"
+        };
+    }
+
+    rpc GetProvider(GetProviderRequest) returns (GetProviderResponse) {
+        option (google.api.http) = {
+            get: "/api/aoyo/v1/providers/{provider_id}"
+        };
+    }
+
+    rpc GetProvidersList(GetProvidersListRequest) returns (GetProvidersListResponse) {
+        option (google.api.http) = {
+            get: "/api/aoyo/v1/providers"
+        };
+    }
+    
+    rpc UpdateProvider(UpdateProviderRequest) returns (UpdateProviderResponse) {
+        option (google.api.http) = {
+            patch: "/api/aoyo/v1/providers/{provider_id}"
+            body: "*"
+        };
+    }
+
+    rpc DeleteProvider(DeleteProviderRequest) returns (DeleteProviderResponse) {
+        option (google.api.http) = {
+            delete: "/api/aoyo/v1/providers/{provider_id}"
+        };
+    }
+
+    rpc CreateApiKey(CreateApiKeyRequest) returns (CreateApiKeyResponse) {
+        option (google.api.http) = {
+            post: "/api/aoyo/v1/api-keys"
+            body: "*"
+        };
+    }
+
+    rpc DeleteApiKey(DeleteApiKeyRequest) returns (DeleteApiKeyResponse) {
+        option (google.api.http) = {
+            delete: "/api/aoyo/v1/api-keys/{api_key_id}"
+        };
+    }
+
+    rpc GetApiKeyList(GetApiKeyListRequest) returns (GetApiKeyListResponse) {
+        option (google.api.http) = {
+            get: "/api/aoyo/v1/api-keys"
+        };
+    }
+
+    rpc GetProviderLogs(GetProviderLogsRequest) returns (GetProviderLogsResponse) {
+        option (google.api.http) = {
+            get: "/api/aoyo/v1/providers/{provider_id}/logs"
+        };
+    }
+}

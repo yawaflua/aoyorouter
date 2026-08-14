@@ -1,0 +1,120 @@
+syntax = "proto3";
+
+package aoyorouter.docs.api.v1;
+
+option go_package = "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter;aoyorouter";
+
+message HealthCheckResponse {
+    string status = 1;
+}
+
+message SignInRequest {
+    string password = 2;
+}
+message SignInResponse {
+    string status = 1;
+    string auth_token = 2;
+}
+
+message CreateProviderRequest {
+    string name = 1;
+    ProviderType type = 2;
+    string client_id = 3;
+    string client_secret = 4;
+}
+message CreateProviderResponse {
+    string status = 1;
+    string provider_id = 2;
+}
+
+enum ProviderType {
+    PROVIDER_TYPE_UNSPECIFIED = 0;
+    PROVIDER_TYPE_CUSTOM = 1;
+    PROVIDER_TYPE_OPENAI = 2;
+    PROVIDER_TYPE_ANTHROPIC = 3;
+}
+
+message Provider {
+    string id = 1;
+    string name = 2;
+    ProviderType type = 3;
+    string client_id = 4;
+    string client_secret = 5;
+}
+
+message GetProviderRequest {
+    string provider_id = 1;
+}
+message GetProviderResponse {
+    Provider provider = 1;
+}
+
+message GetProvidersListRequest {
+    
+}
+message GetProvidersListResponse {
+    repeated Provider providers = 1;
+}
+
+message UpdateProviderRequest {
+    string provider_id = 1;
+    string name = 2;
+    ProviderType type = 3;
+    string client_id = 4;
+    string client_secret = 5;
+}
+message UpdateProviderResponse {
+    string status = 1;
+}
+
+message DeleteProviderRequest {
+    string provider_id = 1;
+}
+message DeleteProviderResponse {
+    string status = 1;
+}
+
+message CreateApiKeyRequest {
+    string name = 1;
+    string is_admin = 2;
+}
+message CreateApiKeyResponse {
+    string status = 1;
+    string api_key = 2;
+    string api_key_id = 3;
+}
+
+message DeleteApiKeyRequest {
+    string api_key_id = 1;
+}
+message DeleteApiKeyResponse {
+    string status = 1;
+}
+
+message GetApiKeyListRequest {
+    
+}
+message GetApiKeyListResponse {
+    repeated ApiKey api_keys = 1;
+}
+
+message ApiKey {
+    string id = 1;
+    string name = 2;
+    string is_admin = 3;
+}
+
+message LogEntry {
+    Provider provider = 1;
+    string body = 2;
+    string timestamp = 3;
+    string response = 4;
+    string timestamp_response = 5;
+}
+
+message GetProviderLogsRequest {
+    string provider_id = 1;
+}
+message GetProviderLogsResponse {
+    repeated LogEntry logs = 1;
+}
