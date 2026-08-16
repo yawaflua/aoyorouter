@@ -9,6 +9,7 @@ package aoyorouter
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -28,6 +29,9 @@ const (
 	ProviderType_PROVIDER_TYPE_CUSTOM      ProviderType = 1
 	ProviderType_PROVIDER_TYPE_OPENAI      ProviderType = 2
 	ProviderType_PROVIDER_TYPE_ANTHROPIC   ProviderType = 3
+	ProviderType_PROVIDER_TYPE_KIMI        ProviderType = 4
+	ProviderType_PROVIDER_TYPE_GROK        ProviderType = 5
+	ProviderType_PROVIDER_TYPE_ANTIGRAVITY ProviderType = 6
 )
 
 // Enum value maps for ProviderType.
@@ -37,12 +41,18 @@ var (
 		1: "PROVIDER_TYPE_CUSTOM",
 		2: "PROVIDER_TYPE_OPENAI",
 		3: "PROVIDER_TYPE_ANTHROPIC",
+		4: "PROVIDER_TYPE_KIMI",
+		5: "PROVIDER_TYPE_GROK",
+		6: "PROVIDER_TYPE_ANTIGRAVITY",
 	}
 	ProviderType_value = map[string]int32{
 		"PROVIDER_TYPE_UNSPECIFIED": 0,
 		"PROVIDER_TYPE_CUSTOM":      1,
 		"PROVIDER_TYPE_OPENAI":      2,
 		"PROVIDER_TYPE_ANTHROPIC":   3,
+		"PROVIDER_TYPE_KIMI":        4,
+		"PROVIDER_TYPE_GROK":        5,
+		"PROVIDER_TYPE_ANTIGRAVITY": 6,
 	}
 )
 
@@ -333,6 +343,650 @@ func (x *CreateProviderResponse) GetProviderId() string {
 	return ""
 }
 
+type CreateCodexAuthorizationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	CustomUrl     string                 `protobuf:"bytes,2,opt,name=custom_url,json=customUrl,proto3" json:"custom_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateCodexAuthorizationRequest) Reset() {
+	*x = CreateCodexAuthorizationRequest{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateCodexAuthorizationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateCodexAuthorizationRequest) ProtoMessage() {}
+
+func (x *CreateCodexAuthorizationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateCodexAuthorizationRequest.ProtoReflect.Descriptor instead.
+func (*CreateCodexAuthorizationRequest) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CreateCodexAuthorizationRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateCodexAuthorizationRequest) GetCustomUrl() string {
+	if x != nil {
+		return x.CustomUrl
+	}
+	return ""
+}
+
+type CreateCodexAuthorizationResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	AuthorizationUrl string                 `protobuf:"bytes,1,opt,name=authorization_url,json=authorizationUrl,proto3" json:"authorization_url,omitempty"`
+	State            string                 `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	ProviderId       string                 `protobuf:"bytes,3,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *CreateCodexAuthorizationResponse) Reset() {
+	*x = CreateCodexAuthorizationResponse{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateCodexAuthorizationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateCodexAuthorizationResponse) ProtoMessage() {}
+
+func (x *CreateCodexAuthorizationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateCodexAuthorizationResponse.ProtoReflect.Descriptor instead.
+func (*CreateCodexAuthorizationResponse) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CreateCodexAuthorizationResponse) GetAuthorizationUrl() string {
+	if x != nil {
+		return x.AuthorizationUrl
+	}
+	return ""
+}
+
+func (x *CreateCodexAuthorizationResponse) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *CreateCodexAuthorizationResponse) GetProviderId() string {
+	if x != nil {
+		return x.ProviderId
+	}
+	return ""
+}
+
+type CompleteCodexAuthorizationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	State         string                 `protobuf:"bytes,1,opt,name=state,proto3" json:"state,omitempty"`
+	CallbackUrl   string                 `protobuf:"bytes,2,opt,name=callback_url,json=callbackUrl,proto3" json:"callback_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteCodexAuthorizationRequest) Reset() {
+	*x = CompleteCodexAuthorizationRequest{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteCodexAuthorizationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteCodexAuthorizationRequest) ProtoMessage() {}
+
+func (x *CompleteCodexAuthorizationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteCodexAuthorizationRequest.ProtoReflect.Descriptor instead.
+func (*CompleteCodexAuthorizationRequest) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CompleteCodexAuthorizationRequest) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *CompleteCodexAuthorizationRequest) GetCallbackUrl() string {
+	if x != nil {
+		return x.CallbackUrl
+	}
+	return ""
+}
+
+type CompleteCodexAuthorizationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	ProviderId    string                 `protobuf:"bytes,2,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteCodexAuthorizationResponse) Reset() {
+	*x = CompleteCodexAuthorizationResponse{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteCodexAuthorizationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteCodexAuthorizationResponse) ProtoMessage() {}
+
+func (x *CompleteCodexAuthorizationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteCodexAuthorizationResponse.ProtoReflect.Descriptor instead.
+func (*CompleteCodexAuthorizationResponse) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *CompleteCodexAuthorizationResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *CompleteCodexAuthorizationResponse) GetProviderId() string {
+	if x != nil {
+		return x.ProviderId
+	}
+	return ""
+}
+
+type CreateProviderAuthorizationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Type          ProviderType           `protobuf:"varint,2,opt,name=type,proto3,enum=aoyorouter.docs.api.v1.ProviderType" json:"type,omitempty"`
+	CustomUrl     string                 `protobuf:"bytes,3,opt,name=custom_url,json=customUrl,proto3" json:"custom_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateProviderAuthorizationRequest) Reset() {
+	*x = CreateProviderAuthorizationRequest{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateProviderAuthorizationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateProviderAuthorizationRequest) ProtoMessage() {}
+
+func (x *CreateProviderAuthorizationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateProviderAuthorizationRequest.ProtoReflect.Descriptor instead.
+func (*CreateProviderAuthorizationRequest) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CreateProviderAuthorizationRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateProviderAuthorizationRequest) GetType() ProviderType {
+	if x != nil {
+		return x.Type
+	}
+	return ProviderType_PROVIDER_TYPE_UNSPECIFIED
+}
+
+func (x *CreateProviderAuthorizationRequest) GetCustomUrl() string {
+	if x != nil {
+		return x.CustomUrl
+	}
+	return ""
+}
+
+type CreateProviderAuthorizationResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	AuthorizationUrl string                 `protobuf:"bytes,1,opt,name=authorization_url,json=authorizationUrl,proto3" json:"authorization_url,omitempty"`
+	State            string                 `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	ProviderId       string                 `protobuf:"bytes,3,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	Flow             string                 `protobuf:"bytes,4,opt,name=flow,proto3" json:"flow,omitempty"`
+	UserCode         string                 `protobuf:"bytes,5,opt,name=user_code,json=userCode,proto3" json:"user_code,omitempty"`
+	ExpiresIn        int32                  `protobuf:"varint,6,opt,name=expires_in,json=expiresIn,proto3" json:"expires_in,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *CreateProviderAuthorizationResponse) Reset() {
+	*x = CreateProviderAuthorizationResponse{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateProviderAuthorizationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateProviderAuthorizationResponse) ProtoMessage() {}
+
+func (x *CreateProviderAuthorizationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateProviderAuthorizationResponse.ProtoReflect.Descriptor instead.
+func (*CreateProviderAuthorizationResponse) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *CreateProviderAuthorizationResponse) GetAuthorizationUrl() string {
+	if x != nil {
+		return x.AuthorizationUrl
+	}
+	return ""
+}
+
+func (x *CreateProviderAuthorizationResponse) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *CreateProviderAuthorizationResponse) GetProviderId() string {
+	if x != nil {
+		return x.ProviderId
+	}
+	return ""
+}
+
+func (x *CreateProviderAuthorizationResponse) GetFlow() string {
+	if x != nil {
+		return x.Flow
+	}
+	return ""
+}
+
+func (x *CreateProviderAuthorizationResponse) GetUserCode() string {
+	if x != nil {
+		return x.UserCode
+	}
+	return ""
+}
+
+func (x *CreateProviderAuthorizationResponse) GetExpiresIn() int32 {
+	if x != nil {
+		return x.ExpiresIn
+	}
+	return 0
+}
+
+type CompleteProviderAuthorizationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	State         string                 `protobuf:"bytes,1,opt,name=state,proto3" json:"state,omitempty"`
+	CallbackUrl   string                 `protobuf:"bytes,2,opt,name=callback_url,json=callbackUrl,proto3" json:"callback_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteProviderAuthorizationRequest) Reset() {
+	*x = CompleteProviderAuthorizationRequest{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteProviderAuthorizationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteProviderAuthorizationRequest) ProtoMessage() {}
+
+func (x *CompleteProviderAuthorizationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteProviderAuthorizationRequest.ProtoReflect.Descriptor instead.
+func (*CompleteProviderAuthorizationRequest) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *CompleteProviderAuthorizationRequest) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *CompleteProviderAuthorizationRequest) GetCallbackUrl() string {
+	if x != nil {
+		return x.CallbackUrl
+	}
+	return ""
+}
+
+type GetProviderAuthorizationStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	State         string                 `protobuf:"bytes,1,opt,name=state,proto3" json:"state,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProviderAuthorizationStatusRequest) Reset() {
+	*x = GetProviderAuthorizationStatusRequest{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProviderAuthorizationStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProviderAuthorizationStatusRequest) ProtoMessage() {}
+
+func (x *GetProviderAuthorizationStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProviderAuthorizationStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetProviderAuthorizationStatusRequest) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetProviderAuthorizationStatusRequest) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+type ProviderAuthorizationStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	ProviderId    string                 `protobuf:"bytes,2,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	Error         string                 `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProviderAuthorizationStatusResponse) Reset() {
+	*x = ProviderAuthorizationStatusResponse{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProviderAuthorizationStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProviderAuthorizationStatusResponse) ProtoMessage() {}
+
+func (x *ProviderAuthorizationStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProviderAuthorizationStatusResponse.ProtoReflect.Descriptor instead.
+func (*ProviderAuthorizationStatusResponse) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ProviderAuthorizationStatusResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ProviderAuthorizationStatusResponse) GetProviderId() string {
+	if x != nil {
+		return x.ProviderId
+	}
+	return ""
+}
+
+func (x *ProviderAuthorizationStatusResponse) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type ProviderQuotaWindow struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UsedPercent   float64                `protobuf:"fixed64,1,opt,name=used_percent,json=usedPercent,proto3" json:"used_percent,omitempty"`
+	ResetsAt      string                 `protobuf:"bytes,2,opt,name=resets_at,json=resetsAt,proto3" json:"resets_at,omitempty"`
+	WindowMinutes int32                  `protobuf:"varint,3,opt,name=window_minutes,json=windowMinutes,proto3" json:"window_minutes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProviderQuotaWindow) Reset() {
+	*x = ProviderQuotaWindow{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProviderQuotaWindow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProviderQuotaWindow) ProtoMessage() {}
+
+func (x *ProviderQuotaWindow) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProviderQuotaWindow.ProtoReflect.Descriptor instead.
+func (*ProviderQuotaWindow) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ProviderQuotaWindow) GetUsedPercent() float64 {
+	if x != nil {
+		return x.UsedPercent
+	}
+	return 0
+}
+
+func (x *ProviderQuotaWindow) GetResetsAt() string {
+	if x != nil {
+		return x.ResetsAt
+	}
+	return ""
+}
+
+func (x *ProviderQuotaWindow) GetWindowMinutes() int32 {
+	if x != nil {
+		return x.WindowMinutes
+	}
+	return 0
+}
+
+type ProviderQuota struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Primary       *ProviderQuotaWindow   `protobuf:"bytes,1,opt,name=primary,proto3" json:"primary,omitempty"`
+	Secondary     *ProviderQuotaWindow   `protobuf:"bytes,2,opt,name=secondary,proto3" json:"secondary,omitempty"`
+	PlanType      string                 `protobuf:"bytes,3,opt,name=plan_type,json=planType,proto3" json:"plan_type,omitempty"`
+	Error         string                 `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProviderQuota) Reset() {
+	*x = ProviderQuota{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProviderQuota) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProviderQuota) ProtoMessage() {}
+
+func (x *ProviderQuota) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProviderQuota.ProtoReflect.Descriptor instead.
+func (*ProviderQuota) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ProviderQuota) GetPrimary() *ProviderQuotaWindow {
+	if x != nil {
+		return x.Primary
+	}
+	return nil
+}
+
+func (x *ProviderQuota) GetSecondary() *ProviderQuotaWindow {
+	if x != nil {
+		return x.Secondary
+	}
+	return nil
+}
+
+func (x *ProviderQuota) GetPlanType() string {
+	if x != nil {
+		return x.PlanType
+	}
+	return ""
+}
+
+func (x *ProviderQuota) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 type Provider struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -340,13 +994,14 @@ type Provider struct {
 	Type          ProviderType           `protobuf:"varint,3,opt,name=type,proto3,enum=aoyorouter.docs.api.v1.ProviderType" json:"type,omitempty"`
 	ClientId      string                 `protobuf:"bytes,4,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	ClientSecret  string                 `protobuf:"bytes,5,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
+	Quota         *ProviderQuota         `protobuf:"bytes,6,opt,name=quota,proto3" json:"quota,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Provider) Reset() {
 	*x = Provider{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[5]
+	mi := &file_docs_api_v1_types_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -358,7 +1013,7 @@ func (x *Provider) String() string {
 func (*Provider) ProtoMessage() {}
 
 func (x *Provider) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[5]
+	mi := &file_docs_api_v1_types_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -371,7 +1026,7 @@ func (x *Provider) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Provider.ProtoReflect.Descriptor instead.
 func (*Provider) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{5}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *Provider) GetId() string {
@@ -409,6 +1064,13 @@ func (x *Provider) GetClientSecret() string {
 	return ""
 }
 
+func (x *Provider) GetQuota() *ProviderQuota {
+	if x != nil {
+		return x.Quota
+	}
+	return nil
+}
+
 type GetProviderRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProviderId    string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
@@ -418,7 +1080,7 @@ type GetProviderRequest struct {
 
 func (x *GetProviderRequest) Reset() {
 	*x = GetProviderRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[6]
+	mi := &file_docs_api_v1_types_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -430,7 +1092,7 @@ func (x *GetProviderRequest) String() string {
 func (*GetProviderRequest) ProtoMessage() {}
 
 func (x *GetProviderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[6]
+	mi := &file_docs_api_v1_types_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -443,7 +1105,7 @@ func (x *GetProviderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProviderRequest.ProtoReflect.Descriptor instead.
 func (*GetProviderRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{6}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetProviderRequest) GetProviderId() string {
@@ -462,7 +1124,7 @@ type GetProviderResponse struct {
 
 func (x *GetProviderResponse) Reset() {
 	*x = GetProviderResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[7]
+	mi := &file_docs_api_v1_types_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -474,7 +1136,7 @@ func (x *GetProviderResponse) String() string {
 func (*GetProviderResponse) ProtoMessage() {}
 
 func (x *GetProviderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[7]
+	mi := &file_docs_api_v1_types_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -487,7 +1149,7 @@ func (x *GetProviderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProviderResponse.ProtoReflect.Descriptor instead.
 func (*GetProviderResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{7}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetProviderResponse) GetProvider() *Provider {
@@ -505,7 +1167,7 @@ type GetProvidersListRequest struct {
 
 func (x *GetProvidersListRequest) Reset() {
 	*x = GetProvidersListRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[8]
+	mi := &file_docs_api_v1_types_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -517,7 +1179,7 @@ func (x *GetProvidersListRequest) String() string {
 func (*GetProvidersListRequest) ProtoMessage() {}
 
 func (x *GetProvidersListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[8]
+	mi := &file_docs_api_v1_types_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -530,7 +1192,7 @@ func (x *GetProvidersListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProvidersListRequest.ProtoReflect.Descriptor instead.
 func (*GetProvidersListRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{8}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{19}
 }
 
 type GetProvidersListResponse struct {
@@ -542,7 +1204,7 @@ type GetProvidersListResponse struct {
 
 func (x *GetProvidersListResponse) Reset() {
 	*x = GetProvidersListResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[9]
+	mi := &file_docs_api_v1_types_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -554,7 +1216,7 @@ func (x *GetProvidersListResponse) String() string {
 func (*GetProvidersListResponse) ProtoMessage() {}
 
 func (x *GetProvidersListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[9]
+	mi := &file_docs_api_v1_types_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -567,7 +1229,7 @@ func (x *GetProvidersListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProvidersListResponse.ProtoReflect.Descriptor instead.
 func (*GetProvidersListResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{9}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetProvidersListResponse) GetProviders() []*Provider {
@@ -590,7 +1252,7 @@ type UpdateProviderRequest struct {
 
 func (x *UpdateProviderRequest) Reset() {
 	*x = UpdateProviderRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[10]
+	mi := &file_docs_api_v1_types_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -602,7 +1264,7 @@ func (x *UpdateProviderRequest) String() string {
 func (*UpdateProviderRequest) ProtoMessage() {}
 
 func (x *UpdateProviderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[10]
+	mi := &file_docs_api_v1_types_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -615,7 +1277,7 @@ func (x *UpdateProviderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProviderRequest.ProtoReflect.Descriptor instead.
 func (*UpdateProviderRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{10}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *UpdateProviderRequest) GetProviderId() string {
@@ -662,7 +1324,7 @@ type UpdateProviderResponse struct {
 
 func (x *UpdateProviderResponse) Reset() {
 	*x = UpdateProviderResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[11]
+	mi := &file_docs_api_v1_types_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -674,7 +1336,7 @@ func (x *UpdateProviderResponse) String() string {
 func (*UpdateProviderResponse) ProtoMessage() {}
 
 func (x *UpdateProviderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[11]
+	mi := &file_docs_api_v1_types_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -687,7 +1349,7 @@ func (x *UpdateProviderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProviderResponse.ProtoReflect.Descriptor instead.
 func (*UpdateProviderResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{11}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *UpdateProviderResponse) GetStatus() string {
@@ -706,7 +1368,7 @@ type DeleteProviderRequest struct {
 
 func (x *DeleteProviderRequest) Reset() {
 	*x = DeleteProviderRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[12]
+	mi := &file_docs_api_v1_types_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -718,7 +1380,7 @@ func (x *DeleteProviderRequest) String() string {
 func (*DeleteProviderRequest) ProtoMessage() {}
 
 func (x *DeleteProviderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[12]
+	mi := &file_docs_api_v1_types_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -731,7 +1393,7 @@ func (x *DeleteProviderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProviderRequest.ProtoReflect.Descriptor instead.
 func (*DeleteProviderRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{12}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *DeleteProviderRequest) GetProviderId() string {
@@ -750,7 +1412,7 @@ type DeleteProviderResponse struct {
 
 func (x *DeleteProviderResponse) Reset() {
 	*x = DeleteProviderResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[13]
+	mi := &file_docs_api_v1_types_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -762,7 +1424,7 @@ func (x *DeleteProviderResponse) String() string {
 func (*DeleteProviderResponse) ProtoMessage() {}
 
 func (x *DeleteProviderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[13]
+	mi := &file_docs_api_v1_types_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -775,7 +1437,7 @@ func (x *DeleteProviderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProviderResponse.ProtoReflect.Descriptor instead.
 func (*DeleteProviderResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{13}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *DeleteProviderResponse) GetStatus() string {
@@ -795,7 +1457,7 @@ type CreateApiKeyRequest struct {
 
 func (x *CreateApiKeyRequest) Reset() {
 	*x = CreateApiKeyRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[14]
+	mi := &file_docs_api_v1_types_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -807,7 +1469,7 @@ func (x *CreateApiKeyRequest) String() string {
 func (*CreateApiKeyRequest) ProtoMessage() {}
 
 func (x *CreateApiKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[14]
+	mi := &file_docs_api_v1_types_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -820,7 +1482,7 @@ func (x *CreateApiKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateApiKeyRequest.ProtoReflect.Descriptor instead.
 func (*CreateApiKeyRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{14}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *CreateApiKeyRequest) GetName() string {
@@ -848,7 +1510,7 @@ type CreateApiKeyResponse struct {
 
 func (x *CreateApiKeyResponse) Reset() {
 	*x = CreateApiKeyResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[15]
+	mi := &file_docs_api_v1_types_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -860,7 +1522,7 @@ func (x *CreateApiKeyResponse) String() string {
 func (*CreateApiKeyResponse) ProtoMessage() {}
 
 func (x *CreateApiKeyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[15]
+	mi := &file_docs_api_v1_types_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -873,7 +1535,7 @@ func (x *CreateApiKeyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateApiKeyResponse.ProtoReflect.Descriptor instead.
 func (*CreateApiKeyResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{15}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *CreateApiKeyResponse) GetStatus() string {
@@ -906,7 +1568,7 @@ type DeleteApiKeyRequest struct {
 
 func (x *DeleteApiKeyRequest) Reset() {
 	*x = DeleteApiKeyRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[16]
+	mi := &file_docs_api_v1_types_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -918,7 +1580,7 @@ func (x *DeleteApiKeyRequest) String() string {
 func (*DeleteApiKeyRequest) ProtoMessage() {}
 
 func (x *DeleteApiKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[16]
+	mi := &file_docs_api_v1_types_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -931,7 +1593,7 @@ func (x *DeleteApiKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteApiKeyRequest.ProtoReflect.Descriptor instead.
 func (*DeleteApiKeyRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{16}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *DeleteApiKeyRequest) GetApiKeyId() string {
@@ -950,7 +1612,7 @@ type DeleteApiKeyResponse struct {
 
 func (x *DeleteApiKeyResponse) Reset() {
 	*x = DeleteApiKeyResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[17]
+	mi := &file_docs_api_v1_types_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -962,7 +1624,7 @@ func (x *DeleteApiKeyResponse) String() string {
 func (*DeleteApiKeyResponse) ProtoMessage() {}
 
 func (x *DeleteApiKeyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[17]
+	mi := &file_docs_api_v1_types_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -975,7 +1637,7 @@ func (x *DeleteApiKeyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteApiKeyResponse.ProtoReflect.Descriptor instead.
 func (*DeleteApiKeyResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{17}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *DeleteApiKeyResponse) GetStatus() string {
@@ -993,7 +1655,7 @@ type GetApiKeyListRequest struct {
 
 func (x *GetApiKeyListRequest) Reset() {
 	*x = GetApiKeyListRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[18]
+	mi := &file_docs_api_v1_types_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1005,7 +1667,7 @@ func (x *GetApiKeyListRequest) String() string {
 func (*GetApiKeyListRequest) ProtoMessage() {}
 
 func (x *GetApiKeyListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[18]
+	mi := &file_docs_api_v1_types_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1018,7 +1680,7 @@ func (x *GetApiKeyListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApiKeyListRequest.ProtoReflect.Descriptor instead.
 func (*GetApiKeyListRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{18}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{29}
 }
 
 type GetApiKeyListResponse struct {
@@ -1030,7 +1692,7 @@ type GetApiKeyListResponse struct {
 
 func (x *GetApiKeyListResponse) Reset() {
 	*x = GetApiKeyListResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[19]
+	mi := &file_docs_api_v1_types_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1042,7 +1704,7 @@ func (x *GetApiKeyListResponse) String() string {
 func (*GetApiKeyListResponse) ProtoMessage() {}
 
 func (x *GetApiKeyListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[19]
+	mi := &file_docs_api_v1_types_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1055,7 +1717,7 @@ func (x *GetApiKeyListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApiKeyListResponse.ProtoReflect.Descriptor instead.
 func (*GetApiKeyListResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{19}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *GetApiKeyListResponse) GetApiKeys() []*ApiKey {
@@ -1076,7 +1738,7 @@ type ApiKey struct {
 
 func (x *ApiKey) Reset() {
 	*x = ApiKey{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[20]
+	mi := &file_docs_api_v1_types_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1088,7 +1750,7 @@ func (x *ApiKey) String() string {
 func (*ApiKey) ProtoMessage() {}
 
 func (x *ApiKey) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[20]
+	mi := &file_docs_api_v1_types_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1101,7 +1763,7 @@ func (x *ApiKey) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApiKey.ProtoReflect.Descriptor instead.
 func (*ApiKey) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{20}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ApiKey) GetId() string {
@@ -1126,19 +1788,27 @@ func (x *ApiKey) GetIsAdmin() string {
 }
 
 type LogEntry struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	Provider          *Provider              `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
-	Body              string                 `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
-	Timestamp         string                 `protobuf:"bytes,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Response          string                 `protobuf:"bytes,4,opt,name=response,proto3" json:"response,omitempty"`
-	TimestampResponse string                 `protobuf:"bytes,5,opt,name=timestamp_response,json=timestampResponse,proto3" json:"timestamp_response,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Provider        string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
+	ApiKeyId        string                 `protobuf:"bytes,2,opt,name=api_key_id,json=apiKeyId,proto3" json:"api_key_id,omitempty"`
+	Latency         int64                  `protobuf:"varint,3,opt,name=latency,proto3" json:"latency,omitempty"`
+	InputTokens     int64                  `protobuf:"varint,4,opt,name=input_tokens,json=inputTokens,proto3" json:"input_tokens,omitempty"`
+	OutputTokens    int64                  `protobuf:"varint,5,opt,name=output_tokens,json=outputTokens,proto3" json:"output_tokens,omitempty"`
+	TotalTokens     int64                  `protobuf:"varint,6,opt,name=total_tokens,json=totalTokens,proto3" json:"total_tokens,omitempty"`
+	CachedTokens    int64                  `protobuf:"varint,7,opt,name=cached_tokens,json=cachedTokens,proto3" json:"cached_tokens,omitempty"`
+	Model           string                 `protobuf:"bytes,8,opt,name=model,proto3" json:"model,omitempty"`
+	ReasoningEffort string                 `protobuf:"bytes,9,opt,name=reasoning_effort,json=reasoningEffort,proto3" json:"reasoning_effort,omitempty"`
+	Failed          bool                   `protobuf:"varint,10,opt,name=failed,proto3" json:"failed,omitempty"`
+	Error           string                 `protobuf:"bytes,11,opt,name=error,proto3" json:"error,omitempty"`
+	RequestTime     *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=request_time,json=requestTime,proto3" json:"request_time,omitempty"`
+	CreatedAt       *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *LogEntry) Reset() {
 	*x = LogEntry{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[21]
+	mi := &file_docs_api_v1_types_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1150,7 +1820,7 @@ func (x *LogEntry) String() string {
 func (*LogEntry) ProtoMessage() {}
 
 func (x *LogEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[21]
+	mi := &file_docs_api_v1_types_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1163,66 +1833,123 @@ func (x *LogEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
 func (*LogEntry) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{21}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{32}
 }
 
-func (x *LogEntry) GetProvider() *Provider {
+func (x *LogEntry) GetProvider() string {
 	if x != nil {
 		return x.Provider
+	}
+	return ""
+}
+
+func (x *LogEntry) GetApiKeyId() string {
+	if x != nil {
+		return x.ApiKeyId
+	}
+	return ""
+}
+
+func (x *LogEntry) GetLatency() int64 {
+	if x != nil {
+		return x.Latency
+	}
+	return 0
+}
+
+func (x *LogEntry) GetInputTokens() int64 {
+	if x != nil {
+		return x.InputTokens
+	}
+	return 0
+}
+
+func (x *LogEntry) GetOutputTokens() int64 {
+	if x != nil {
+		return x.OutputTokens
+	}
+	return 0
+}
+
+func (x *LogEntry) GetTotalTokens() int64 {
+	if x != nil {
+		return x.TotalTokens
+	}
+	return 0
+}
+
+func (x *LogEntry) GetCachedTokens() int64 {
+	if x != nil {
+		return x.CachedTokens
+	}
+	return 0
+}
+
+func (x *LogEntry) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *LogEntry) GetReasoningEffort() string {
+	if x != nil {
+		return x.ReasoningEffort
+	}
+	return ""
+}
+
+func (x *LogEntry) GetFailed() bool {
+	if x != nil {
+		return x.Failed
+	}
+	return false
+}
+
+func (x *LogEntry) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *LogEntry) GetRequestTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RequestTime
 	}
 	return nil
 }
 
-func (x *LogEntry) GetBody() string {
+func (x *LogEntry) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.Body
+		return x.CreatedAt
 	}
-	return ""
+	return nil
 }
 
-func (x *LogEntry) GetTimestamp() string {
-	if x != nil {
-		return x.Timestamp
-	}
-	return ""
-}
-
-func (x *LogEntry) GetResponse() string {
-	if x != nil {
-		return x.Response
-	}
-	return ""
-}
-
-func (x *LogEntry) GetTimestampResponse() string {
-	if x != nil {
-		return x.TimestampResponse
-	}
-	return ""
-}
-
-type GetProviderLogsRequest struct {
+type GetUsageLogsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ProviderId    string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int32                  `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetProviderLogsRequest) Reset() {
-	*x = GetProviderLogsRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[22]
+func (x *GetUsageLogsRequest) Reset() {
+	*x = GetUsageLogsRequest{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetProviderLogsRequest) String() string {
+func (x *GetUsageLogsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetProviderLogsRequest) ProtoMessage() {}
+func (*GetUsageLogsRequest) ProtoMessage() {}
 
-func (x *GetProviderLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[22]
+func (x *GetUsageLogsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1233,40 +1960,143 @@ func (x *GetProviderLogsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetProviderLogsRequest.ProtoReflect.Descriptor instead.
-func (*GetProviderLogsRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{22}
+// Deprecated: Use GetUsageLogsRequest.ProtoReflect.Descriptor instead.
+func (*GetUsageLogsRequest) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{33}
 }
 
-func (x *GetProviderLogsRequest) GetProviderId() string {
+func (x *GetUsageLogsRequest) GetLimit() int32 {
 	if x != nil {
-		return x.ProviderId
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *GetUsageLogsRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+type GetProviderLogsByKeyIDRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ApiKeyId      string                 `protobuf:"bytes,1,opt,name=api_key_id,json=apiKeyId,proto3" json:"api_key_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProviderLogsByKeyIDRequest) Reset() {
+	*x = GetProviderLogsByKeyIDRequest{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProviderLogsByKeyIDRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProviderLogsByKeyIDRequest) ProtoMessage() {}
+
+func (x *GetProviderLogsByKeyIDRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProviderLogsByKeyIDRequest.ProtoReflect.Descriptor instead.
+func (*GetProviderLogsByKeyIDRequest) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *GetProviderLogsByKeyIDRequest) GetApiKeyId() string {
+	if x != nil {
+		return x.ApiKeyId
 	}
 	return ""
 }
 
-type GetProviderLogsResponse struct {
+type GetProviderLogsByKeyIDResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Logs          []*LogEntry            `protobuf:"bytes,1,rep,name=logs,proto3" json:"logs,omitempty"`
+	TotalTokens   int64                  `protobuf:"varint,2,opt,name=total_tokens,json=totalTokens,proto3" json:"total_tokens,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProviderLogsByKeyIDResponse) Reset() {
+	*x = GetProviderLogsByKeyIDResponse{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProviderLogsByKeyIDResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProviderLogsByKeyIDResponse) ProtoMessage() {}
+
+func (x *GetProviderLogsByKeyIDResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProviderLogsByKeyIDResponse.ProtoReflect.Descriptor instead.
+func (*GetProviderLogsByKeyIDResponse) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *GetProviderLogsByKeyIDResponse) GetLogs() []*LogEntry {
+	if x != nil {
+		return x.Logs
+	}
+	return nil
+}
+
+func (x *GetProviderLogsByKeyIDResponse) GetTotalTokens() int64 {
+	if x != nil {
+		return x.TotalTokens
+	}
+	return 0
+}
+
+type GetUsageLogsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Logs          []*LogEntry            `protobuf:"bytes,1,rep,name=logs,proto3" json:"logs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetProviderLogsResponse) Reset() {
-	*x = GetProviderLogsResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[23]
+func (x *GetUsageLogsResponse) Reset() {
+	*x = GetUsageLogsResponse{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetProviderLogsResponse) String() string {
+func (x *GetUsageLogsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetProviderLogsResponse) ProtoMessage() {}
+func (*GetUsageLogsResponse) ProtoMessage() {}
 
-func (x *GetProviderLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[23]
+func (x *GetUsageLogsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1277,12 +2107,12 @@ func (x *GetProviderLogsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetProviderLogsResponse.ProtoReflect.Descriptor instead.
-func (*GetProviderLogsResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{23}
+// Deprecated: Use GetUsageLogsResponse.ProtoReflect.Descriptor instead.
+func (*GetUsageLogsResponse) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{36}
 }
 
-func (x *GetProviderLogsResponse) GetLogs() []*LogEntry {
+func (x *GetUsageLogsResponse) GetLogs() []*LogEntry {
 	if x != nil {
 		return x.Logs
 	}
@@ -1293,7 +2123,7 @@ var File_docs_api_v1_types_proto protoreflect.FileDescriptor
 
 const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\n" +
-	"\x17docs/api/v1/types.proto\x12\x16aoyorouter.docs.api.v1\"-\n" +
+	"\x17docs/api/v1/types.proto\x12\x16aoyorouter.docs.api.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"-\n" +
 	"\x13HealthCheckResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\"+\n" +
 	"\rSignInRequest\x12\x1a\n" +
@@ -1310,13 +2140,63 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x16CreateProviderResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1f\n" +
 	"\vprovider_id\x18\x02 \x01(\tR\n" +
-	"providerId\"\xaa\x01\n" +
+	"providerId\"T\n" +
+	"\x1fCreateCodexAuthorizationRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1d\n" +
+	"\n" +
+	"custom_url\x18\x02 \x01(\tR\tcustomUrl\"\x86\x01\n" +
+	" CreateCodexAuthorizationResponse\x12+\n" +
+	"\x11authorization_url\x18\x01 \x01(\tR\x10authorizationUrl\x12\x14\n" +
+	"\x05state\x18\x02 \x01(\tR\x05state\x12\x1f\n" +
+	"\vprovider_id\x18\x03 \x01(\tR\n" +
+	"providerId\"\\\n" +
+	"!CompleteCodexAuthorizationRequest\x12\x14\n" +
+	"\x05state\x18\x01 \x01(\tR\x05state\x12!\n" +
+	"\fcallback_url\x18\x02 \x01(\tR\vcallbackUrl\"]\n" +
+	"\"CompleteCodexAuthorizationResponse\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1f\n" +
+	"\vprovider_id\x18\x02 \x01(\tR\n" +
+	"providerId\"\x91\x01\n" +
+	"\"CreateProviderAuthorizationRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x128\n" +
+	"\x04type\x18\x02 \x01(\x0e2$.aoyorouter.docs.api.v1.ProviderTypeR\x04type\x12\x1d\n" +
+	"\n" +
+	"custom_url\x18\x03 \x01(\tR\tcustomUrl\"\xd9\x01\n" +
+	"#CreateProviderAuthorizationResponse\x12+\n" +
+	"\x11authorization_url\x18\x01 \x01(\tR\x10authorizationUrl\x12\x14\n" +
+	"\x05state\x18\x02 \x01(\tR\x05state\x12\x1f\n" +
+	"\vprovider_id\x18\x03 \x01(\tR\n" +
+	"providerId\x12\x12\n" +
+	"\x04flow\x18\x04 \x01(\tR\x04flow\x12\x1b\n" +
+	"\tuser_code\x18\x05 \x01(\tR\buserCode\x12\x1d\n" +
+	"\n" +
+	"expires_in\x18\x06 \x01(\x05R\texpiresIn\"_\n" +
+	"$CompleteProviderAuthorizationRequest\x12\x14\n" +
+	"\x05state\x18\x01 \x01(\tR\x05state\x12!\n" +
+	"\fcallback_url\x18\x02 \x01(\tR\vcallbackUrl\"=\n" +
+	"%GetProviderAuthorizationStatusRequest\x12\x14\n" +
+	"\x05state\x18\x01 \x01(\tR\x05state\"t\n" +
+	"#ProviderAuthorizationStatusResponse\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1f\n" +
+	"\vprovider_id\x18\x02 \x01(\tR\n" +
+	"providerId\x12\x14\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\"|\n" +
+	"\x13ProviderQuotaWindow\x12!\n" +
+	"\fused_percent\x18\x01 \x01(\x01R\vusedPercent\x12\x1b\n" +
+	"\tresets_at\x18\x02 \x01(\tR\bresetsAt\x12%\n" +
+	"\x0ewindow_minutes\x18\x03 \x01(\x05R\rwindowMinutes\"\xd4\x01\n" +
+	"\rProviderQuota\x12E\n" +
+	"\aprimary\x18\x01 \x01(\v2+.aoyorouter.docs.api.v1.ProviderQuotaWindowR\aprimary\x12I\n" +
+	"\tsecondary\x18\x02 \x01(\v2+.aoyorouter.docs.api.v1.ProviderQuotaWindowR\tsecondary\x12\x1b\n" +
+	"\tplan_type\x18\x03 \x01(\tR\bplanType\x12\x14\n" +
+	"\x05error\x18\x04 \x01(\tR\x05error\"\xe7\x01\n" +
 	"\bProvider\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x128\n" +
 	"\x04type\x18\x03 \x01(\x0e2$.aoyorouter.docs.api.v1.ProviderTypeR\x04type\x12\x1b\n" +
 	"\tclient_id\x18\x04 \x01(\tR\bclientId\x12#\n" +
-	"\rclient_secret\x18\x05 \x01(\tR\fclientSecret\"5\n" +
+	"\rclient_secret\x18\x05 \x01(\tR\fclientSecret\x12;\n" +
+	"\x05quota\x18\x06 \x01(\v2%.aoyorouter.docs.api.v1.ProviderQuotaR\x05quota\"5\n" +
 	"\x12GetProviderRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\"S\n" +
@@ -1358,23 +2238,43 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x06ApiKey\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x19\n" +
-	"\bis_admin\x18\x03 \x01(\tR\aisAdmin\"\xc5\x01\n" +
-	"\bLogEntry\x12<\n" +
-	"\bprovider\x18\x01 \x01(\v2 .aoyorouter.docs.api.v1.ProviderR\bprovider\x12\x12\n" +
-	"\x04body\x18\x02 \x01(\tR\x04body\x12\x1c\n" +
-	"\ttimestamp\x18\x03 \x01(\tR\ttimestamp\x12\x1a\n" +
-	"\bresponse\x18\x04 \x01(\tR\bresponse\x12-\n" +
-	"\x12timestamp_response\x18\x05 \x01(\tR\x11timestampResponse\"9\n" +
-	"\x16GetProviderLogsRequest\x12\x1f\n" +
-	"\vprovider_id\x18\x01 \x01(\tR\n" +
-	"providerId\"O\n" +
-	"\x17GetProviderLogsResponse\x124\n" +
-	"\x04logs\x18\x01 \x03(\v2 .aoyorouter.docs.api.v1.LogEntryR\x04logs*~\n" +
+	"\bis_admin\x18\x03 \x01(\tR\aisAdmin\"\xd7\x03\n" +
+	"\bLogEntry\x12\x1a\n" +
+	"\bprovider\x18\x01 \x01(\tR\bprovider\x12\x1c\n" +
+	"\n" +
+	"api_key_id\x18\x02 \x01(\tR\bapiKeyId\x12\x18\n" +
+	"\alatency\x18\x03 \x01(\x03R\alatency\x12!\n" +
+	"\finput_tokens\x18\x04 \x01(\x03R\vinputTokens\x12#\n" +
+	"\routput_tokens\x18\x05 \x01(\x03R\foutputTokens\x12!\n" +
+	"\ftotal_tokens\x18\x06 \x01(\x03R\vtotalTokens\x12#\n" +
+	"\rcached_tokens\x18\a \x01(\x03R\fcachedTokens\x12\x14\n" +
+	"\x05model\x18\b \x01(\tR\x05model\x12)\n" +
+	"\x10reasoning_effort\x18\t \x01(\tR\x0freasoningEffort\x12\x16\n" +
+	"\x06failed\x18\n" +
+	" \x01(\bR\x06failed\x12\x14\n" +
+	"\x05error\x18\v \x01(\tR\x05error\x12=\n" +
+	"\frequest_time\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\vrequestTime\x129\n" +
+	"\n" +
+	"created_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"C\n" +
+	"\x13GetUsageLogsRequest\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x03 \x01(\x05R\x06offset\"=\n" +
+	"\x1dGetProviderLogsByKeyIDRequest\x12\x1c\n" +
+	"\n" +
+	"api_key_id\x18\x01 \x01(\tR\bapiKeyId\"y\n" +
+	"\x1eGetProviderLogsByKeyIDResponse\x124\n" +
+	"\x04logs\x18\x01 \x03(\v2 .aoyorouter.docs.api.v1.LogEntryR\x04logs\x12!\n" +
+	"\ftotal_tokens\x18\x02 \x01(\x03R\vtotalTokens\"L\n" +
+	"\x14GetUsageLogsResponse\x124\n" +
+	"\x04logs\x18\x01 \x03(\v2 .aoyorouter.docs.api.v1.LogEntryR\x04logs*\xcd\x01\n" +
 	"\fProviderType\x12\x1d\n" +
 	"\x19PROVIDER_TYPE_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14PROVIDER_TYPE_CUSTOM\x10\x01\x12\x18\n" +
 	"\x14PROVIDER_TYPE_OPENAI\x10\x02\x12\x1b\n" +
-	"\x17PROVIDER_TYPE_ANTHROPIC\x10\x03BAZ?github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter;aoyorouterb\x06proto3"
+	"\x17PROVIDER_TYPE_ANTHROPIC\x10\x03\x12\x16\n" +
+	"\x12PROVIDER_TYPE_KIMI\x10\x04\x12\x16\n" +
+	"\x12PROVIDER_TYPE_GROK\x10\x05\x12\x1d\n" +
+	"\x19PROVIDER_TYPE_ANTIGRAVITY\x10\x06BAZ?github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter;aoyorouterb\x06proto3"
 
 var (
 	file_docs_api_v1_types_proto_rawDescOnce sync.Once
@@ -1389,48 +2289,68 @@ func file_docs_api_v1_types_proto_rawDescGZIP() []byte {
 }
 
 var file_docs_api_v1_types_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_docs_api_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_docs_api_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_docs_api_v1_types_proto_goTypes = []any{
-	(ProviderType)(0),                // 0: aoyorouter.docs.api.v1.ProviderType
-	(*HealthCheckResponse)(nil),      // 1: aoyorouter.docs.api.v1.HealthCheckResponse
-	(*SignInRequest)(nil),            // 2: aoyorouter.docs.api.v1.SignInRequest
-	(*SignInResponse)(nil),           // 3: aoyorouter.docs.api.v1.SignInResponse
-	(*CreateProviderRequest)(nil),    // 4: aoyorouter.docs.api.v1.CreateProviderRequest
-	(*CreateProviderResponse)(nil),   // 5: aoyorouter.docs.api.v1.CreateProviderResponse
-	(*Provider)(nil),                 // 6: aoyorouter.docs.api.v1.Provider
-	(*GetProviderRequest)(nil),       // 7: aoyorouter.docs.api.v1.GetProviderRequest
-	(*GetProviderResponse)(nil),      // 8: aoyorouter.docs.api.v1.GetProviderResponse
-	(*GetProvidersListRequest)(nil),  // 9: aoyorouter.docs.api.v1.GetProvidersListRequest
-	(*GetProvidersListResponse)(nil), // 10: aoyorouter.docs.api.v1.GetProvidersListResponse
-	(*UpdateProviderRequest)(nil),    // 11: aoyorouter.docs.api.v1.UpdateProviderRequest
-	(*UpdateProviderResponse)(nil),   // 12: aoyorouter.docs.api.v1.UpdateProviderResponse
-	(*DeleteProviderRequest)(nil),    // 13: aoyorouter.docs.api.v1.DeleteProviderRequest
-	(*DeleteProviderResponse)(nil),   // 14: aoyorouter.docs.api.v1.DeleteProviderResponse
-	(*CreateApiKeyRequest)(nil),      // 15: aoyorouter.docs.api.v1.CreateApiKeyRequest
-	(*CreateApiKeyResponse)(nil),     // 16: aoyorouter.docs.api.v1.CreateApiKeyResponse
-	(*DeleteApiKeyRequest)(nil),      // 17: aoyorouter.docs.api.v1.DeleteApiKeyRequest
-	(*DeleteApiKeyResponse)(nil),     // 18: aoyorouter.docs.api.v1.DeleteApiKeyResponse
-	(*GetApiKeyListRequest)(nil),     // 19: aoyorouter.docs.api.v1.GetApiKeyListRequest
-	(*GetApiKeyListResponse)(nil),    // 20: aoyorouter.docs.api.v1.GetApiKeyListResponse
-	(*ApiKey)(nil),                   // 21: aoyorouter.docs.api.v1.ApiKey
-	(*LogEntry)(nil),                 // 22: aoyorouter.docs.api.v1.LogEntry
-	(*GetProviderLogsRequest)(nil),   // 23: aoyorouter.docs.api.v1.GetProviderLogsRequest
-	(*GetProviderLogsResponse)(nil),  // 24: aoyorouter.docs.api.v1.GetProviderLogsResponse
+	(ProviderType)(0),                             // 0: aoyorouter.docs.api.v1.ProviderType
+	(*HealthCheckResponse)(nil),                   // 1: aoyorouter.docs.api.v1.HealthCheckResponse
+	(*SignInRequest)(nil),                         // 2: aoyorouter.docs.api.v1.SignInRequest
+	(*SignInResponse)(nil),                        // 3: aoyorouter.docs.api.v1.SignInResponse
+	(*CreateProviderRequest)(nil),                 // 4: aoyorouter.docs.api.v1.CreateProviderRequest
+	(*CreateProviderResponse)(nil),                // 5: aoyorouter.docs.api.v1.CreateProviderResponse
+	(*CreateCodexAuthorizationRequest)(nil),       // 6: aoyorouter.docs.api.v1.CreateCodexAuthorizationRequest
+	(*CreateCodexAuthorizationResponse)(nil),      // 7: aoyorouter.docs.api.v1.CreateCodexAuthorizationResponse
+	(*CompleteCodexAuthorizationRequest)(nil),     // 8: aoyorouter.docs.api.v1.CompleteCodexAuthorizationRequest
+	(*CompleteCodexAuthorizationResponse)(nil),    // 9: aoyorouter.docs.api.v1.CompleteCodexAuthorizationResponse
+	(*CreateProviderAuthorizationRequest)(nil),    // 10: aoyorouter.docs.api.v1.CreateProviderAuthorizationRequest
+	(*CreateProviderAuthorizationResponse)(nil),   // 11: aoyorouter.docs.api.v1.CreateProviderAuthorizationResponse
+	(*CompleteProviderAuthorizationRequest)(nil),  // 12: aoyorouter.docs.api.v1.CompleteProviderAuthorizationRequest
+	(*GetProviderAuthorizationStatusRequest)(nil), // 13: aoyorouter.docs.api.v1.GetProviderAuthorizationStatusRequest
+	(*ProviderAuthorizationStatusResponse)(nil),   // 14: aoyorouter.docs.api.v1.ProviderAuthorizationStatusResponse
+	(*ProviderQuotaWindow)(nil),                   // 15: aoyorouter.docs.api.v1.ProviderQuotaWindow
+	(*ProviderQuota)(nil),                         // 16: aoyorouter.docs.api.v1.ProviderQuota
+	(*Provider)(nil),                              // 17: aoyorouter.docs.api.v1.Provider
+	(*GetProviderRequest)(nil),                    // 18: aoyorouter.docs.api.v1.GetProviderRequest
+	(*GetProviderResponse)(nil),                   // 19: aoyorouter.docs.api.v1.GetProviderResponse
+	(*GetProvidersListRequest)(nil),               // 20: aoyorouter.docs.api.v1.GetProvidersListRequest
+	(*GetProvidersListResponse)(nil),              // 21: aoyorouter.docs.api.v1.GetProvidersListResponse
+	(*UpdateProviderRequest)(nil),                 // 22: aoyorouter.docs.api.v1.UpdateProviderRequest
+	(*UpdateProviderResponse)(nil),                // 23: aoyorouter.docs.api.v1.UpdateProviderResponse
+	(*DeleteProviderRequest)(nil),                 // 24: aoyorouter.docs.api.v1.DeleteProviderRequest
+	(*DeleteProviderResponse)(nil),                // 25: aoyorouter.docs.api.v1.DeleteProviderResponse
+	(*CreateApiKeyRequest)(nil),                   // 26: aoyorouter.docs.api.v1.CreateApiKeyRequest
+	(*CreateApiKeyResponse)(nil),                  // 27: aoyorouter.docs.api.v1.CreateApiKeyResponse
+	(*DeleteApiKeyRequest)(nil),                   // 28: aoyorouter.docs.api.v1.DeleteApiKeyRequest
+	(*DeleteApiKeyResponse)(nil),                  // 29: aoyorouter.docs.api.v1.DeleteApiKeyResponse
+	(*GetApiKeyListRequest)(nil),                  // 30: aoyorouter.docs.api.v1.GetApiKeyListRequest
+	(*GetApiKeyListResponse)(nil),                 // 31: aoyorouter.docs.api.v1.GetApiKeyListResponse
+	(*ApiKey)(nil),                                // 32: aoyorouter.docs.api.v1.ApiKey
+	(*LogEntry)(nil),                              // 33: aoyorouter.docs.api.v1.LogEntry
+	(*GetUsageLogsRequest)(nil),                   // 34: aoyorouter.docs.api.v1.GetUsageLogsRequest
+	(*GetProviderLogsByKeyIDRequest)(nil),         // 35: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDRequest
+	(*GetProviderLogsByKeyIDResponse)(nil),        // 36: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse
+	(*GetUsageLogsResponse)(nil),                  // 37: aoyorouter.docs.api.v1.GetUsageLogsResponse
+	(*timestamppb.Timestamp)(nil),                 // 38: google.protobuf.Timestamp
 }
 var file_docs_api_v1_types_proto_depIdxs = []int32{
 	0,  // 0: aoyorouter.docs.api.v1.CreateProviderRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
-	0,  // 1: aoyorouter.docs.api.v1.Provider.type:type_name -> aoyorouter.docs.api.v1.ProviderType
-	6,  // 2: aoyorouter.docs.api.v1.GetProviderResponse.provider:type_name -> aoyorouter.docs.api.v1.Provider
-	6,  // 3: aoyorouter.docs.api.v1.GetProvidersListResponse.providers:type_name -> aoyorouter.docs.api.v1.Provider
-	0,  // 4: aoyorouter.docs.api.v1.UpdateProviderRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
-	21, // 5: aoyorouter.docs.api.v1.GetApiKeyListResponse.api_keys:type_name -> aoyorouter.docs.api.v1.ApiKey
-	6,  // 6: aoyorouter.docs.api.v1.LogEntry.provider:type_name -> aoyorouter.docs.api.v1.Provider
-	22, // 7: aoyorouter.docs.api.v1.GetProviderLogsResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
-	8,  // [8:8] is the sub-list for method output_type
-	8,  // [8:8] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	0,  // 1: aoyorouter.docs.api.v1.CreateProviderAuthorizationRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
+	15, // 2: aoyorouter.docs.api.v1.ProviderQuota.primary:type_name -> aoyorouter.docs.api.v1.ProviderQuotaWindow
+	15, // 3: aoyorouter.docs.api.v1.ProviderQuota.secondary:type_name -> aoyorouter.docs.api.v1.ProviderQuotaWindow
+	0,  // 4: aoyorouter.docs.api.v1.Provider.type:type_name -> aoyorouter.docs.api.v1.ProviderType
+	16, // 5: aoyorouter.docs.api.v1.Provider.quota:type_name -> aoyorouter.docs.api.v1.ProviderQuota
+	17, // 6: aoyorouter.docs.api.v1.GetProviderResponse.provider:type_name -> aoyorouter.docs.api.v1.Provider
+	17, // 7: aoyorouter.docs.api.v1.GetProvidersListResponse.providers:type_name -> aoyorouter.docs.api.v1.Provider
+	0,  // 8: aoyorouter.docs.api.v1.UpdateProviderRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
+	32, // 9: aoyorouter.docs.api.v1.GetApiKeyListResponse.api_keys:type_name -> aoyorouter.docs.api.v1.ApiKey
+	38, // 10: aoyorouter.docs.api.v1.LogEntry.request_time:type_name -> google.protobuf.Timestamp
+	38, // 11: aoyorouter.docs.api.v1.LogEntry.created_at:type_name -> google.protobuf.Timestamp
+	33, // 12: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
+	33, // 13: aoyorouter.docs.api.v1.GetUsageLogsResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_docs_api_v1_types_proto_init() }
@@ -1444,7 +2364,7 @@ func file_docs_api_v1_types_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_docs_api_v1_types_proto_rawDesc), len(file_docs_api_v1_types_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   24,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

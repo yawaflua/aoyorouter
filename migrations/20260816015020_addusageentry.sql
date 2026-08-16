@@ -1,0 +1,27 @@
+-- +goose Up
+CREATE TABLE usage_entries (
+	id SERIAL PRIMARY KEY,
+	api_token UUID NOT NULL,
+	provider VARCHAR(255) NOT NULL,
+	latency BIGINT NOT NULL,
+
+	input_tokens BIGINT NOT NULL,
+	output_tokens BIGINT NOT NULL,
+	total_tokens BIGINT NOT NULL,
+	cached_tokens BIGINT NOT NULL,
+
+	model VARCHAR(255) NOT NULL,
+	reasoning VARCHAR(255) NOT NULL,
+	failed BOOLEAN NOT NULL DEFAULT FALSE,
+	error TEXT DEFAULT NULL,
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT fk_api_token FOREIGN KEY (api_token) REFERENCES api_keys(id) ON DELETE CASCADE
+);
+
+ALTER TABLE providers
+	ADD COLUMN IF NOT EXISTS credentials JSONB NOT NULL DEFAULT '{}'::jsonb;
+
+-- +goose Down
+ALTER TABLE providers DROP COLUMN IF EXISTS credentials;
+DROP TABLE IF EXISTS usage_entries;

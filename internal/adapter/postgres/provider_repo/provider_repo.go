@@ -39,7 +39,7 @@ func (r *ProviderRepo) CreateProvider(ctx context.Context, name string, provider
 func (r *ProviderRepo) GetProvider(ctx context.Context, id string) (*models.Provider, error) {
 	conn := r.DB.GetConnection(ctx)
 
-	sql, args, err := squirrel.Select("id", "name", "type", "client_id", "client_secret", "created_at", "updated_at").
+	sql, args, err := squirrel.Select("id", "name", "type", "client_id", "client_secret", "credentials", "created_at", "updated_at").
 		From("providers").
 		Where(squirrel.Eq{"id": id}).
 		PlaceholderFormat(squirrel.Dollar).
@@ -59,7 +59,7 @@ func (r *ProviderRepo) GetProvider(ctx context.Context, id string) (*models.Prov
 
 func (r *ProviderRepo) GetProviders(ctx context.Context) ([]*models.Provider, error) {
 	conn := r.DB.GetConnection(ctx)
-	sql, args, err := squirrel.Select("id", "name", "type", "client_id", "client_secret", "created_at", "updated_at").
+	sql, args, err := squirrel.Select("id", "name", "type", "client_id", "client_secret", "credentials", "created_at", "updated_at").
 		From("providers").
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
@@ -76,7 +76,7 @@ func (r *ProviderRepo) GetProviders(ctx context.Context) ([]*models.Provider, er
 	var providers []*models.Provider
 	for rows.Next() {
 		var provider models.Provider
-		if err := rows.Scan(&provider.ID, &provider.Name, &provider.Type, &provider.ClientID, &provider.ClientSecret, &provider.CreatedAt, &provider.UpdatedAt); err != nil {
+		if err := scanProvider(rows, &provider); err != nil {
 			return nil, fmt.Errorf("postgres.provider_repo.GetProviders: %w", err)
 		}
 		providers = append(providers, &provider)
@@ -89,7 +89,7 @@ func (r *ProviderRepo) GetProviders(ctx context.Context) ([]*models.Provider, er
 
 func (r *ProviderRepo) GetProviderById(ctx context.Context, id string) (*models.Provider, error) {
 	conn := r.DB.GetConnection(ctx)
-	sql, args, err := squirrel.Select("id", "name", "type", "client_id", "client_secret", "created_at", "updated_at").
+	sql, args, err := squirrel.Select("id", "name", "type", "client_id", "client_secret", "credentials", "created_at", "updated_at").
 		From("providers").
 		Where(squirrel.Eq{"id": id}).
 		PlaceholderFormat(squirrel.Dollar).
@@ -126,12 +126,32 @@ func (r *ProviderRepo) UpdateProvider(ctx context.Context, id, name string, prov
 	return r.GetProviderById(ctx, id)
 }
 
+func (r *ProviderRepo) UpdateProviderCredentials(ctx context.Context, id, clientSecret string, credentials map[string]any) (*models.Provider, error) {
+	if credentials == nil {
+		credentials = map[string]any{}
+	}
+	sql, args, err := squirrel.Update("providers").
+		Set("client_secret", clientSecret).
+		Set("credentials", credentials).
+		Set("updated_at", time.Now()).
+		Where(squirrel.Eq{"id": id}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("postgres.provider_repo.UpdateProviderCredentials: %w", err)
+	}
+	if _, err = r.DB.GetConnection(ctx).Exec(ctx, sql, args...); err != nil {
+		return nil, fmt.Errorf("postgres.provider_repo.UpdateProviderCredentials: %w", err)
+	}
+	return r.GetProvider(ctx, id)
+}
+
 type rowScanner interface {
 	Scan(dest ...any) error
 }
 
 func scanProvider(row rowScanner, provider *models.Provider) error {
-	return row.Scan(&provider.ID, &provider.Name, &provider.Type, &provider.ClientID, &provider.ClientSecret, &provider.CreatedAt, &provider.UpdatedAt)
+	return row.Scan(&provider.ID, &provider.Name, &provider.Type, &provider.ClientID, &provider.ClientSecret, &provider.Credentials, &provider.CreatedAt, &provider.UpdatedAt)
 }
 
 func (r *ProviderRepo) DeleteProvider(ctx context.Context, id string) error {

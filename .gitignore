@@ -1,3 +1,4 @@
 auth
 config.yaml
 go.sum
+.env

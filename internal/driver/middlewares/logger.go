@@ -27,6 +27,7 @@ func LoggerInterceptor(next runtime.HandlerFunc) runtime.HandlerFunc {
 				"request completed",
 				slog.String("method", r.Method),
 				slog.String("duration", time.Since(start).String()),
+				slog.String("endpoint", r.URL.Path),
 			)
 		}()
 	}

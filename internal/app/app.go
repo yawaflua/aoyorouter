@@ -59,6 +59,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initProvider,
 		a.initHttpServer,
 		a.initCPAPI,
+		a.runHTTPServer,
 	}
 
 	for _, dep := range deps {
@@ -77,25 +78,28 @@ func (a *App) initCPAPI(ctx context.Context) error {
 	}
 
 	if a.provider.CLIProxyAPI(ctx) == nil {
-		panic("failed to initialize cpapi")
+		panic("It should to be panic into CLIProxyAPI func not here")
 	}
 
-	if err := a.provider.CLIProxyAPI(ctx).Run(ctx); err != nil {
-		panic(err)
-	}
+	go func() {
+		if err := a.provider.CLIProxyAPI(ctx).Run(ctx); err != nil {
+			a.provider.Logger().Error("CLIProxyAPI run error", "error", err)
+		}
+	}()
+
 	return nil
 }
 
 func (a *App) initProvider(ctx context.Context) error {
 	a.provider = provider.New()
 	if a.provider.Config().InitialPassword == "" {
-		a.provider.Logger().Info("no initial password set. Set INITIAL_PASSWORD environment variable to set a custom password")
+		a.provider.Logger().Warn("no initial password set. Set INITIAL_PASSWORD environment variable to set a custom password")
 		token := make([]byte, 20)
 		if _, err := rand.Read(token); err != nil {
 			panic(err)
 		}
 		a.provider.Config().InitialPassword = hex.EncodeToString(token)
-		a.provider.Logger().Info("initial password set", "password", a.provider.Config().InitialPassword)
+		a.provider.Logger().Warn("one-time initial password set", "password", a.provider.Config().InitialPassword)
 		os.Setenv("INITIAL_PASSWORD", a.provider.Config().InitialPassword)
 	}
 
@@ -107,8 +111,8 @@ func (a *App) initHttpServer(ctx context.Context) error {
 
 	restServer := runtime.NewServeMux(
 		runtime.WithMiddlewares(
-			// middlewares.UserRepoToCtxInterceptor(a.provider.UserRepo(ctx)),
-			// middlewares.AuthInterceptor,
+			middlewares.UserRepoToCtxInterceptor(a.provider.UserRepo(ctx)),
+			middlewares.AuthInterceptor,
 			middlewares.LoggerToCtxInterceptor(a.provider.Logger()),
 			middlewares.RequestIDInterceptor,
 			middlewares.LoggerInterceptor,
@@ -119,7 +123,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	}
 
 	httpServer := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", a.provider.Config().HTTP.Host, a.provider.Config().HTTP.Port),
+		Addr:    fmt.Sprintf("%s:%d", a.provider.Config().HTTP.Host, a.provider.Config().HTTP.Port+1),
 		Handler: restServer,
 	}
 	a.httpServer = httpServer
@@ -137,7 +141,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) runHTTPServer(_ context.Context) error {
+func (a *App) runHTTPServer(ctx context.Context) error {
 	a.provider.Logger().Info("http server started", slog.String("address", a.httpServer.Addr))
 
 	if err := a.httpServer.ListenAndServe(); err != nil {

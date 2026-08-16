@@ -98,6 +98,36 @@
         ]
       }
     },
+    "/api/aoyo/v1/api-keys/{apiKeyId}/logs": {
+      "get": {
+        "operationId": "AoyoRouterService_GetProviderLogsByKeyID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetProviderLogsByKeyIDResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "apiKeyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
     "/api/aoyo/v1/healthz": {
       "get": {
         "operationId": "AoyoRouterService_HealthCheck",
@@ -164,6 +194,164 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1CreateProviderRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
+    "/api/aoyo/v1/providers/authorize": {
+      "post": {
+        "operationId": "AoyoRouterService_CreateProviderAuthorization",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateProviderAuthorizationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateProviderAuthorizationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
+    "/api/aoyo/v1/providers/authorize/complete": {
+      "post": {
+        "operationId": "AoyoRouterService_CompleteProviderAuthorization",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ProviderAuthorizationStatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CompleteProviderAuthorizationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
+    "/api/aoyo/v1/providers/authorize/{state}": {
+      "get": {
+        "operationId": "AoyoRouterService_GetProviderAuthorizationStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ProviderAuthorizationStatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "state",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
+    "/api/aoyo/v1/providers/codex/authorize": {
+      "post": {
+        "operationId": "AoyoRouterService_CreateCodexAuthorization",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateCodexAuthorizationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateCodexAuthorizationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
+    "/api/aoyo/v1/providers/codex/complete": {
+      "post": {
+        "operationId": "AoyoRouterService_CompleteCodexAuthorization",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CompleteCodexAuthorizationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CompleteCodexAuthorizationRequest"
             }
           }
         ],
@@ -266,36 +454,6 @@
         ]
       }
     },
-    "/api/aoyo/v1/providers/{providerId}/logs": {
-      "get": {
-        "operationId": "AoyoRouterService_GetProviderLogs",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetProviderLogsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "providerId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "AoyoRouterService"
-        ]
-      }
-    },
     "/api/aoyo/v1/signin": {
       "post": {
         "operationId": "AoyoRouterService_SignIn",
@@ -321,6 +479,44 @@
             "schema": {
               "$ref": "#/definitions/v1SignInRequest"
             }
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
+    "/api/aoyo/v1/usage/logs": {
+      "get": {
+        "operationId": "AoyoRouterService_GetUsageLogs",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetUsageLogsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
           }
         ],
         "tags": [
@@ -389,6 +585,39 @@
         }
       }
     },
+    "v1CompleteCodexAuthorizationRequest": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string"
+        },
+        "callbackUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "v1CompleteCodexAuthorizationResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "providerId": {
+          "type": "string"
+        }
+      }
+    },
+    "v1CompleteProviderAuthorizationRequest": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string"
+        },
+        "callbackUrl": {
+          "type": "string"
+        }
+      }
+    },
     "v1CreateApiKeyRequest": {
       "type": "object",
       "properties": {
@@ -411,6 +640,69 @@
         },
         "apiKeyId": {
           "type": "string"
+        }
+      }
+    },
+    "v1CreateCodexAuthorizationRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "customUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "v1CreateCodexAuthorizationResponse": {
+      "type": "object",
+      "properties": {
+        "authorizationUrl": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "providerId": {
+          "type": "string"
+        }
+      }
+    },
+    "v1CreateProviderAuthorizationRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/v1ProviderType"
+        },
+        "customUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "v1CreateProviderAuthorizationResponse": {
+      "type": "object",
+      "properties": {
+        "authorizationUrl": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "providerId": {
+          "type": "string"
+        },
+        "flow": {
+          "type": "string"
+        },
+        "userCode": {
+          "type": "string"
+        },
+        "expiresIn": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -470,7 +762,7 @@
         }
       }
     },
-    "v1GetProviderLogsResponse": {
+    "v1GetProviderLogsByKeyIDResponse": {
       "type": "object",
       "properties": {
         "logs": {
@@ -479,6 +771,10 @@
             "type": "object",
             "$ref": "#/definitions/v1LogEntry"
           }
+        },
+        "totalTokens": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -502,6 +798,18 @@
         }
       }
     },
+    "v1GetUsageLogsResponse": {
+      "type": "object",
+      "properties": {
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1LogEntry"
+          }
+        }
+      }
+    },
     "v1HealthCheckResponse": {
       "type": "object",
       "properties": {
@@ -514,19 +822,50 @@
       "type": "object",
       "properties": {
         "provider": {
-          "$ref": "#/definitions/v1Provider"
-        },
-        "body": {
           "type": "string"
         },
-        "timestamp": {
+        "apiKeyId": {
           "type": "string"
         },
-        "response": {
+        "latency": {
+          "type": "string",
+          "format": "int64"
+        },
+        "inputTokens": {
+          "type": "string",
+          "format": "int64"
+        },
+        "outputTokens": {
+          "type": "string",
+          "format": "int64"
+        },
+        "totalTokens": {
+          "type": "string",
+          "format": "int64"
+        },
+        "cachedTokens": {
+          "type": "string",
+          "format": "int64"
+        },
+        "model": {
           "type": "string"
         },
-        "timestampResponse": {
+        "reasoningEffort": {
           "type": "string"
+        },
+        "failed": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": "string"
+        },
+        "requestTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },
@@ -547,6 +886,56 @@
         },
         "clientSecret": {
           "type": "string"
+        },
+        "quota": {
+          "$ref": "#/definitions/v1ProviderQuota"
+        }
+      }
+    },
+    "v1ProviderAuthorizationStatusResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "providerId": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ProviderQuota": {
+      "type": "object",
+      "properties": {
+        "primary": {
+          "$ref": "#/definitions/v1ProviderQuotaWindow"
+        },
+        "secondary": {
+          "$ref": "#/definitions/v1ProviderQuotaWindow"
+        },
+        "planType": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ProviderQuotaWindow": {
+      "type": "object",
+      "properties": {
+        "usedPercent": {
+          "type": "number",
+          "format": "double"
+        },
+        "resetsAt": {
+          "type": "string"
+        },
+        "windowMinutes": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -556,7 +945,9 @@
         "PROVIDER_TYPE_UNSPECIFIED",
         "PROVIDER_TYPE_CUSTOM",
         "PROVIDER_TYPE_OPENAI",
-        "PROVIDER_TYPE_ANTHROPIC"
+        "PROVIDER_TYPE_ANTHROPIC",
+        "PROVIDER_TYPE_KIMI",
+        "PROVIDER_TYPE_GROK"
       ],
       "default": "PROVIDER_TYPE_UNSPECIFIED"
     },

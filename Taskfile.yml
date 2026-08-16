@@ -21,10 +21,10 @@ tasks:
     cmds:
       - protoc -I . --openapiv2_out=./docs/  ./docs/api/v1/*.proto
 
-      - mv ./docs/docs/api/* ./docs/api
+      - mv ./docs/docs/api/v1/* ./docs/api/v1/
       - rm -rf ./docs/docs
 
-
+  
   goose-up:
     desc: "run goose up"
     dotenv: [".env"]

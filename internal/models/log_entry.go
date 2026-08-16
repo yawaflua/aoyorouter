@@ -1,10 +1,30 @@
 package models
 
-type LogEntry struct {
-	ID         string `json:"id"`
-	ProviderID string `json:"provider_id"`
-	Message    string `json:"message"`
+import (
+	"time"
 
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	"github.com/google/uuid"
+)
+
+type UsageEntry struct {
+	ID       uuid.UUID `json:"id"`
+	ApiTokenID uuid.UUID `json:"api_token"`
+
+
+	Provider string `json:"provider"`
+	Latency  int    `json:"latency"`
+	
+
+	InputTokens  int64 `json:"input_tokens"`
+	OutputTokens int64 `json:"output_tokens"`
+	TotalTokens  int64 `json:"total_tokens"`
+	CachedTokens int64 `json:"cached_tokens"`
+
+	Model     string `json:"model"`
+	Reasoning string `json:"reasoning"`
+	Failed    bool   `json:"failed"`
+	Error     string `json:"error,omitempty"`
+
+	RequestedAt time.Time `json:"requested_at"`
+	CreatedAt   time.Time `json:"created_at"`
 }

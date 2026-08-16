@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/router-for-me/CLIProxyAPI/v6/sdk/access"
+	"github.com/router-for-me/CLIProxyAPI/v7/sdk/access"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/apikey_repo"
 )
 
@@ -34,7 +34,7 @@ func (a AccessProvider) Authenticate(ctx context.Context, r *http.Request) (*acc
 		if key.Key == token {
 			return &access.Result{
 				Provider:  "aoyorouter.AccessProvider",
-				Principal: key.Name,
+				Principal: key.ID,
 			}, nil
 		}
 	}

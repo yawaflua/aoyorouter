@@ -26,69 +26,98 @@ var File_docs_api_v1_project_proto protoreflect.FileDescriptor
 
 const file_docs_api_v1_project_proto_rawDesc = "" +
 	"\n" +
-	"\x19docs/api/v1/project.proto\x12\x16aoyorouter.docs.api.v1\x1a\x17docs/api/v1/types.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto2\xe1\f\n" +
+	"\x19docs/api/v1/project.proto\x12\x16aoyorouter.docs.api.v1\x1a\x17docs/api/v1/types.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto2\xf6\x15\n" +
 	"\x11AoyoRouterService\x12p\n" +
 	"\vHealthCheck\x12\x16.google.protobuf.Empty\x1a+.aoyorouter.docs.api.v1.HealthCheckResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/aoyo/v1/healthz\x12w\n" +
 	"\x06SignIn\x12%.aoyorouter.docs.api.v1.SignInRequest\x1a&.aoyorouter.docs.api.v1.SignInResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/aoyo/v1/signin\x12\x92\x01\n" +
-	"\x0eCreateProvider\x12-.aoyorouter.docs.api.v1.CreateProviderRequest\x1a..aoyorouter.docs.api.v1.CreateProviderResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/api/aoyo/v1/providers\x12\x94\x01\n" +
+	"\x0eCreateProvider\x12-.aoyorouter.docs.api.v1.CreateProviderRequest\x1a..aoyorouter.docs.api.v1.CreateProviderResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/api/aoyo/v1/providers\x12\xc0\x01\n" +
+	"\x18CreateCodexAuthorization\x127.aoyorouter.docs.api.v1.CreateCodexAuthorizationRequest\x1a8.aoyorouter.docs.api.v1.CreateCodexAuthorizationResponse\"1\x82\xd3\xe4\x93\x02+:\x01*\"&/api/aoyo/v1/providers/codex/authorize\x12\xc5\x01\n" +
+	"\x1aCompleteCodexAuthorization\x129.aoyorouter.docs.api.v1.CompleteCodexAuthorizationRequest\x1a:.aoyorouter.docs.api.v1.CompleteCodexAuthorizationResponse\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/api/aoyo/v1/providers/codex/complete\x12\xc3\x01\n" +
+	"\x1bCreateProviderAuthorization\x12:.aoyorouter.docs.api.v1.CreateProviderAuthorizationRequest\x1a;.aoyorouter.docs.api.v1.CreateProviderAuthorizationResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/aoyo/v1/providers/authorize\x12\xd0\x01\n" +
+	"\x1dCompleteProviderAuthorization\x12<.aoyorouter.docs.api.v1.CompleteProviderAuthorizationRequest\x1a;.aoyorouter.docs.api.v1.ProviderAuthorizationStatusResponse\"4\x82\xd3\xe4\x93\x02.:\x01*\")/api/aoyo/v1/providers/authorize/complete\x12\xce\x01\n" +
+	"\x1eGetProviderAuthorizationStatus\x12=.aoyorouter.docs.api.v1.GetProviderAuthorizationStatusRequest\x1a;.aoyorouter.docs.api.v1.ProviderAuthorizationStatusResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/aoyo/v1/providers/authorize/{state}\x12\x94\x01\n" +
 	"\vGetProvider\x12*.aoyorouter.docs.api.v1.GetProviderRequest\x1a+.aoyorouter.docs.api.v1.GetProviderResponse\",\x82\xd3\xe4\x93\x02&\x12$/api/aoyo/v1/providers/{provider_id}\x12\x95\x01\n" +
 	"\x10GetProvidersList\x12/.aoyorouter.docs.api.v1.GetProvidersListRequest\x1a0.aoyorouter.docs.api.v1.GetProvidersListResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/aoyo/v1/providers\x12\xa0\x01\n" +
 	"\x0eUpdateProvider\x12-.aoyorouter.docs.api.v1.UpdateProviderRequest\x1a..aoyorouter.docs.api.v1.UpdateProviderResponse\"/\x82\xd3\xe4\x93\x02):\x01*2$/api/aoyo/v1/providers/{provider_id}\x12\x9d\x01\n" +
 	"\x0eDeleteProvider\x12-.aoyorouter.docs.api.v1.DeleteProviderRequest\x1a..aoyorouter.docs.api.v1.DeleteProviderResponse\",\x82\xd3\xe4\x93\x02&*$/api/aoyo/v1/providers/{provider_id}\x12\x8b\x01\n" +
 	"\fCreateApiKey\x12+.aoyorouter.docs.api.v1.CreateApiKeyRequest\x1a,.aoyorouter.docs.api.v1.CreateApiKeyResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/api/aoyo/v1/api-keys\x12\x95\x01\n" +
 	"\fDeleteApiKey\x12+.aoyorouter.docs.api.v1.DeleteApiKeyRequest\x1a,.aoyorouter.docs.api.v1.DeleteApiKeyResponse\"*\x82\xd3\xe4\x93\x02$*\"/api/aoyo/v1/api-keys/{api_key_id}\x12\x8b\x01\n" +
-	"\rGetApiKeyList\x12,.aoyorouter.docs.api.v1.GetApiKeyListRequest\x1a-.aoyorouter.docs.api.v1.GetApiKeyListResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/aoyo/v1/api-keys\x12\xa5\x01\n" +
-	"\x0fGetProviderLogs\x12..aoyorouter.docs.api.v1.GetProviderLogsRequest\x1a/.aoyorouter.docs.api.v1.GetProviderLogsResponse\"1\x82\xd3\xe4\x93\x02+\x12)/api/aoyo/v1/providers/{provider_id}/logsBAZ?github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter;aoyorouterb\x06proto3"
+	"\rGetApiKeyList\x12,.aoyorouter.docs.api.v1.GetApiKeyListRequest\x1a-.aoyorouter.docs.api.v1.GetApiKeyListResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/aoyo/v1/api-keys\x12\x8a\x01\n" +
+	"\fGetUsageLogs\x12+.aoyorouter.docs.api.v1.GetUsageLogsRequest\x1a,.aoyorouter.docs.api.v1.GetUsageLogsResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/aoyo/v1/usage/logs\x12\xb8\x01\n" +
+	"\x16GetProviderLogsByKeyID\x125.aoyorouter.docs.api.v1.GetProviderLogsByKeyIDRequest\x1a6.aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse\"/\x82\xd3\xe4\x93\x02)\x12'/api/aoyo/v1/api-keys/{api_key_id}/logsBAZ?github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter;aoyorouterb\x06proto3"
 
 var file_docs_api_v1_project_proto_goTypes = []any{
-	(*emptypb.Empty)(nil),            // 0: google.protobuf.Empty
-	(*SignInRequest)(nil),            // 1: aoyorouter.docs.api.v1.SignInRequest
-	(*CreateProviderRequest)(nil),    // 2: aoyorouter.docs.api.v1.CreateProviderRequest
-	(*GetProviderRequest)(nil),       // 3: aoyorouter.docs.api.v1.GetProviderRequest
-	(*GetProvidersListRequest)(nil),  // 4: aoyorouter.docs.api.v1.GetProvidersListRequest
-	(*UpdateProviderRequest)(nil),    // 5: aoyorouter.docs.api.v1.UpdateProviderRequest
-	(*DeleteProviderRequest)(nil),    // 6: aoyorouter.docs.api.v1.DeleteProviderRequest
-	(*CreateApiKeyRequest)(nil),      // 7: aoyorouter.docs.api.v1.CreateApiKeyRequest
-	(*DeleteApiKeyRequest)(nil),      // 8: aoyorouter.docs.api.v1.DeleteApiKeyRequest
-	(*GetApiKeyListRequest)(nil),     // 9: aoyorouter.docs.api.v1.GetApiKeyListRequest
-	(*GetProviderLogsRequest)(nil),   // 10: aoyorouter.docs.api.v1.GetProviderLogsRequest
-	(*HealthCheckResponse)(nil),      // 11: aoyorouter.docs.api.v1.HealthCheckResponse
-	(*SignInResponse)(nil),           // 12: aoyorouter.docs.api.v1.SignInResponse
-	(*CreateProviderResponse)(nil),   // 13: aoyorouter.docs.api.v1.CreateProviderResponse
-	(*GetProviderResponse)(nil),      // 14: aoyorouter.docs.api.v1.GetProviderResponse
-	(*GetProvidersListResponse)(nil), // 15: aoyorouter.docs.api.v1.GetProvidersListResponse
-	(*UpdateProviderResponse)(nil),   // 16: aoyorouter.docs.api.v1.UpdateProviderResponse
-	(*DeleteProviderResponse)(nil),   // 17: aoyorouter.docs.api.v1.DeleteProviderResponse
-	(*CreateApiKeyResponse)(nil),     // 18: aoyorouter.docs.api.v1.CreateApiKeyResponse
-	(*DeleteApiKeyResponse)(nil),     // 19: aoyorouter.docs.api.v1.DeleteApiKeyResponse
-	(*GetApiKeyListResponse)(nil),    // 20: aoyorouter.docs.api.v1.GetApiKeyListResponse
-	(*GetProviderLogsResponse)(nil),  // 21: aoyorouter.docs.api.v1.GetProviderLogsResponse
+	(*emptypb.Empty)(nil),                         // 0: google.protobuf.Empty
+	(*SignInRequest)(nil),                         // 1: aoyorouter.docs.api.v1.SignInRequest
+	(*CreateProviderRequest)(nil),                 // 2: aoyorouter.docs.api.v1.CreateProviderRequest
+	(*CreateCodexAuthorizationRequest)(nil),       // 3: aoyorouter.docs.api.v1.CreateCodexAuthorizationRequest
+	(*CompleteCodexAuthorizationRequest)(nil),     // 4: aoyorouter.docs.api.v1.CompleteCodexAuthorizationRequest
+	(*CreateProviderAuthorizationRequest)(nil),    // 5: aoyorouter.docs.api.v1.CreateProviderAuthorizationRequest
+	(*CompleteProviderAuthorizationRequest)(nil),  // 6: aoyorouter.docs.api.v1.CompleteProviderAuthorizationRequest
+	(*GetProviderAuthorizationStatusRequest)(nil), // 7: aoyorouter.docs.api.v1.GetProviderAuthorizationStatusRequest
+	(*GetProviderRequest)(nil),                    // 8: aoyorouter.docs.api.v1.GetProviderRequest
+	(*GetProvidersListRequest)(nil),               // 9: aoyorouter.docs.api.v1.GetProvidersListRequest
+	(*UpdateProviderRequest)(nil),                 // 10: aoyorouter.docs.api.v1.UpdateProviderRequest
+	(*DeleteProviderRequest)(nil),                 // 11: aoyorouter.docs.api.v1.DeleteProviderRequest
+	(*CreateApiKeyRequest)(nil),                   // 12: aoyorouter.docs.api.v1.CreateApiKeyRequest
+	(*DeleteApiKeyRequest)(nil),                   // 13: aoyorouter.docs.api.v1.DeleteApiKeyRequest
+	(*GetApiKeyListRequest)(nil),                  // 14: aoyorouter.docs.api.v1.GetApiKeyListRequest
+	(*GetUsageLogsRequest)(nil),                   // 15: aoyorouter.docs.api.v1.GetUsageLogsRequest
+	(*GetProviderLogsByKeyIDRequest)(nil),         // 16: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDRequest
+	(*HealthCheckResponse)(nil),                   // 17: aoyorouter.docs.api.v1.HealthCheckResponse
+	(*SignInResponse)(nil),                        // 18: aoyorouter.docs.api.v1.SignInResponse
+	(*CreateProviderResponse)(nil),                // 19: aoyorouter.docs.api.v1.CreateProviderResponse
+	(*CreateCodexAuthorizationResponse)(nil),      // 20: aoyorouter.docs.api.v1.CreateCodexAuthorizationResponse
+	(*CompleteCodexAuthorizationResponse)(nil),    // 21: aoyorouter.docs.api.v1.CompleteCodexAuthorizationResponse
+	(*CreateProviderAuthorizationResponse)(nil),   // 22: aoyorouter.docs.api.v1.CreateProviderAuthorizationResponse
+	(*ProviderAuthorizationStatusResponse)(nil),   // 23: aoyorouter.docs.api.v1.ProviderAuthorizationStatusResponse
+	(*GetProviderResponse)(nil),                   // 24: aoyorouter.docs.api.v1.GetProviderResponse
+	(*GetProvidersListResponse)(nil),              // 25: aoyorouter.docs.api.v1.GetProvidersListResponse
+	(*UpdateProviderResponse)(nil),                // 26: aoyorouter.docs.api.v1.UpdateProviderResponse
+	(*DeleteProviderResponse)(nil),                // 27: aoyorouter.docs.api.v1.DeleteProviderResponse
+	(*CreateApiKeyResponse)(nil),                  // 28: aoyorouter.docs.api.v1.CreateApiKeyResponse
+	(*DeleteApiKeyResponse)(nil),                  // 29: aoyorouter.docs.api.v1.DeleteApiKeyResponse
+	(*GetApiKeyListResponse)(nil),                 // 30: aoyorouter.docs.api.v1.GetApiKeyListResponse
+	(*GetUsageLogsResponse)(nil),                  // 31: aoyorouter.docs.api.v1.GetUsageLogsResponse
+	(*GetProviderLogsByKeyIDResponse)(nil),        // 32: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse
 }
 var file_docs_api_v1_project_proto_depIdxs = []int32{
 	0,  // 0: aoyorouter.docs.api.v1.AoyoRouterService.HealthCheck:input_type -> google.protobuf.Empty
 	1,  // 1: aoyorouter.docs.api.v1.AoyoRouterService.SignIn:input_type -> aoyorouter.docs.api.v1.SignInRequest
 	2,  // 2: aoyorouter.docs.api.v1.AoyoRouterService.CreateProvider:input_type -> aoyorouter.docs.api.v1.CreateProviderRequest
-	3,  // 3: aoyorouter.docs.api.v1.AoyoRouterService.GetProvider:input_type -> aoyorouter.docs.api.v1.GetProviderRequest
-	4,  // 4: aoyorouter.docs.api.v1.AoyoRouterService.GetProvidersList:input_type -> aoyorouter.docs.api.v1.GetProvidersListRequest
-	5,  // 5: aoyorouter.docs.api.v1.AoyoRouterService.UpdateProvider:input_type -> aoyorouter.docs.api.v1.UpdateProviderRequest
-	6,  // 6: aoyorouter.docs.api.v1.AoyoRouterService.DeleteProvider:input_type -> aoyorouter.docs.api.v1.DeleteProviderRequest
-	7,  // 7: aoyorouter.docs.api.v1.AoyoRouterService.CreateApiKey:input_type -> aoyorouter.docs.api.v1.CreateApiKeyRequest
-	8,  // 8: aoyorouter.docs.api.v1.AoyoRouterService.DeleteApiKey:input_type -> aoyorouter.docs.api.v1.DeleteApiKeyRequest
-	9,  // 9: aoyorouter.docs.api.v1.AoyoRouterService.GetApiKeyList:input_type -> aoyorouter.docs.api.v1.GetApiKeyListRequest
-	10, // 10: aoyorouter.docs.api.v1.AoyoRouterService.GetProviderLogs:input_type -> aoyorouter.docs.api.v1.GetProviderLogsRequest
-	11, // 11: aoyorouter.docs.api.v1.AoyoRouterService.HealthCheck:output_type -> aoyorouter.docs.api.v1.HealthCheckResponse
-	12, // 12: aoyorouter.docs.api.v1.AoyoRouterService.SignIn:output_type -> aoyorouter.docs.api.v1.SignInResponse
-	13, // 13: aoyorouter.docs.api.v1.AoyoRouterService.CreateProvider:output_type -> aoyorouter.docs.api.v1.CreateProviderResponse
-	14, // 14: aoyorouter.docs.api.v1.AoyoRouterService.GetProvider:output_type -> aoyorouter.docs.api.v1.GetProviderResponse
-	15, // 15: aoyorouter.docs.api.v1.AoyoRouterService.GetProvidersList:output_type -> aoyorouter.docs.api.v1.GetProvidersListResponse
-	16, // 16: aoyorouter.docs.api.v1.AoyoRouterService.UpdateProvider:output_type -> aoyorouter.docs.api.v1.UpdateProviderResponse
-	17, // 17: aoyorouter.docs.api.v1.AoyoRouterService.DeleteProvider:output_type -> aoyorouter.docs.api.v1.DeleteProviderResponse
-	18, // 18: aoyorouter.docs.api.v1.AoyoRouterService.CreateApiKey:output_type -> aoyorouter.docs.api.v1.CreateApiKeyResponse
-	19, // 19: aoyorouter.docs.api.v1.AoyoRouterService.DeleteApiKey:output_type -> aoyorouter.docs.api.v1.DeleteApiKeyResponse
-	20, // 20: aoyorouter.docs.api.v1.AoyoRouterService.GetApiKeyList:output_type -> aoyorouter.docs.api.v1.GetApiKeyListResponse
-	21, // 21: aoyorouter.docs.api.v1.AoyoRouterService.GetProviderLogs:output_type -> aoyorouter.docs.api.v1.GetProviderLogsResponse
-	11, // [11:22] is the sub-list for method output_type
-	0,  // [0:11] is the sub-list for method input_type
+	3,  // 3: aoyorouter.docs.api.v1.AoyoRouterService.CreateCodexAuthorization:input_type -> aoyorouter.docs.api.v1.CreateCodexAuthorizationRequest
+	4,  // 4: aoyorouter.docs.api.v1.AoyoRouterService.CompleteCodexAuthorization:input_type -> aoyorouter.docs.api.v1.CompleteCodexAuthorizationRequest
+	5,  // 5: aoyorouter.docs.api.v1.AoyoRouterService.CreateProviderAuthorization:input_type -> aoyorouter.docs.api.v1.CreateProviderAuthorizationRequest
+	6,  // 6: aoyorouter.docs.api.v1.AoyoRouterService.CompleteProviderAuthorization:input_type -> aoyorouter.docs.api.v1.CompleteProviderAuthorizationRequest
+	7,  // 7: aoyorouter.docs.api.v1.AoyoRouterService.GetProviderAuthorizationStatus:input_type -> aoyorouter.docs.api.v1.GetProviderAuthorizationStatusRequest
+	8,  // 8: aoyorouter.docs.api.v1.AoyoRouterService.GetProvider:input_type -> aoyorouter.docs.api.v1.GetProviderRequest
+	9,  // 9: aoyorouter.docs.api.v1.AoyoRouterService.GetProvidersList:input_type -> aoyorouter.docs.api.v1.GetProvidersListRequest
+	10, // 10: aoyorouter.docs.api.v1.AoyoRouterService.UpdateProvider:input_type -> aoyorouter.docs.api.v1.UpdateProviderRequest
+	11, // 11: aoyorouter.docs.api.v1.AoyoRouterService.DeleteProvider:input_type -> aoyorouter.docs.api.v1.DeleteProviderRequest
+	12, // 12: aoyorouter.docs.api.v1.AoyoRouterService.CreateApiKey:input_type -> aoyorouter.docs.api.v1.CreateApiKeyRequest
+	13, // 13: aoyorouter.docs.api.v1.AoyoRouterService.DeleteApiKey:input_type -> aoyorouter.docs.api.v1.DeleteApiKeyRequest
+	14, // 14: aoyorouter.docs.api.v1.AoyoRouterService.GetApiKeyList:input_type -> aoyorouter.docs.api.v1.GetApiKeyListRequest
+	15, // 15: aoyorouter.docs.api.v1.AoyoRouterService.GetUsageLogs:input_type -> aoyorouter.docs.api.v1.GetUsageLogsRequest
+	16, // 16: aoyorouter.docs.api.v1.AoyoRouterService.GetProviderLogsByKeyID:input_type -> aoyorouter.docs.api.v1.GetProviderLogsByKeyIDRequest
+	17, // 17: aoyorouter.docs.api.v1.AoyoRouterService.HealthCheck:output_type -> aoyorouter.docs.api.v1.HealthCheckResponse
+	18, // 18: aoyorouter.docs.api.v1.AoyoRouterService.SignIn:output_type -> aoyorouter.docs.api.v1.SignInResponse
+	19, // 19: aoyorouter.docs.api.v1.AoyoRouterService.CreateProvider:output_type -> aoyorouter.docs.api.v1.CreateProviderResponse
+	20, // 20: aoyorouter.docs.api.v1.AoyoRouterService.CreateCodexAuthorization:output_type -> aoyorouter.docs.api.v1.CreateCodexAuthorizationResponse
+	21, // 21: aoyorouter.docs.api.v1.AoyoRouterService.CompleteCodexAuthorization:output_type -> aoyorouter.docs.api.v1.CompleteCodexAuthorizationResponse
+	22, // 22: aoyorouter.docs.api.v1.AoyoRouterService.CreateProviderAuthorization:output_type -> aoyorouter.docs.api.v1.CreateProviderAuthorizationResponse
+	23, // 23: aoyorouter.docs.api.v1.AoyoRouterService.CompleteProviderAuthorization:output_type -> aoyorouter.docs.api.v1.ProviderAuthorizationStatusResponse
+	23, // 24: aoyorouter.docs.api.v1.AoyoRouterService.GetProviderAuthorizationStatus:output_type -> aoyorouter.docs.api.v1.ProviderAuthorizationStatusResponse
+	24, // 25: aoyorouter.docs.api.v1.AoyoRouterService.GetProvider:output_type -> aoyorouter.docs.api.v1.GetProviderResponse
+	25, // 26: aoyorouter.docs.api.v1.AoyoRouterService.GetProvidersList:output_type -> aoyorouter.docs.api.v1.GetProvidersListResponse
+	26, // 27: aoyorouter.docs.api.v1.AoyoRouterService.UpdateProvider:output_type -> aoyorouter.docs.api.v1.UpdateProviderResponse
+	27, // 28: aoyorouter.docs.api.v1.AoyoRouterService.DeleteProvider:output_type -> aoyorouter.docs.api.v1.DeleteProviderResponse
+	28, // 29: aoyorouter.docs.api.v1.AoyoRouterService.CreateApiKey:output_type -> aoyorouter.docs.api.v1.CreateApiKeyResponse
+	29, // 30: aoyorouter.docs.api.v1.AoyoRouterService.DeleteApiKey:output_type -> aoyorouter.docs.api.v1.DeleteApiKeyResponse
+	30, // 31: aoyorouter.docs.api.v1.AoyoRouterService.GetApiKeyList:output_type -> aoyorouter.docs.api.v1.GetApiKeyListResponse
+	31, // 32: aoyorouter.docs.api.v1.AoyoRouterService.GetUsageLogs:output_type -> aoyorouter.docs.api.v1.GetUsageLogsResponse
+	32, // 33: aoyorouter.docs.api.v1.AoyoRouterService.GetProviderLogsByKeyID:output_type -> aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse
+	17, // [17:34] is the sub-list for method output_type
+	0,  // [0:17] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name

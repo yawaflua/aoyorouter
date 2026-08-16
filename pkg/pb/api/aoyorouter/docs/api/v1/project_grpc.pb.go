@@ -20,17 +20,23 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AoyoRouterService_HealthCheck_FullMethodName      = "/aoyorouter.docs.api.v1.AoyoRouterService/HealthCheck"
-	AoyoRouterService_SignIn_FullMethodName           = "/aoyorouter.docs.api.v1.AoyoRouterService/SignIn"
-	AoyoRouterService_CreateProvider_FullMethodName   = "/aoyorouter.docs.api.v1.AoyoRouterService/CreateProvider"
-	AoyoRouterService_GetProvider_FullMethodName      = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProvider"
-	AoyoRouterService_GetProvidersList_FullMethodName = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProvidersList"
-	AoyoRouterService_UpdateProvider_FullMethodName   = "/aoyorouter.docs.api.v1.AoyoRouterService/UpdateProvider"
-	AoyoRouterService_DeleteProvider_FullMethodName   = "/aoyorouter.docs.api.v1.AoyoRouterService/DeleteProvider"
-	AoyoRouterService_CreateApiKey_FullMethodName     = "/aoyorouter.docs.api.v1.AoyoRouterService/CreateApiKey"
-	AoyoRouterService_DeleteApiKey_FullMethodName     = "/aoyorouter.docs.api.v1.AoyoRouterService/DeleteApiKey"
-	AoyoRouterService_GetApiKeyList_FullMethodName    = "/aoyorouter.docs.api.v1.AoyoRouterService/GetApiKeyList"
-	AoyoRouterService_GetProviderLogs_FullMethodName  = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProviderLogs"
+	AoyoRouterService_HealthCheck_FullMethodName                    = "/aoyorouter.docs.api.v1.AoyoRouterService/HealthCheck"
+	AoyoRouterService_SignIn_FullMethodName                         = "/aoyorouter.docs.api.v1.AoyoRouterService/SignIn"
+	AoyoRouterService_CreateProvider_FullMethodName                 = "/aoyorouter.docs.api.v1.AoyoRouterService/CreateProvider"
+	AoyoRouterService_CreateCodexAuthorization_FullMethodName       = "/aoyorouter.docs.api.v1.AoyoRouterService/CreateCodexAuthorization"
+	AoyoRouterService_CompleteCodexAuthorization_FullMethodName     = "/aoyorouter.docs.api.v1.AoyoRouterService/CompleteCodexAuthorization"
+	AoyoRouterService_CreateProviderAuthorization_FullMethodName    = "/aoyorouter.docs.api.v1.AoyoRouterService/CreateProviderAuthorization"
+	AoyoRouterService_CompleteProviderAuthorization_FullMethodName  = "/aoyorouter.docs.api.v1.AoyoRouterService/CompleteProviderAuthorization"
+	AoyoRouterService_GetProviderAuthorizationStatus_FullMethodName = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProviderAuthorizationStatus"
+	AoyoRouterService_GetProvider_FullMethodName                    = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProvider"
+	AoyoRouterService_GetProvidersList_FullMethodName               = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProvidersList"
+	AoyoRouterService_UpdateProvider_FullMethodName                 = "/aoyorouter.docs.api.v1.AoyoRouterService/UpdateProvider"
+	AoyoRouterService_DeleteProvider_FullMethodName                 = "/aoyorouter.docs.api.v1.AoyoRouterService/DeleteProvider"
+	AoyoRouterService_CreateApiKey_FullMethodName                   = "/aoyorouter.docs.api.v1.AoyoRouterService/CreateApiKey"
+	AoyoRouterService_DeleteApiKey_FullMethodName                   = "/aoyorouter.docs.api.v1.AoyoRouterService/DeleteApiKey"
+	AoyoRouterService_GetApiKeyList_FullMethodName                  = "/aoyorouter.docs.api.v1.AoyoRouterService/GetApiKeyList"
+	AoyoRouterService_GetUsageLogs_FullMethodName                   = "/aoyorouter.docs.api.v1.AoyoRouterService/GetUsageLogs"
+	AoyoRouterService_GetProviderLogsByKeyID_FullMethodName         = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProviderLogsByKeyID"
 )
 
 // AoyoRouterServiceClient is the client API for AoyoRouterService service.
@@ -40,6 +46,11 @@ type AoyoRouterServiceClient interface {
 	HealthCheck(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthCheckResponse, error)
 	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*SignInResponse, error)
 	CreateProvider(ctx context.Context, in *CreateProviderRequest, opts ...grpc.CallOption) (*CreateProviderResponse, error)
+	CreateCodexAuthorization(ctx context.Context, in *CreateCodexAuthorizationRequest, opts ...grpc.CallOption) (*CreateCodexAuthorizationResponse, error)
+	CompleteCodexAuthorization(ctx context.Context, in *CompleteCodexAuthorizationRequest, opts ...grpc.CallOption) (*CompleteCodexAuthorizationResponse, error)
+	CreateProviderAuthorization(ctx context.Context, in *CreateProviderAuthorizationRequest, opts ...grpc.CallOption) (*CreateProviderAuthorizationResponse, error)
+	CompleteProviderAuthorization(ctx context.Context, in *CompleteProviderAuthorizationRequest, opts ...grpc.CallOption) (*ProviderAuthorizationStatusResponse, error)
+	GetProviderAuthorizationStatus(ctx context.Context, in *GetProviderAuthorizationStatusRequest, opts ...grpc.CallOption) (*ProviderAuthorizationStatusResponse, error)
 	GetProvider(ctx context.Context, in *GetProviderRequest, opts ...grpc.CallOption) (*GetProviderResponse, error)
 	GetProvidersList(ctx context.Context, in *GetProvidersListRequest, opts ...grpc.CallOption) (*GetProvidersListResponse, error)
 	UpdateProvider(ctx context.Context, in *UpdateProviderRequest, opts ...grpc.CallOption) (*UpdateProviderResponse, error)
@@ -47,7 +58,8 @@ type AoyoRouterServiceClient interface {
 	CreateApiKey(ctx context.Context, in *CreateApiKeyRequest, opts ...grpc.CallOption) (*CreateApiKeyResponse, error)
 	DeleteApiKey(ctx context.Context, in *DeleteApiKeyRequest, opts ...grpc.CallOption) (*DeleteApiKeyResponse, error)
 	GetApiKeyList(ctx context.Context, in *GetApiKeyListRequest, opts ...grpc.CallOption) (*GetApiKeyListResponse, error)
-	GetProviderLogs(ctx context.Context, in *GetProviderLogsRequest, opts ...grpc.CallOption) (*GetProviderLogsResponse, error)
+	GetUsageLogs(ctx context.Context, in *GetUsageLogsRequest, opts ...grpc.CallOption) (*GetUsageLogsResponse, error)
+	GetProviderLogsByKeyID(ctx context.Context, in *GetProviderLogsByKeyIDRequest, opts ...grpc.CallOption) (*GetProviderLogsByKeyIDResponse, error)
 }
 
 type aoyoRouterServiceClient struct {
@@ -82,6 +94,56 @@ func (c *aoyoRouterServiceClient) CreateProvider(ctx context.Context, in *Create
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateProviderResponse)
 	err := c.cc.Invoke(ctx, AoyoRouterService_CreateProvider_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aoyoRouterServiceClient) CreateCodexAuthorization(ctx context.Context, in *CreateCodexAuthorizationRequest, opts ...grpc.CallOption) (*CreateCodexAuthorizationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateCodexAuthorizationResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_CreateCodexAuthorization_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aoyoRouterServiceClient) CompleteCodexAuthorization(ctx context.Context, in *CompleteCodexAuthorizationRequest, opts ...grpc.CallOption) (*CompleteCodexAuthorizationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompleteCodexAuthorizationResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_CompleteCodexAuthorization_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aoyoRouterServiceClient) CreateProviderAuthorization(ctx context.Context, in *CreateProviderAuthorizationRequest, opts ...grpc.CallOption) (*CreateProviderAuthorizationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateProviderAuthorizationResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_CreateProviderAuthorization_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aoyoRouterServiceClient) CompleteProviderAuthorization(ctx context.Context, in *CompleteProviderAuthorizationRequest, opts ...grpc.CallOption) (*ProviderAuthorizationStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProviderAuthorizationStatusResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_CompleteProviderAuthorization_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aoyoRouterServiceClient) GetProviderAuthorizationStatus(ctx context.Context, in *GetProviderAuthorizationStatusRequest, opts ...grpc.CallOption) (*ProviderAuthorizationStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProviderAuthorizationStatusResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_GetProviderAuthorizationStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -158,10 +220,20 @@ func (c *aoyoRouterServiceClient) GetApiKeyList(ctx context.Context, in *GetApiK
 	return out, nil
 }
 
-func (c *aoyoRouterServiceClient) GetProviderLogs(ctx context.Context, in *GetProviderLogsRequest, opts ...grpc.CallOption) (*GetProviderLogsResponse, error) {
+func (c *aoyoRouterServiceClient) GetUsageLogs(ctx context.Context, in *GetUsageLogsRequest, opts ...grpc.CallOption) (*GetUsageLogsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetProviderLogsResponse)
-	err := c.cc.Invoke(ctx, AoyoRouterService_GetProviderLogs_FullMethodName, in, out, cOpts...)
+	out := new(GetUsageLogsResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_GetUsageLogs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aoyoRouterServiceClient) GetProviderLogsByKeyID(ctx context.Context, in *GetProviderLogsByKeyIDRequest, opts ...grpc.CallOption) (*GetProviderLogsByKeyIDResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetProviderLogsByKeyIDResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_GetProviderLogsByKeyID_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -175,6 +247,11 @@ type AoyoRouterServiceServer interface {
 	HealthCheck(context.Context, *emptypb.Empty) (*HealthCheckResponse, error)
 	SignIn(context.Context, *SignInRequest) (*SignInResponse, error)
 	CreateProvider(context.Context, *CreateProviderRequest) (*CreateProviderResponse, error)
+	CreateCodexAuthorization(context.Context, *CreateCodexAuthorizationRequest) (*CreateCodexAuthorizationResponse, error)
+	CompleteCodexAuthorization(context.Context, *CompleteCodexAuthorizationRequest) (*CompleteCodexAuthorizationResponse, error)
+	CreateProviderAuthorization(context.Context, *CreateProviderAuthorizationRequest) (*CreateProviderAuthorizationResponse, error)
+	CompleteProviderAuthorization(context.Context, *CompleteProviderAuthorizationRequest) (*ProviderAuthorizationStatusResponse, error)
+	GetProviderAuthorizationStatus(context.Context, *GetProviderAuthorizationStatusRequest) (*ProviderAuthorizationStatusResponse, error)
 	GetProvider(context.Context, *GetProviderRequest) (*GetProviderResponse, error)
 	GetProvidersList(context.Context, *GetProvidersListRequest) (*GetProvidersListResponse, error)
 	UpdateProvider(context.Context, *UpdateProviderRequest) (*UpdateProviderResponse, error)
@@ -182,7 +259,8 @@ type AoyoRouterServiceServer interface {
 	CreateApiKey(context.Context, *CreateApiKeyRequest) (*CreateApiKeyResponse, error)
 	DeleteApiKey(context.Context, *DeleteApiKeyRequest) (*DeleteApiKeyResponse, error)
 	GetApiKeyList(context.Context, *GetApiKeyListRequest) (*GetApiKeyListResponse, error)
-	GetProviderLogs(context.Context, *GetProviderLogsRequest) (*GetProviderLogsResponse, error)
+	GetUsageLogs(context.Context, *GetUsageLogsRequest) (*GetUsageLogsResponse, error)
+	GetProviderLogsByKeyID(context.Context, *GetProviderLogsByKeyIDRequest) (*GetProviderLogsByKeyIDResponse, error)
 	mustEmbedUnimplementedAoyoRouterServiceServer()
 }
 
@@ -201,6 +279,21 @@ func (UnimplementedAoyoRouterServiceServer) SignIn(context.Context, *SignInReque
 }
 func (UnimplementedAoyoRouterServiceServer) CreateProvider(context.Context, *CreateProviderRequest) (*CreateProviderResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateProvider not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) CreateCodexAuthorization(context.Context, *CreateCodexAuthorizationRequest) (*CreateCodexAuthorizationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateCodexAuthorization not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) CompleteCodexAuthorization(context.Context, *CompleteCodexAuthorizationRequest) (*CompleteCodexAuthorizationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteCodexAuthorization not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) CreateProviderAuthorization(context.Context, *CreateProviderAuthorizationRequest) (*CreateProviderAuthorizationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateProviderAuthorization not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) CompleteProviderAuthorization(context.Context, *CompleteProviderAuthorizationRequest) (*ProviderAuthorizationStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteProviderAuthorization not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) GetProviderAuthorizationStatus(context.Context, *GetProviderAuthorizationStatusRequest) (*ProviderAuthorizationStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetProviderAuthorizationStatus not implemented")
 }
 func (UnimplementedAoyoRouterServiceServer) GetProvider(context.Context, *GetProviderRequest) (*GetProviderResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetProvider not implemented")
@@ -223,8 +316,11 @@ func (UnimplementedAoyoRouterServiceServer) DeleteApiKey(context.Context, *Delet
 func (UnimplementedAoyoRouterServiceServer) GetApiKeyList(context.Context, *GetApiKeyListRequest) (*GetApiKeyListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetApiKeyList not implemented")
 }
-func (UnimplementedAoyoRouterServiceServer) GetProviderLogs(context.Context, *GetProviderLogsRequest) (*GetProviderLogsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetProviderLogs not implemented")
+func (UnimplementedAoyoRouterServiceServer) GetUsageLogs(context.Context, *GetUsageLogsRequest) (*GetUsageLogsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUsageLogs not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) GetProviderLogsByKeyID(context.Context, *GetProviderLogsByKeyIDRequest) (*GetProviderLogsByKeyIDResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetProviderLogsByKeyID not implemented")
 }
 func (UnimplementedAoyoRouterServiceServer) mustEmbedUnimplementedAoyoRouterServiceServer() {}
 func (UnimplementedAoyoRouterServiceServer) testEmbeddedByValue()                           {}
@@ -297,6 +393,96 @@ func _AoyoRouterService_CreateProvider_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AoyoRouterServiceServer).CreateProvider(ctx, req.(*CreateProviderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AoyoRouterService_CreateCodexAuthorization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCodexAuthorizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).CreateCodexAuthorization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_CreateCodexAuthorization_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).CreateCodexAuthorization(ctx, req.(*CreateCodexAuthorizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AoyoRouterService_CompleteCodexAuthorization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteCodexAuthorizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).CompleteCodexAuthorization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_CompleteCodexAuthorization_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).CompleteCodexAuthorization(ctx, req.(*CompleteCodexAuthorizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AoyoRouterService_CreateProviderAuthorization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateProviderAuthorizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).CreateProviderAuthorization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_CreateProviderAuthorization_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).CreateProviderAuthorization(ctx, req.(*CreateProviderAuthorizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AoyoRouterService_CompleteProviderAuthorization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteProviderAuthorizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).CompleteProviderAuthorization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_CompleteProviderAuthorization_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).CompleteProviderAuthorization(ctx, req.(*CompleteProviderAuthorizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AoyoRouterService_GetProviderAuthorizationStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProviderAuthorizationStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).GetProviderAuthorizationStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_GetProviderAuthorizationStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).GetProviderAuthorizationStatus(ctx, req.(*GetProviderAuthorizationStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -427,20 +613,38 @@ func _AoyoRouterService_GetApiKeyList_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AoyoRouterService_GetProviderLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetProviderLogsRequest)
+func _AoyoRouterService_GetUsageLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUsageLogsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AoyoRouterServiceServer).GetProviderLogs(ctx, in)
+		return srv.(AoyoRouterServiceServer).GetUsageLogs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AoyoRouterService_GetProviderLogs_FullMethodName,
+		FullMethod: AoyoRouterService_GetUsageLogs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AoyoRouterServiceServer).GetProviderLogs(ctx, req.(*GetProviderLogsRequest))
+		return srv.(AoyoRouterServiceServer).GetUsageLogs(ctx, req.(*GetUsageLogsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AoyoRouterService_GetProviderLogsByKeyID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProviderLogsByKeyIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).GetProviderLogsByKeyID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_GetProviderLogsByKeyID_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).GetProviderLogsByKeyID(ctx, req.(*GetProviderLogsByKeyIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -463,6 +667,26 @@ var AoyoRouterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateProvider",
 			Handler:    _AoyoRouterService_CreateProvider_Handler,
+		},
+		{
+			MethodName: "CreateCodexAuthorization",
+			Handler:    _AoyoRouterService_CreateCodexAuthorization_Handler,
+		},
+		{
+			MethodName: "CompleteCodexAuthorization",
+			Handler:    _AoyoRouterService_CompleteCodexAuthorization_Handler,
+		},
+		{
+			MethodName: "CreateProviderAuthorization",
+			Handler:    _AoyoRouterService_CreateProviderAuthorization_Handler,
+		},
+		{
+			MethodName: "CompleteProviderAuthorization",
+			Handler:    _AoyoRouterService_CompleteProviderAuthorization_Handler,
+		},
+		{
+			MethodName: "GetProviderAuthorizationStatus",
+			Handler:    _AoyoRouterService_GetProviderAuthorizationStatus_Handler,
 		},
 		{
 			MethodName: "GetProvider",
@@ -493,8 +717,12 @@ var AoyoRouterService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AoyoRouterService_GetApiKeyList_Handler,
 		},
 		{
-			MethodName: "GetProviderLogs",
-			Handler:    _AoyoRouterService_GetProviderLogs_Handler,
+			MethodName: "GetUsageLogs",
+			Handler:    _AoyoRouterService_GetUsageLogs_Handler,
+		},
+		{
+			MethodName: "GetProviderLogsByKeyID",
+			Handler:    _AoyoRouterService_GetProviderLogsByKeyID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -57,6 +57,24 @@ func (r *ApiKeyRepo) CreateApiKey(ctx context.Context, name string) (*models.Api
 	}, nil
 }
 
+func (r *ApiKeyRepo) GetApiKeyByID(ctx context.Context, id string) (*models.ApiKey, error) {
+	conn := r.DB.GetConnection(ctx)
+
+	sql, args, err := squirrel.Select("id", "name", "key", "created_at", "updated_at", "is_deleted", "is_active").
+		From("api_keys").
+		Where(squirrel.Eq{"id": id}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeyByID: %w", err)
+	}
+	var apiKey models.ApiKey
+	if err := conn.QueryRow(ctx, sql, args...).Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive); err != nil {
+		return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeyByID: %w", err)
+	}
+	return &apiKey, nil
+}
+
 func (r *ApiKeyRepo) GetApiKeys(ctx context.Context) ([]*models.ApiKey, error) {
 	conn := r.DB.GetConnection(ctx)
 	rows, err := conn.Query(ctx, "SELECT id, name, key, created_at, updated_at, is_deleted, is_active FROM api_keys WHERE is_deleted = false")

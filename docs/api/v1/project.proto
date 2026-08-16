@@ -29,6 +29,40 @@ service AoyoRouterService {
         };
     }
 
+    rpc CreateCodexAuthorization(CreateCodexAuthorizationRequest) returns (CreateCodexAuthorizationResponse) {
+        option (google.api.http) = {
+            post: "/api/aoyo/v1/providers/codex/authorize"
+            body: "*"
+        };
+    }
+
+    rpc CompleteCodexAuthorization(CompleteCodexAuthorizationRequest) returns (CompleteCodexAuthorizationResponse) {
+        option (google.api.http) = {
+            post: "/api/aoyo/v1/providers/codex/complete"
+            body: "*"
+        };
+    }
+
+    rpc CreateProviderAuthorization(CreateProviderAuthorizationRequest) returns (CreateProviderAuthorizationResponse) {
+        option (google.api.http) = {
+            post: "/api/aoyo/v1/providers/authorize"
+            body: "*"
+        };
+    }
+
+    rpc CompleteProviderAuthorization(CompleteProviderAuthorizationRequest) returns (ProviderAuthorizationStatusResponse) {
+        option (google.api.http) = {
+            post: "/api/aoyo/v1/providers/authorize/complete"
+            body: "*"
+        };
+    }
+
+    rpc GetProviderAuthorizationStatus(GetProviderAuthorizationStatusRequest) returns (ProviderAuthorizationStatusResponse) {
+        option (google.api.http) = {
+            get: "/api/aoyo/v1/providers/authorize/{state}"
+        };
+    }
+
     rpc GetProvider(GetProviderRequest) returns (GetProviderResponse) {
         option (google.api.http) = {
             get: "/api/aoyo/v1/providers/{provider_id}"
@@ -40,7 +74,7 @@ service AoyoRouterService {
             get: "/api/aoyo/v1/providers"
         };
     }
-    
+
     rpc UpdateProvider(UpdateProviderRequest) returns (UpdateProviderResponse) {
         option (google.api.http) = {
             patch: "/api/aoyo/v1/providers/{provider_id}"
@@ -73,9 +107,15 @@ service AoyoRouterService {
         };
     }
 
-    rpc GetProviderLogs(GetProviderLogsRequest) returns (GetProviderLogsResponse) {
+    rpc GetUsageLogs(GetUsageLogsRequest) returns (GetUsageLogsResponse) {
         option (google.api.http) = {
-            get: "/api/aoyo/v1/providers/{provider_id}/logs"
+            get: "/api/aoyo/v1/usage/logs"
+        };
+    }
+
+    rpc GetProviderLogsByKeyID(GetProviderLogsByKeyIDRequest) returns (GetProviderLogsByKeyIDResponse) {
+        option (google.api.http) = {
+            get: "/api/aoyo/v1/api-keys/{api_key_id}/logs"
         };
     }
 }

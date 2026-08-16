@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package aoyorouter.docs.api.v1;
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter;aoyorouter";
 
@@ -27,11 +28,76 @@ message CreateProviderResponse {
     string provider_id = 2;
 }
 
+message CreateCodexAuthorizationRequest {
+    string name = 1;
+    string custom_url = 2;
+}
+message CreateCodexAuthorizationResponse {
+    string authorization_url = 1;
+    string state = 2;
+    string provider_id = 3;
+}
+
+message CompleteCodexAuthorizationRequest {
+    string state = 1;
+    string callback_url = 2;
+}
+message CompleteCodexAuthorizationResponse {
+    string status = 1;
+    string provider_id = 2;
+}
+
+message CreateProviderAuthorizationRequest {
+    string name = 1;
+    ProviderType type = 2;
+    string custom_url = 3;
+}
+
+message CreateProviderAuthorizationResponse {
+    string authorization_url = 1;
+    string state = 2;
+    string provider_id = 3;
+    string flow = 4;
+    string user_code = 5;
+    int32 expires_in = 6;
+}
+
+message CompleteProviderAuthorizationRequest {
+    string state = 1;
+    string callback_url = 2;
+}
+
+message GetProviderAuthorizationStatusRequest {
+    string state = 1;
+}
+
+message ProviderAuthorizationStatusResponse {
+    string status = 1;
+    string provider_id = 2;
+    string error = 3;
+}
+
 enum ProviderType {
     PROVIDER_TYPE_UNSPECIFIED = 0;
     PROVIDER_TYPE_CUSTOM = 1;
     PROVIDER_TYPE_OPENAI = 2;
     PROVIDER_TYPE_ANTHROPIC = 3;
+    PROVIDER_TYPE_KIMI = 4;
+    PROVIDER_TYPE_GROK = 5;
+    PROVIDER_TYPE_ANTIGRAVITY = 6;
+}
+
+message ProviderQuotaWindow {
+    double used_percent = 1;
+    string resets_at = 2;
+    int32 window_minutes = 3;
+}
+
+message ProviderQuota {
+    ProviderQuotaWindow primary = 1;
+    ProviderQuotaWindow secondary = 2;
+    string plan_type = 3;
+    string error = 4;
 }
 
 message Provider {
@@ -40,6 +106,7 @@ message Provider {
     ProviderType type = 3;
     string client_id = 4;
     string client_secret = 5;
+    ProviderQuota quota = 6;
 }
 
 message GetProviderRequest {
@@ -50,7 +117,7 @@ message GetProviderResponse {
 }
 
 message GetProvidersListRequest {
-    
+
 }
 message GetProvidersListResponse {
     repeated Provider providers = 1;
@@ -92,7 +159,7 @@ message DeleteApiKeyResponse {
 }
 
 message GetApiKeyListRequest {
-    
+
 }
 message GetApiKeyListResponse {
     repeated ApiKey api_keys = 1;
@@ -105,16 +172,33 @@ message ApiKey {
 }
 
 message LogEntry {
-    Provider provider = 1;
-    string body = 2;
-    string timestamp = 3;
-    string response = 4;
-    string timestamp_response = 5;
+    string provider = 1;
+    string api_key_id = 2;
+    int64 latency = 3;
+    int64 input_tokens = 4;
+    int64 output_tokens = 5;
+    int64 total_tokens = 6;
+    int64 cached_tokens = 7;
+    string model = 8;
+    string reasoning_effort = 9;
+    bool failed = 10;
+    string error = 11;
+    google.protobuf.Timestamp request_time = 12;
+    google.protobuf.Timestamp created_at = 13;
 }
 
-message GetProviderLogsRequest {
-    string provider_id = 1;
+message GetUsageLogsRequest {
+    int32 limit = 2;
+    int32 offset = 3;
 }
-message GetProviderLogsResponse {
+message GetProviderLogsByKeyIDRequest {
+    string api_key_id = 1;
+}
+message GetProviderLogsByKeyIDResponse {
+    repeated LogEntry logs = 1;
+    int64 total_tokens = 2;
+}
+
+message GetUsageLogsResponse {
     repeated LogEntry logs = 1;
 }
