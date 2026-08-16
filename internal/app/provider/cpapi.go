@@ -186,12 +186,22 @@ func (p *P) registerAllProviders(ctx context.Context) error {
 			if strings.HasPrefix(provider.ClientSecret, "oauth:") {
 				continue
 			}
-			cfg.XAIKey = append(cfg.XAIKey, config.XAIKey{APIKey: provider.ClientSecret, BaseURL: provider.ClientID, Prefix: "grok"})
+			cfg.XAIKey = append(cfg.XAIKey, config.XAIKey{
+				APIKey:  provider.ClientSecret,
+				BaseURL: provider.ClientID,
+				Prefix:  "grok",
+			})
 		case aoyorouter.ProviderType_PROVIDER_TYPE_KIMI:
 			if strings.HasPrefix(provider.ClientSecret, "oauth:") {
 				continue
 			}
-			cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{Name: "kimi", BaseURL: provider.ClientID, APIKeyEntries: []config.OpenAICompatibilityAPIKey{{APIKey: provider.ClientSecret}}})
+			cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{
+				Name:    "kimi",
+				BaseURL: provider.ClientID,
+				APIKeyEntries: []config.OpenAICompatibilityAPIKey{
+					{APIKey: provider.ClientSecret},
+				},
+			})
 
 		case aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM:
 			cfg.OpenAICompatibility = append(

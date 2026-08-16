@@ -1,178 +1,16 @@
-export type ProviderType =
-  | 'PROVIDER_TYPE_CUSTOM'
-  | 'PROVIDER_TYPE_OPENAI'
-  | 'PROVIDER_TYPE_ANTHROPIC'
-  | 'PROVIDER_TYPE_KIMI'
-  | 'PROVIDER_TYPE_GROK'
-  | 'PROVIDER_TYPE_ANTIGRAVITY'
-
-export interface QuotaWindow {
-  usedPercent: number
-  resetsAt: string
-  windowMinutes: number
-}
-
-export interface ProviderQuota {
-  primary: QuotaWindow | null
-  secondary: QuotaWindow | null
-  planType: string
-  error: string
-}
-
-export interface ApiKey {
-  id: string
-  name: string
-  isAdmin: string
-}
-
-export interface Provider {
-  id: string
-  name: string
-  type: ProviderType
-  customUrl: string
-  quota: ProviderQuota | null
-}
-
-export interface LogEntry {
-  provider: string
-  apiKeyId: string
-  latency: number
-  inputTokens: number
-  outputTokens: number
-  totalTokens: number
-  cachedTokens: number
-  model: string
-  reasoningEffort: string
-  failed: boolean
-  error: string
-  requestTime: string
-  createdAt: string
-}
-
-export interface ApiKeyUsage {
-  logs: LogEntry[]
-  totalTokens: number
-}
-
-export interface CreatedApiKey {
-  id: string
-  value: string
-}
-
-export interface CodexAuthorization {
-  authorizationUrl: string
-  state: string
-  providerId: string
-}
-
-export interface ProviderAuthorization {
-  authorizationUrl: string
-  state: string
-  providerId: string
-  flow: 'device' | 'callback'
-  userCode: string
-  expiresIn: number
-}
-
-export interface ProviderAuthorizationStatus {
-  status: 'pending' | 'ok' | 'error'
-  providerId: string
-  error: string
-}
-
-type JsonRecord = Record<string, unknown>
+import { ApiError, errorMessage } from './models/apierror'
+import type { ApiKey, ApiKeyUsage, CreatedApiKey } from './models/apikey'
+import {
+  parseAuthorizationStatus,
+  type CodexAuthorization,
+  type ProviderAuthorization,
+  type ProviderAuthorizationStatus,
+} from './models/authorization'
+import { parseLogEntry, type LogEntry } from './models/logentry'
+import { parseProvider, type Provider, type ProviderType } from './models/providers'
+import { record, text, type JsonRecord } from './utils'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
-
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public readonly status: number,
-  ) {
-    super(message)
-    this.name = 'ApiError'
-  }
-}
-
-function record(value: unknown): JsonRecord {
-  return value && typeof value === 'object' ? (value as JsonRecord) : {}
-}
-
-function text(value: unknown): string {
-  return typeof value === 'string' ? value : ''
-}
-
-function providerType(value: unknown): ProviderType {
-  if (value === 2 || value === 'PROVIDER_TYPE_OPENAI') return 'PROVIDER_TYPE_OPENAI'
-  if (value === 3 || value === 'PROVIDER_TYPE_ANTHROPIC') return 'PROVIDER_TYPE_ANTHROPIC'
-  if (value === 4 || value === 'PROVIDER_TYPE_KIMI') return 'PROVIDER_TYPE_KIMI'
-  if (value === 5 || value === 'PROVIDER_TYPE_GROK') return 'PROVIDER_TYPE_GROK'
-  if (value === 6 || value === 'PROVIDER_TYPE_ANTIGRAVITY') return 'PROVIDER_TYPE_ANTIGRAVITY'
-  return 'PROVIDER_TYPE_CUSTOM'
-}
-
-function parseProvider(value: unknown): Provider {
-  const item = record(value)
-  return {
-    id: text(item.id),
-    name: text(item.name),
-    type: providerType(item.type),
-    customUrl: text(item.clientId ?? item.client_id),
-    quota: parseQuota(item.quota),
-  }
-}
-
-function parseLogEntry(value: unknown): LogEntry {
-  const item = record(value)
-  return {
-    provider: text(item.provider),
-    apiKeyId: text(item.apiKeyId ?? item.api_key_id),
-    latency: Number(item.latency ?? 0),
-    inputTokens: Number(item.inputTokens ?? item.input_tokens ?? 0),
-    outputTokens: Number(item.outputTokens ?? item.output_tokens ?? 0),
-    totalTokens: Number(item.totalTokens ?? item.total_tokens ?? 0),
-    cachedTokens: Number(item.cachedTokens ?? item.cached_tokens ?? 0),
-    model: text(item.model),
-    reasoningEffort: text(item.reasoningEffort ?? item.reasoning_effort),
-    failed: item.failed === true,
-    error: text(item.error),
-    requestTime: text(item.requestTime ?? item.request_time),
-    createdAt: text(item.createdAt ?? item.created_at),
-  }
-}
-
-function parseQuota(value: unknown): ProviderQuota | null {
-  const item = record(value)
-  if (!Object.keys(item).length) return null
-  const parseWindow = (windowValue: unknown): QuotaWindow | null => {
-    const window = record(windowValue)
-    if (!Object.keys(window).length) return null
-    return {
-      usedPercent: Number(window.usedPercent ?? window.used_percent ?? 0),
-      resetsAt: text(window.resetsAt ?? window.resets_at),
-      windowMinutes: Number(window.windowMinutes ?? window.window_minutes ?? 0),
-    }
-  }
-  return {
-    primary: parseWindow(item.primary),
-    secondary: parseWindow(item.secondary),
-    planType: text(item.planType ?? item.plan_type),
-    error: text(item.error),
-  }
-}
-
-async function errorMessage(response: Response): Promise<string> {
-  const fallback = response.status === 401 ? 'The password is incorrect.' : `Server returned status ${response.status}.`
-  const body = await response.text()
-  if (!body) return fallback
-
-  try {
-    const parsed = record(JSON.parse(body))
-    return text(parsed.message) || text(parsed.error) || fallback
-  } catch {
-    return body.length < 240 ? body : fallback
-  }
-}
 
 export class ApiClient {
   constructor(private readonly password: string) {}
@@ -331,15 +169,5 @@ export class ApiClient {
       logs: Array.isArray(response.logs) ? response.logs.map(parseLogEntry).slice(0, 10) : [],
       totalTokens: Number(response.totalTokens ?? response.total_tokens ?? 0),
     }
-  }
-}
-
-function parseAuthorizationStatus(value: unknown): ProviderAuthorizationStatus {
-  const response = record(value)
-  const rawStatus = text(response.status)
-  return {
-    status: rawStatus === 'ok' || rawStatus === 'error' ? rawStatus : 'pending',
-    providerId: text(response.providerId ?? response.provider_id),
-    error: text(response.error),
   }
 }
