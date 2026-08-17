@@ -14,6 +14,22 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     go build -o ./app cmd/app/main.go
 
+    
+FROM oven/bun:1-alpine AS frontend
+WORKDIR /app
+
+COPY frontend/package.json frontend/bun.lock ./
+RUN bun install --frozen-lockfile
+
+COPY frontend/index.html frontend/svelte.config.js frontend/vite.config.ts frontend/tsconfig*.json ./
+COPY frontend/public ./public
+COPY frontend/src ./src
+
+ARG VITE_API_BASE_URL=""
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+
+RUN bun run build
+
 FROM alpine:latest
 
 WORKDIR /app
@@ -27,11 +43,12 @@ RUN apk add --no-cache curl \
 
 COPY --from=builder --chown=appuser:appgroup /app/app ./
 COPY --from=builder --chown=appuser:appgroup /app/migrations ./migrations/
+COPY --from=frontend --chown=appuser:appgroup /app/dist ./dist
 
 USER appuser
 
 EXPOSE 8080
-ENV env=stage
+ENV ENV=prod
 
 CMD ["./app"]
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \

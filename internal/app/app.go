@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/yawaflua/aoyorouter/frontend"
 	"github.com/yawaflua/aoyorouter/internal/app/provider"
 	"github.com/yawaflua/aoyorouter/internal/driver/middlewares"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
@@ -118,14 +119,20 @@ func (a *App) initHttpServer(ctx context.Context) error {
 			middlewares.LoggerInterceptor,
 		),
 	)
+	rootMux := http.NewServeMux()
+	rootMux.Handle("/api/", restServer)
+	if a.provider.Config().Env != "dev" {
+		rootMux.Handle("/", frontend.Handler())
+	}
 	if err := aoyorouter.RegisterAoyoRouterServiceHandlerServer(context.Background(), restServer, server); err != nil {
 		panic(err)
 	}
 
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", a.provider.Config().HTTP.Host, a.provider.Config().HTTP.Port+1),
-		Handler: restServer,
+		Handler: rootMux,
 	}
+
 	a.httpServer = httpServer
 
 	a.provider.Closer().Add(func() error {

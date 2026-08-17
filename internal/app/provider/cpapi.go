@@ -82,6 +82,15 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 		WithAPIKeyClientProvider(cliproxy.NewAPIKeyClientProvider()).
 		WithLocalManagementPassword(p.Config().InitialPassword).
 		WithServerOptions(api.WithEngineConfigurator(func(e *gin.Engine) {
+			e.Any("/dashboard", func(c *gin.Context) {
+				proxy.ServeHTTP(c.Writer, c.Request)
+			})
+			e.Any("/assets/*path", func(c *gin.Context) {
+				proxy.ServeHTTP(c.Writer, c.Request)
+			})
+			e.Any("/favicon.svg", func(c *gin.Context) {
+				proxy.ServeHTTP(c.Writer, c.Request)
+			})
 			e.Any("/api/aoyo/v1/*path", func(c *gin.Context) {
 				origin := c.GetHeader("Origin")
 				if origin != "" {

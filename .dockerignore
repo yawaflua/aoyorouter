@@ -1,0 +1,12 @@
+.git
+.github
+.idea
+.vscode
+frontend/node_modules
+frontend/dist
+frontend/*.log
+*.log
+*.local
+config.yaml
+auth
+proxy
