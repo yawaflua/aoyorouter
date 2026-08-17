@@ -58,7 +58,7 @@ ENV ENV=prod
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["./app"]
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=30s --start-period=15s --retries=5 \
     CMD curl --fail --silent --show-error \
     -H "Authorization: Password ${INITIAL_PASSWORD}" \
     "http://127.0.0.1:8080/api/aoyo/v1/healthz" || exit 1

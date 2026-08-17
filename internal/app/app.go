@@ -39,6 +39,10 @@ func (a *App) Start(ctx context.Context) error {
 	group, ctx := errgroup.WithContext(ctx)
 
 	group.Go(func() error {
+		return a.runHTTPServer(ctx)
+	})
+
+	group.Go(func() error {
 		a.provider.ApiKeyRepo(ctx).ProcessQueue(ctx)
 		return nil
 	})
