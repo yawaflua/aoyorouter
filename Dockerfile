@@ -30,6 +30,9 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o ./app ./cmd/app
 
+RUN --mount=type=cache,target=/go/pkg/mod \
+    GOBIN=/app/bin go install github.com/pressly/goose/v3/cmd/goose@v3.27.3
+
 FROM alpine:latest
 
 WORKDIR /app
@@ -38,17 +41,22 @@ RUN apk add --no-cache curl \
     && addgroup -S appgroup \
     && adduser -S appuser -G appgroup \
     && mkdir -p /app/auth /app/migrations \
-    && chown -R appuser:appgroup /app \
-    && touch /app/config.yaml
+    && echo "api-keys: " > /app/config.yaml \
+    && chown -R appuser:appgroup /app
+
+
 
 COPY --from=builder --chown=appuser:appgroup /app/app ./
+COPY --from=builder /app/bin/goose /usr/local/bin/goose
 COPY --from=builder --chown=appuser:appgroup /app/migrations ./migrations/
+COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 USER appuser
 
 EXPOSE 8080
 ENV ENV=prod
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["./app"]
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl --fail --silent --show-error \
