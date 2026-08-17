@@ -41,13 +41,12 @@ func (r *UsageEntryRepo) AddToQueue(ctx context.Context, usageEntry *models.Usag
 }
 
 func (r *UsageEntryRepo) ProcessQueue(ctx context.Context) {
+	r.log.Info("ApiKeyRepo processer registred")
 	for {
 		select {
-		case usageEntry, ok := <-r.queue:
-			if !ok {
-				return
-			}
-			_, err := r.SaveUsageEntry(ctx, usageEntry)
+		case usageEntry := <-r.queue:
+			r.log.Debug("Processing queue for usageentry")
+			err := r.SaveUsageEntry(ctx, usageEntry)
 			if err != nil {
 				r.log.Error("failed to save usage entry", slog.Any("err", err))
 			}
@@ -57,25 +56,22 @@ func (r *UsageEntryRepo) ProcessQueue(ctx context.Context) {
 	}
 }
 
-func (r *UsageEntryRepo) SaveUsageEntry(ctx context.Context, usageEntry *models.UsageEntry) (*models.UsageEntry, error) {
+func (r *UsageEntryRepo) SaveUsageEntry(ctx context.Context, usageEntry *models.UsageEntry) error {
 	conn := r.DB.GetConnection(ctx)
-
 	sql, args, err := squirrel.Insert("usage_entries").
-		Columns("id", "api_token", "provider", "latency", "input_tokens", "output_tokens", "total_tokens", "cached_tokens", "model", "reasoning", "failed", "error", "requested_at", "created_at").
-		Values(usageEntry.ID, usageEntry.ApiTokenID, usageEntry.Provider, usageEntry.Latency, usageEntry.InputTokens, usageEntry.OutputTokens, usageEntry.TotalTokens, usageEntry.CachedTokens, usageEntry.Model, usageEntry.Reasoning, usageEntry.Failed, usageEntry.Error, usageEntry.RequestedAt, usageEntry.CreatedAt).
-		Suffix("RETURNING id, api_token, provider, latency, input_tokens, output_tokens, total_tokens, cached_tokens, model, reasoning, failed, error, requested_at, created_at").
+		Columns("api_token", "provider", "latency", "input_tokens", "output_tokens", "total_tokens", "cached_tokens", "model", "reasoning", "failed", "error", "requested_at", "created_at").
+		Values(usageEntry.ApiTokenID, usageEntry.Provider, usageEntry.Latency, usageEntry.InputTokens, usageEntry.OutputTokens, usageEntry.TotalTokens, usageEntry.CachedTokens, usageEntry.Model, usageEntry.Reasoning, usageEntry.Failed, usageEntry.Error, usageEntry.RequestedAt, usageEntry.CreatedAt).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("UsageEntryRepo.SaveUsageEntry: %w", err)
+		return fmt.Errorf("UsageEntryRepo.SaveUsageEntry: %w", err)
 	}
 
-	var result models.UsageEntry
-	if err := conn.QueryRow(ctx, sql, args...).Scan(&result.ID, &result.ApiTokenID, &result.Provider, &result.Latency, &result.InputTokens, &result.OutputTokens, &result.TotalTokens, &result.CachedTokens, &result.Model, &result.Reasoning, &result.Failed, &result.Error, &result.RequestedAt, &result.CreatedAt); err != nil {
-		return nil, fmt.Errorf("UsageEntryRepo.SaveUsageEntry: %w", err)
+	if _, err := conn.Exec(ctx, sql, args...); err != nil {
+		return fmt.Errorf("UsageEntryRepo.SaveUsageEntry: %w", err)
 	}
 
-	return &result, nil
+	return nil
 }
 
 func (r *UsageEntryRepo) GetAllUsageEntries(ctx context.Context, limit uint64, offset uint64) ([]*models.UsageEntry, error) {

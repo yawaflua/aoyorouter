@@ -7,13 +7,11 @@ import (
 )
 
 type UsageEntry struct {
-	ID       uuid.UUID `json:"id"`
+	ID         int64     `json:"id"`
 	ApiTokenID uuid.UUID `json:"api_token"`
-
 
 	Provider string `json:"provider"`
 	Latency  int    `json:"latency"`
-	
 
 	InputTokens  int64 `json:"input_tokens"`
 	OutputTokens int64 `json:"output_tokens"`

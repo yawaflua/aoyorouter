@@ -40,13 +40,12 @@ func (r *ApiKeyRepo) AddToQueue(
 }
 
 func (r *ApiKeyRepo) ProcessQueue(ctx context.Context) {
+	r.log.Info("ApiKeyRepo processer registred")
 	for {
 		select {
-		case usageEntry, ok := <-r.queue:
-			if !ok {
-				return
-			}
-			err := r.UpdateApiKeyQuota(ctx, usageEntry)
+		case apiKey := <-r.queue:
+			r.log.Debug("Processing queue for apikeyrepo")
+			err := r.UpdateApiKeyQuota(ctx, apiKey)
 			if err != nil {
 				r.log.Error("failed to save usage entry", slog.Any("err", err))
 			}
@@ -153,7 +152,6 @@ func (r *ApiKeyRepo) UpdateApiKeyQuota(ctx context.Context, apiKey *models.ApiKe
 		case models.QuotaPeriodMinute:
 			newQuotaResetAt = apiKey.QuotaResetAt.Add(1 * time.Minute)
 		default:
-			fmt.Println("Forever")
 		}
 		apiKey.QuotaResetAt = newQuotaResetAt
 

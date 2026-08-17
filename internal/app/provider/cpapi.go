@@ -260,7 +260,6 @@ func (p *P) registerAllProviders(ctx context.Context) error {
 					p.logger.Error("Error reading response", slog.Any("err", err))
 					break
 				}
-				p.logger.Debug("Custom provider response", slog.String("body", string(body)))
 				var modelsCustom struct {
 					Data []struct {
 						ID               string   `json:"id"`

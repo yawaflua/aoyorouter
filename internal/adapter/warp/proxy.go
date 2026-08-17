@@ -51,7 +51,6 @@ func New(ctx context.Context, logger *slog.Logger, closer *closer.C, config *con
 }
 
 func (p *Warp) Proxies() map[string]map[string]*clwarp.Proxy {
-	fmt.Println(len(p.proxies))
 	return p.proxies
 }
 
@@ -93,17 +92,16 @@ func (p *Warp) CreateProxy(ctx context.Context, name string) *clwarp.Proxy {
 		p.proxies[willUseEndpoint.AddrPort.String()] = make(map[string]*clwarp.Proxy)
 	}
 	p.proxies[willUseEndpoint.AddrPort.String()][name] = proxy
-
+	err = proxy.Start()
+	if err != nil {
+		p.logger.Error("Provider.CreateProxy error when starting proxy", slog.Any("err", err))
+		return nil
+	}
 	p.closer.Add(func() error {
 		proxy.Stop()
-		fmt.Println("stopping proxy", name)
+		p.logger.Info("proxy done", slog.String("name", name))
 		return proxy.WaitContext(ctx)
 	})
 
-	go func() {
-		<-proxy.Done()
-		fmt.Println("proxy done", name)
-		delete(p.proxies[willUseEndpoint.AddrPort.String()], name)
-	}()
 	return proxy
 }

@@ -70,7 +70,6 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initProvider,
 		a.initHttpServer,
 		a.initCPAPI,
-		a.runHTTPServer,
 	}
 
 	for _, dep := range deps {
@@ -91,12 +90,6 @@ func (a *App) initCPAPI(ctx context.Context) error {
 	if a.provider.CLIProxyAPI(ctx) == nil {
 		panic("It should to be panic into CLIProxyAPI func not here")
 	}
-
-	go func() {
-		if err := a.provider.CLIProxyAPI(ctx).Run(ctx); err != nil {
-			a.provider.Logger().Error("CLIProxyAPI run error", "error", err)
-		}
-	}()
 
 	return nil
 }

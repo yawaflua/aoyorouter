@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -57,7 +59,7 @@ func (a *AoyoRouterService) addProviderConfig(ctx context.Context, cfg *config.C
 	case aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM:
 		modelUrl, err := url.Parse(fmt.Sprintf("%s/v1/models", provider.ClientID))
 		if err != nil {
-			fmt.Printf("Error when parsing custom provider: %v\n", err)
+			a.logger.Error("Error when parsing custom provider", slog.Any("err", err), slog.String("url", provider.ClientID))
 			break
 		}
 		request := &http.Request{
@@ -69,43 +71,39 @@ func (a *AoyoRouterService) addProviderConfig(ctx context.Context, cfg *config.C
 		}
 		resp, err := http.DefaultClient.Do(request)
 		if err != nil {
-			fmt.Printf("Error when fetching custom provider models: %v\n", err)
+			a.logger.Error("Error when fetching custom provider models", slog.Any("err", err), slog.String("url", modelUrl.String()))
 			break
 		}
-		defer resp.Body.Close()
-		var body []byte
-		if _, err := resp.Body.Read(body); err != nil {
-			fmt.Printf("Error when dumping custom provider response: %v\n", err)
-			break
-		}
-		fmt.Printf("Custom provider response: %s\n", string(body))
-		var models struct {
-			Data []config.OpenAICompatibilityModel `json:"data"`
-		}
-		var modelsCustom struct {
-			Data []struct {
-				ID               string   `json:"id"`
-				Root             string   `json:"root"`
-				Name             string   `json:"name"`
-				InputModalities  []string `json:"input_modalities"`
-				OutputModalities []string `json:"output_modalities"`
-			} `json:"data"`
-		}
-		if err := json.Unmarshal(body, &models); err != nil {
-			fmt.Printf("Error when unmarshalling custom provider response: %v\n", err)
-			break
-		}
-		if err := json.Unmarshal(body, &modelsCustom); err != nil {
-			fmt.Printf("Error when unmarshalling custom provider response: %v\n", err)
-			break
-		}
+		var models []config.OpenAICompatibilityModel
+		if resp.StatusCode == http.StatusOK {
+			defer resp.Body.Close()
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				a.logger.Error("Error reading response", slog.Any("err", err))
+				break
+			}
+			var modelsCustom struct {
+				Data []struct {
+					ID               string   `json:"id"`
+					Root             string   `json:"root"`
+					Name             string   `json:"name"`
+					InputModalities  []string `json:"input_modalities"`
+					OutputModalities []string `json:"output_modalities"`
+				} `json:"data"`
+			}
+			if err := json.Unmarshal(body, &modelsCustom); err != nil {
+				a.logger.Error("Error when unmarshalling custom provider response", slog.Any("err", err), slog.String("url", modelUrl.String()))
+				break
+			}
 
-		for _, customModel := range modelsCustom.Data {
-			for _, model := range models.Data {
-				if customModel.ID == model.Name {
-					model.Alias = customModel.Root
-					model.DisplayName = customModel.Name
-				}
+			for _, customModel := range modelsCustom.Data {
+				models = append(models, config.OpenAICompatibilityModel{
+					Name:             customModel.ID,
+					Alias:            customModel.Root,
+					InputModalities:  customModel.InputModalities,
+					OutputModalities: customModel.OutputModalities,
+					DisplayName:      customModel.Name,
+				})
 			}
 		}
 
@@ -117,7 +115,7 @@ func (a *AoyoRouterService) addProviderConfig(ctx context.Context, cfg *config.C
 				APIKeyEntries: []config.OpenAICompatibilityAPIKey{
 					{APIKey: provider.ClientSecret},
 				},
-				Models: models.Data,
+				Models: models,
 			},
 		)
 	}

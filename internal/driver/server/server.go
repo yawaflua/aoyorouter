@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"log/slog"
 	"strings"
 	"sync"
 	"time"
@@ -33,6 +34,7 @@ type Dependencies struct {
 	Warp                    *warp.Warp
 	CPAPIManagementURL      string
 	CPAPIManagementPassword string
+	Logger                  *slog.Logger
 }
 
 type AoyoRouterService struct {
@@ -47,6 +49,7 @@ type AoyoRouterService struct {
 	CPAPIManagementPassword string
 	configMu                sync.Mutex
 	warp                    *warp.Warp
+	logger                  *slog.Logger
 	aoyorouter.UnimplementedAoyoRouterServiceServer
 }
 
@@ -441,6 +444,6 @@ func NewAoyoRouterService(deps Dependencies) *AoyoRouterService {
 		UserRepo: deps.UserRepo, ProviderRepo: deps.ProviderRepo, ApiKeyRepo: deps.ApiKeyRepo, UsageEntryRepo: deps.UsageEntryRepo,
 		CPAPIConfig: deps.CPAPIConfig, CodexOAuth: deps.CodexOAuth,
 		ProviderOAuth: newProviderOAuthStore(), CPAPIManagementURL: deps.CPAPIManagementURL,
-		CPAPIManagementPassword: deps.CPAPIManagementPassword, warp: deps.Warp,
+		CPAPIManagementPassword: deps.CPAPIManagementPassword, warp: deps.Warp, logger: deps.Logger,
 	}
 }

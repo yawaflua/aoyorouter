@@ -34,10 +34,10 @@ func (u *UsagePlugin) HandleUsage(ctx context.Context, record usage.Record) {
 	}
 	go func() {
 		dbCtx, cancel := context.WithTimeout(
-				context.WithoutCancel(ctx),
-				5*time.Second,
-			)
-			defer cancel()
+			context.WithoutCancel(ctx),
+			5*time.Second,
+		)
+		defer cancel()
 		key, err := u.APIKeysRepo.GetApiKeyByID(dbCtx, record.APIKey)
 		if err != nil {
 			u.Logger.Error("HandleUsage caused error:", slog.Any("err", err))
@@ -45,7 +45,6 @@ func (u *UsagePlugin) HandleUsage(ctx context.Context, record usage.Record) {
 		}
 
 		usageEntry := &models.UsageEntry{
-			ID:           uuid.New(),
 			ApiTokenID:   uuid.MustParse(key.ID),
 			Provider:     record.Provider,
 			Model:        record.Model,

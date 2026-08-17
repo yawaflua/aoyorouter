@@ -71,6 +71,7 @@ func (p *P) Server(ctx context.Context) *server.AoyoRouterService {
 			CPAPIManagementURL:      fmt.Sprintf("http://127.0.0.1:%d", p.Config().HTTP.Port),
 			CPAPIManagementPassword: p.Config().InitialPassword,
 			Warp:                    p.Warp(ctx),
+			Logger:                  p.Logger(),
 		})
 	}
 
