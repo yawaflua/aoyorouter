@@ -2,7 +2,10 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
@@ -52,7 +55,71 @@ func (a *AoyoRouterService) addProviderConfig(ctx context.Context, cfg *config.C
 		}
 		cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{Name: "kimi", BaseURL: provider.ClientID, APIKeyEntries: []config.OpenAICompatibilityAPIKey{{APIKey: provider.ClientSecret}}})
 	case aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM:
-		cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{Name: provider.Name, BaseURL: provider.ClientID, APIKeyEntries: []config.OpenAICompatibilityAPIKey{{APIKey: provider.ClientSecret}}})
+		modelUrl, err := url.Parse(fmt.Sprintf("%s/v1/models", provider.ClientID))
+		if err != nil {
+			fmt.Printf("Error when parsing custom provider: %v\n", err)
+			break
+		}
+		request := &http.Request{
+			Method: "GET",
+			URL:    modelUrl,
+			Header: map[string][]string{
+				"Authorization": {"Bearer " + provider.ClientSecret},
+			},
+		}
+		resp, err := http.DefaultClient.Do(request)
+		if err != nil {
+			fmt.Printf("Error when fetching custom provider models: %v\n", err)
+			break
+		}
+		defer resp.Body.Close()
+		var body []byte
+		if _, err := resp.Body.Read(body); err != nil {
+			fmt.Printf("Error when dumping custom provider response: %v\n", err)
+			break
+		}
+		fmt.Printf("Custom provider response: %s\n", string(body))
+		var models struct {
+			Data []config.OpenAICompatibilityModel `json:"data"`
+		}
+		var modelsCustom struct {
+			Data []struct {
+				ID               string   `json:"id"`
+				Root             string   `json:"root"`
+				Name             string   `json:"name"`
+				InputModalities  []string `json:"input_modalities"`
+				OutputModalities []string `json:"output_modalities"`
+			} `json:"data"`
+		}
+		if err := json.Unmarshal(body, &models); err != nil {
+			fmt.Printf("Error when unmarshalling custom provider response: %v\n", err)
+			break
+		}
+		if err := json.Unmarshal(body, &modelsCustom); err != nil {
+			fmt.Printf("Error when unmarshalling custom provider response: %v\n", err)
+			break
+		}
+
+		for _, customModel := range modelsCustom.Data {
+			for _, model := range models.Data {
+				if customModel.ID == model.Name {
+					model.Alias = customModel.Root
+					model.DisplayName = customModel.Name
+				}
+			}
+		}
+
+		cfg.OpenAICompatibility = append(
+			cfg.OpenAICompatibility,
+			config.OpenAICompatibility{
+				Name:    provider.ID,
+				BaseURL: provider.ClientID,
+				APIKeyEntries: []config.OpenAICompatibilityAPIKey{
+					{APIKey: provider.ClientSecret},
+				},
+				Models: models.Data,
+			},
+		)
 	}
 }
 

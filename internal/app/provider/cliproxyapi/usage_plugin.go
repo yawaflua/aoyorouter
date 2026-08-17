@@ -29,44 +29,45 @@ func NewUsagePlugin(apikey_repo *apikey_repo.ApiKeyRepo, usage_repo *usage_entry
 
 // HandleUsage implements [usage.Plugin].
 func (u *UsagePlugin) HandleUsage(ctx context.Context, record usage.Record) {
-	key, err := u.APIKeysRepo.GetApiKeyByID(ctx, record.APIKey)
-	if err != nil {
-		u.Logger.Error("HandleUsage caused error:", slog.Any("err", err))
+	if record.APIKey == "admin" {
 		return
 	}
+	go func() {
+		dbCtx, cancel := context.WithTimeout(
+				context.WithoutCancel(ctx),
+				5*time.Second,
+			)
+			defer cancel()
+		key, err := u.APIKeysRepo.GetApiKeyByID(dbCtx, record.APIKey)
+		if err != nil {
+			u.Logger.Error("HandleUsage caused error:", slog.Any("err", err))
+			return
+		}
 
-	usageEntry := &models.UsageEntry{
-		ID:           uuid.New(),
-		ApiTokenID:   uuid.MustParse(key.ID),
-		Provider:     record.Provider,
-		Model:        record.Model,
-		InputTokens:  record.Detail.InputTokens,
-		OutputTokens: record.Detail.OutputTokens,
-		TotalTokens:  record.Detail.TotalTokens,
-		CachedTokens: record.Detail.CachedTokens,
-		RequestedAt:  record.RequestedAt.UTC(),
-		CreatedAt:    time.Now().UTC(),
-		Latency:      int(record.Latency),
-		Reasoning:    record.ReasoningEffort,
-		Failed:       record.Failed,
-	}
-	if !record.Failed {
-		usageEntry.Error = fmt.Sprintf("%d %s", record.Fail.StatusCode, record.Fail.Body)
-	}
-	key.QuotaTokens += record.Detail.TotalTokens
-	go func() {
-		err = u.APIKeysRepo.UpdateApiKeyQuota(ctx, key)
-		if err != nil {
-			u.Logger.Error("HandleUsage caused error:", slog.Any("err", err))
-			return
+		usageEntry := &models.UsageEntry{
+			ID:           uuid.New(),
+			ApiTokenID:   uuid.MustParse(key.ID),
+			Provider:     record.Provider,
+			Model:        record.Model,
+			InputTokens:  record.Detail.InputTokens,
+			OutputTokens: record.Detail.OutputTokens,
+			TotalTokens:  record.Detail.TotalTokens,
+			CachedTokens: record.Detail.CachedTokens,
+			RequestedAt:  record.RequestedAt.UTC(),
+			CreatedAt:    time.Now().UTC(),
+			Latency:      int(record.Latency),
+			Reasoning:    record.ReasoningEffort,
+			Failed:       record.Failed,
 		}
-	}()
-	go func() {
-		model, err := u.UsageRepo.SaveUsageEntry(ctx, usageEntry)
-		if err != nil {
-			u.Logger.Error("HandleUsage caused error:", slog.Any("err", err))
-			return
+		if !record.Failed {
+			usageEntry.Error = fmt.Sprintf("%d %s", record.Fail.StatusCode, record.Fail.Body)
 		}
-		u.Logger.Debug("Saved usage entry", slog.Any("model", model))
+		key.QuotaTokens += record.Detail.TotalTokens
+		if err := u.APIKeysRepo.AddToQueue(dbCtx, key); err != nil {
+			u.Logger.Error("failed to add to queue", slog.Any("err", err))
+		}
+		if err := u.UsageRepo.AddToQueue(dbCtx, usageEntry); err != nil {
+			u.Logger.Error("failed to add to queue", slog.Any("err", err))
+		}
 	}()
 }

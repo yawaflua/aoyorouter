@@ -9,6 +9,8 @@ export type ProviderType =
   | 'PROVIDER_TYPE_GROK'
   | 'PROVIDER_TYPE_ANTIGRAVITY'
 
+
+
 export interface Provider {
   id: string
   name: string
@@ -58,4 +60,30 @@ export function providerType(value: unknown): ProviderType {
   if (value === 5 || value === 'PROVIDER_TYPE_GROK') return 'PROVIDER_TYPE_GROK'
   if (value === 6 || value === 'PROVIDER_TYPE_ANTIGRAVITY') return 'PROVIDER_TYPE_ANTIGRAVITY'
   return 'PROVIDER_TYPE_CUSTOM'
+}
+
+export function providerTypeAsCLIPROXY(value: ProviderType): string {
+  if (value === 'PROVIDER_TYPE_OPENAI') return 'openai'
+  if (value === 'PROVIDER_TYPE_ANTHROPIC') return 'anthropic'
+  if (value === 'PROVIDER_TYPE_KIMI') return 'moonshot'
+  if (value === 'PROVIDER_TYPE_GROK') return 'grok'
+  if (value === 'PROVIDER_TYPE_ANTIGRAVITY') return 'antigravity'
+  return 'custom'
+}
+
+export interface ProviderModel {
+  created: number | null
+  id: string
+  object: string
+  owned_by: string
+}
+
+export function parseProviderModel(value: unknown): ProviderModel {
+  const item = record(value)
+  return {
+    created: Number(item.created) ?? null,
+    id: text(item.id),
+    object: text(item.object),
+    owned_by: text(item.owned_by),
+  }
 }

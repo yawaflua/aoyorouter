@@ -36,9 +36,19 @@ func New(ctx context.Context) (*App, error) {
 }
 
 func (a *App) Start(ctx context.Context) error {
-	var eg errgroup.Group
+	group, ctx := errgroup.WithContext(ctx)
 
-	eg.Go(func() error {
+	group.Go(func() error {
+		a.provider.ApiKeyRepo(ctx).ProcessQueue(ctx)
+		return nil
+	})
+
+	group.Go(func() error {
+		a.provider.UsageEntryRepo(ctx).ProcessQueue(ctx)
+		return nil
+	})
+
+	group.Go(func() error {
 		return a.provider.CLIProxyAPI(ctx).Run(ctx)
 	})
 

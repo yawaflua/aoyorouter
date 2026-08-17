@@ -107,7 +107,7 @@ func (p *P) DB(ctx context.Context) *postgres.DB {
 
 func (p *P) UsageEntryRepo(ctx context.Context) *usage_entry_repo.UsageEntryRepo {
 	if p.usageEntryRepo == nil {
-		p.usageEntryRepo = usage_entry_repo.NewUsageEntryRepo(p.DB(ctx), p.ApiKeyRepo(ctx))
+		p.usageEntryRepo = usage_entry_repo.NewUsageEntryRepo(p.DB(ctx), p.ApiKeyRepo(ctx), p.Logger())
 	}
 
 	return p.usageEntryRepo

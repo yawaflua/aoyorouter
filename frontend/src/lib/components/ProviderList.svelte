@@ -2,23 +2,28 @@
   import { providerLabels } from '../app'
   import { quotaLabel, quotaReset } from '../format'
   import Icon from '../Icon.svelte'
-  import type { Provider } from '../models/providers'
+  import { providerTypeAsCLIPROXY, type Provider, type ProviderModel } from '../models/providers'
 
   interface Props {
     providers: Provider[]
     search: string
+    models: ProviderModel[]
     onClearSearch: () => void
     onCreate: () => void
     onEdit: (provider: Provider) => void
     onDelete: (provider: Provider) => void
   }
 
-  let { providers, search, onClearSearch, onCreate, onEdit, onDelete }: Props = $props()
+  let { providers, search, models, onClearSearch, onCreate, onEdit, onDelete }: Props = $props()
   let expandedId = $state('')
+  let modelList = $state([])
 
   function toggle(provider: Provider) {
     expandedId = expandedId === provider.id ? '' : provider.id
   }
+  $effect(() => {
+
+  })
 
   function onKeydown(event: KeyboardEvent, provider: Provider) {
     if (event.key !== 'Enter' && event.key !== ' ') return
@@ -57,6 +62,20 @@
             </dl>
             <button class="tonal" onclick={() => onEdit(provider)}>Edit</button>
           </section>
+          <div class="usage-summary">
+            <div><span>Available models</span><strong>{models.filter((model) => model.owned_by === providerTypeAsCLIPROXY(provider.type) || model.owned_by === provider.id).length}</strong></div>
+          </div>
+          {#if models.length}
+            <div class="models-list">
+              {#each models.filter((model) => model.owned_by === providerTypeAsCLIPROXY(provider.type) || model.owned_by === provider.id) as model}
+                <div class="model-row">
+                  <div><strong>{model.id}</strong></div>
+                </div>
+              {/each}
+            </div>
+          {:else}
+            <p class="details-empty">No requests recorded for this key.</p>
+          {/if}
         {/if}
       </article>
     {/each}

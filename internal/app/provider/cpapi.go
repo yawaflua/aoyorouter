@@ -2,7 +2,10 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -30,7 +33,7 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 		panic("pbHandler is nil")
 	}
 
-	access.RegisterProvider("psql", cliproxyapi.NewAccessProvider(p.ApiKeyRepo(ctx), p.logger))
+	access.RegisterProvider("psql", cliproxyapi.NewAccessProvider(p.ApiKeyRepo(ctx), p.logger, p.UserRepo(ctx)))
 	err := p.registerAllProviders(ctx)
 	if err != nil {
 		return fmt.Errorf("registerAllProviders error: %w", err)
@@ -232,14 +235,66 @@ func (p *P) registerAllProviders(ctx context.Context) error {
 			})
 
 		case aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM:
+			modelUrl, err := url.Parse(fmt.Sprintf("%s/v1/models", provider.ClientID))
+			if err != nil {
+				p.logger.Error("Error when parsing custom provider", slog.Any("err", err), slog.String("url", provider.ClientID))
+				break
+			}
+			request := &http.Request{
+				Method: "GET",
+				URL:    modelUrl,
+				Header: map[string][]string{
+					"Authorization": {"Bearer " + provider.ClientSecret},
+				},
+			}
+			resp, err := http.DefaultClient.Do(request)
+			if err != nil {
+				p.logger.Error("Error when fetching custom provider models", slog.Any("err", err), slog.String("url", modelUrl.String()))
+				break
+			}
+			var models []config.OpenAICompatibilityModel
+			if resp.StatusCode == http.StatusOK {
+				defer resp.Body.Close()
+				body, err := io.ReadAll(resp.Body)
+				if err != nil {
+					p.logger.Error("Error reading response", slog.Any("err", err))
+					break
+				}
+				p.logger.Debug("Custom provider response", slog.String("body", string(body)))
+				var modelsCustom struct {
+					Data []struct {
+						ID               string   `json:"id"`
+						Root             string   `json:"root"`
+						Name             string   `json:"name"`
+						InputModalities  []string `json:"input_modalities"`
+						OutputModalities []string `json:"output_modalities"`
+					} `json:"data"`
+				}
+				if err := json.Unmarshal(body, &modelsCustom); err != nil {
+					p.logger.Error("Error when unmarshalling custom provider response", slog.Any("err", err), slog.String("url", modelUrl.String()))
+					break
+				}
+				
+				for _, customModel := range modelsCustom.Data {
+					models = append(models, config.OpenAICompatibilityModel{
+						Name:             customModel.ID,
+						Alias:            customModel.Root,
+						InputModalities:  customModel.InputModalities,
+						OutputModalities: customModel.OutputModalities,
+						DisplayName:      customModel.Name,
+					})
+				}
+			}
+
 			cfg.OpenAICompatibility = append(
 				cfg.OpenAICompatibility,
 				config.OpenAICompatibility{
-					Name:    provider.Name,
+					Name:    provider.ID,
 					BaseURL: provider.ClientID,
 					APIKeyEntries: []config.OpenAICompatibilityAPIKey{
 						{APIKey: provider.ClientSecret},
 					},
+					Models: models,
 				},
 			)
 		}

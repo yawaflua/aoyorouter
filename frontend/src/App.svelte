@@ -20,7 +20,7 @@
   import type { ApiKey, ApiKeyUsage, UpdateApiKeyInput } from './lib/models/apikey'
   import type { LogEntry } from './lib/models/logentry'
   import type { LiveProxy } from './lib/models/liveproxy'
-  import type { Provider, UpdateProviderInput } from './lib/models/providers'
+  import type { Provider, ProviderModel, UpdateProviderInput } from './lib/models/providers'
   import { validateProxy } from './lib/models/proxy'
 
   const PASSWORD_KEY = 'aoyo.password'
@@ -47,6 +47,9 @@
   let createdKey = $state('')
   let targetKey = $state<ApiKey | null>(null)
   let targetProvider = $state<Provider | null>(null)
+
+  let models = $state<ProviderModel[]>([])
+
 
   const client = $derived(new ApiClient(password))
   const sectionInfo = $derived(getSection(section))
@@ -109,6 +112,7 @@
           break
         case 'providers':
           providers = await client.getProviders()
+          models = await client.getModels()
           break
         case 'proxies':
           proxies = await client.getProxies()
@@ -413,6 +417,7 @@
           <ProviderList
             providers={filteredProviders}
             {search}
+            models={models}
             onClearSearch={() => (search = '')}
             onCreate={() => openDialog('provider')}
             onEdit={requestProviderEdit}

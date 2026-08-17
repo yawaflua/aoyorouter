@@ -10,8 +10,10 @@ import { parseLogEntry, type LogEntry } from './models/logentry'
 import { parseLiveProxy, type LiveProxy } from './models/liveproxy'
 import {
   parseProvider,
+  parseProviderModel,
   type Provider,
   type ProviderConnectionInput,
+  type ProviderModel,
   type ProviderType,
   type UpdateProviderInput,
 } from './models/providers'
@@ -45,6 +47,12 @@ export class ApiClient {
     return body ? record(JSON.parse(body)) : {}
   }
 
+  async getModels(): Promise<ProviderModel[]> {
+    const response = await this.request('/v1/models')
+    const items = response.data
+    return Array.isArray(items) ? items.map(parseProviderModel) : []
+  }
+  
   async signIn(): Promise<void> {
     await this.request('/api/aoyo/v1/signin', {
       method: 'POST',

@@ -2,7 +2,9 @@ package usage_entry_repo
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
@@ -14,12 +16,44 @@ import (
 type UsageEntryRepo struct {
 	DB         *postgres.DB
 	ApiKeyRepo *apikey_repo.ApiKeyRepo
+	queue      chan *models.UsageEntry
+	log        *slog.Logger
 }
 
-func NewUsageEntryRepo(db *postgres.DB, apiKeyRepo *apikey_repo.ApiKeyRepo) *UsageEntryRepo {
+func NewUsageEntryRepo(db *postgres.DB, apiKeyRepo *apikey_repo.ApiKeyRepo, log *slog.Logger) *UsageEntryRepo {
 	return &UsageEntryRepo{
 		DB:         db,
 		ApiKeyRepo: apiKeyRepo,
+		queue:      make(chan *models.UsageEntry, 1000),
+		log:        log,
+	}
+}
+
+func (r *UsageEntryRepo) AddToQueue(ctx context.Context, usageEntry *models.UsageEntry) error {
+	select {
+	case r.queue <- usageEntry:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		return errors.New("usage entry queue is full")
+	}
+}
+
+func (r *UsageEntryRepo) ProcessQueue(ctx context.Context) {
+	for {
+		select {
+		case usageEntry, ok := <-r.queue:
+			if !ok {
+				return
+			}
+			_, err := r.SaveUsageEntry(ctx, usageEntry)
+			if err != nil {
+				r.log.Error("failed to save usage entry", slog.Any("err", err))
+			}
+		case <-ctx.Done():
+			return
+		}
 	}
 }
 
@@ -49,7 +83,7 @@ func (r *UsageEntryRepo) GetAllUsageEntries(ctx context.Context, limit uint64, o
 
 	sql, args, err := squirrel.Select("*").
 		From("usage_entries").
-		OrderBy("created_at ASC").
+		OrderBy("created_at DESC").
 		Limit(limit).
 		Offset(offset).
 		PlaceholderFormat(squirrel.Dollar).

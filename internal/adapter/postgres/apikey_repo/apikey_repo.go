@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/Masterminds/squirrel"
@@ -14,11 +16,44 @@ import (
 )
 
 type ApiKeyRepo struct {
-	DB *postgres.DB
+	DB    *postgres.DB
+	queue chan *models.ApiKey
+	log   *slog.Logger
 }
 
-func NewApiKeyRepo(db *postgres.DB) *ApiKeyRepo {
-	return &ApiKeyRepo{DB: db}
+func NewApiKeyRepo(db *postgres.DB, log *slog.Logger) *ApiKeyRepo {
+	return &ApiKeyRepo{DB: db, log: log, queue: make(chan *models.ApiKey, 1000)}
+}
+
+func (r *ApiKeyRepo) AddToQueue(
+	ctx context.Context,
+	apiKey *models.ApiKey,
+) error {
+	select {
+	case r.queue <- apiKey:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		return errors.New("api key queue is full")
+	}
+}
+
+func (r *ApiKeyRepo) ProcessQueue(ctx context.Context) {
+	for {
+		select {
+		case usageEntry, ok := <-r.queue:
+			if !ok {
+				return
+			}
+			err := r.UpdateApiKeyQuota(ctx, usageEntry)
+			if err != nil {
+				r.log.Error("failed to save usage entry", slog.Any("err", err))
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
 func (r *ApiKeyRepo) CreateApiKey(ctx context.Context, name string) (*models.ApiKey, error) {

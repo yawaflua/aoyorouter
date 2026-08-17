@@ -23,7 +23,7 @@ func (p *P) ProviderRepo(ctx context.Context) *provider_repo.ProviderRepo {
 
 func (p *P) ApiKeyRepo(ctx context.Context) *apikey_repo.ApiKeyRepo {
 	if p.apiKeyRepo == nil {
-		p.apiKeyRepo = apikey_repo.NewApiKeyRepo(p.DB(ctx))
+		p.apiKeyRepo = apikey_repo.NewApiKeyRepo(p.DB(ctx), p.Logger())
 	}
 	return p.apiKeyRepo
 }

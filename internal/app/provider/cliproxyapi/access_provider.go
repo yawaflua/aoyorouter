@@ -9,16 +9,18 @@ import (
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/access"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/apikey_repo"
+	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/user_repo"
 	"github.com/yawaflua/aoyorouter/internal/models"
 )
 
 type AccessProvider struct {
 	apikey_repo *apikey_repo.ApiKeyRepo
 	logger      *slog.Logger
+	userRepo    *user_repo.UserRepo
 }
 
-func NewAccessProvider(apikey_repo *apikey_repo.ApiKeyRepo, logger *slog.Logger) *AccessProvider {
-	return &AccessProvider{apikey_repo: apikey_repo, logger: logger}
+func NewAccessProvider(apikey_repo *apikey_repo.ApiKeyRepo, logger *slog.Logger, userRepo *user_repo.UserRepo) *AccessProvider {
+	return &AccessProvider{apikey_repo: apikey_repo, logger: logger, userRepo: userRepo}
 }
 
 // Authenticate implements [access.Provider].
@@ -28,6 +30,18 @@ func (a AccessProvider) Authenticate(ctx context.Context, r *http.Request) (*acc
 
 	if token == "" {
 		authorization := strings.TrimSpace(r.Header.Get("Authorization"))
+		if strings.Contains(authorization, "Password") {
+			token = strings.TrimSpace(strings.TrimPrefix(authorization, "Password "))
+			if err := a.userRepo.LoginUser(token); err != nil {
+				return nil, &access.AuthError{Message: err.Error()}
+			} else {
+				return &access.Result{
+					Provider:  "aoyorouter.AccessProvider.AdminPassword",
+					Principal: "admin",
+				}, nil
+			}
+
+		}
 		token = strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer "))
 	}
 
