@@ -49,7 +49,7 @@ func (r *UsageEntryRepo) GetAllUsageEntries(ctx context.Context, limit uint64, o
 
 	sql, args, err := squirrel.Select("*").
 		From("usage_entries").
-		OrderBy("created_at DESC").
+		OrderBy("created_at ASC").
 		Limit(limit).
 		Offset(offset).
 		PlaceholderFormat(squirrel.Dollar).

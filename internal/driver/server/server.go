@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
@@ -11,6 +12,8 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/provider_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/usage_entry_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/user_repo"
+	"github.com/yawaflua/aoyorouter/internal/adapter/warp"
+	"github.com/yawaflua/aoyorouter/internal/models"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,6 +30,7 @@ type Dependencies struct {
 	UsageEntryRepo          *usage_entry_repo.UsageEntryRepo
 	CPAPIConfig             *config.Config
 	CodexOAuth              *codexOAuthStore
+	Warp                    *warp.Warp
 	CPAPIManagementURL      string
 	CPAPIManagementPassword string
 }
@@ -42,7 +46,86 @@ type AoyoRouterService struct {
 	CPAPIManagementURL      string
 	CPAPIManagementPassword string
 	configMu                sync.Mutex
+	warp                    *warp.Warp
 	aoyorouter.UnimplementedAoyoRouterServiceServer
+}
+
+// EditApiKey implements [aoyorouter.AoyoRouterServiceServer].
+func (a *AoyoRouterService) EditApiKey(ctx context.Context, req *aoyorouter.EditApiKeyRequest) (*aoyorouter.EditApiKeyResponse, error) {
+	input := req.GetApiKey()
+	if input == nil || strings.TrimSpace(input.GetName()) == "" {
+		return nil, status.Error(codes.InvalidArgument, "api_key.name is required")
+	}
+
+	key, err := a.ApiKeyRepo.GetApiKeyByID(ctx, req.GetApiKeyId())
+	if err != nil {
+		return nil, err
+	}
+	period, duration, err := quotaPeriod(input.GetQuotaResetStrategy())
+	if err != nil {
+		return nil, err
+	}
+	if input.GetQuotaSetted() && input.GetReservedTokens() <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "reserved_tokens must be greater than zero")
+	}
+
+	key.Name = strings.TrimSpace(input.GetName())
+	key.IsActive = input.GetIsActive()
+	key.QuotaSetted = input.GetQuotaSetted()
+	key.ReservedTokens = input.GetReservedTokens()
+	key.QuotaPeriod = period
+	if !key.QuotaSetted {
+		key.ReservedTokens = 0
+		key.QuotaPeriod = models.QuotaPeriodForever
+		key.QuotaResetAt = time.Now().UTC()
+	} else if period == models.QuotaPeriodForever {
+		key.QuotaResetAt = time.Now().UTC()
+	} else if input.GetQuotaResetAt() != nil && input.GetQuotaResetAt().IsValid() && input.GetQuotaResetAt().AsTime().After(time.Now()) {
+		key.QuotaResetAt = input.GetQuotaResetAt().AsTime().UTC()
+	} else {
+		key.QuotaResetAt = time.Now().UTC().Add(duration)
+	}
+
+	if err := a.ApiKeyRepo.UpdateApiKey(ctx, key); err != nil {
+		return nil, err
+	}
+	return &aoyorouter.EditApiKeyResponse{Status: "ok"}, nil
+}
+
+func quotaPeriod(strategy aoyorouter.QuotaResetStrategy) (models.QuotaPeriod, time.Duration, error) {
+	switch strategy {
+	case aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_MINUTES:
+		return models.QuotaPeriodMinute, time.Minute, nil
+	case aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_HOURLY:
+		return models.QuotaPeriodHour, time.Hour, nil
+	case aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_DAILY:
+		return models.QuotaPeriodDay, 24 * time.Hour, nil
+	case aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_WEEKLY:
+		return models.QuotaPeriodWeek, 7 * 24 * time.Hour, nil
+	case aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_MONTHLY:
+		return models.QuotaPeriodMonth, 30 * 24 * time.Hour, nil
+	case aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_FOREVER:
+		return models.QuotaPeriodForever, 0, nil
+	default:
+		return "", 0, status.Error(codes.InvalidArgument, "unsupported quota_reset_strategy")
+	}
+}
+
+// GetProxies implements [aoyorouter.AoyoRouterServiceServer].
+func (a *AoyoRouterService) GetProxies(context.Context, *aoyorouter.GetProxiesRequest) (*aoyorouter.GetProxiesResponse, error) {
+	proxies := a.warp.Proxies()
+	resp := aoyorouter.GetProxiesResponse{}
+	for addr, names := range proxies {
+		for name, proxy := range names {
+			resp.Proxies = append(resp.Proxies, &aoyorouter.ProxyProxy{
+				Id:             name,
+				Name:           name,
+				Url:            proxy.Addr().String(),
+				CloudflareAddr: addr,
+			})
+		}
+	}
+	return &resp, nil
 }
 
 // GetProviderLogsByKeyID implements [aoyorouter.AoyoRouterServiceServer].
@@ -138,13 +221,13 @@ func (a *AoyoRouterService) CreateProvider(ctx context.Context, req *aoyorouter.
 		req.ClientId = "https://api.openai.com/v1"
 	}
 
-	provider, err := a.ProviderRepo.CreateProvider(ctx, req.GetName(), int32(req.GetType()), req.GetClientId(), req.GetClientSecret())
+	provider, err := a.ProviderRepo.CreateProvider(ctx, req.GetName(), int32(req.GetType()), req.GetClientId(), req.GetClientSecret(), req.GetUseProxy(), req.GetProxy())
 
 	if err != nil {
 		return nil, err
 	}
 
-	if err := a.addProvider(provider); err != nil {
+	if err := a.addProvider(provider, ctx); err != nil {
 		return nil, err
 	}
 
@@ -211,10 +294,31 @@ func (a *AoyoRouterService) GetApiKeyList(ctx context.Context, _ *aoyorouter.Get
 
 	result := make([]*aoyorouter.ApiKey, 0, len(keys))
 	for _, key := range keys {
-		result = append(result, &aoyorouter.ApiKey{Id: key.ID, Name: key.Name})
+		result = append(result, &aoyorouter.ApiKey{
+			Id: key.ID, Name: key.Name, IsActive: key.IsActive, QuotaSetted: key.QuotaSetted,
+			ReservedTokens: key.ReservedTokens, QuotaUsed: key.QuotaTokens,
+			QuotaResetAt: timestamppb.New(key.QuotaResetAt), QuotaResetStrategy: quotaResetStrategy(key.QuotaPeriod),
+		})
 	}
 
 	return &aoyorouter.GetApiKeyListResponse{ApiKeys: result}, nil
+}
+
+func quotaResetStrategy(period models.QuotaPeriod) aoyorouter.QuotaResetStrategy {
+	switch period {
+	case models.QuotaPeriodMinute:
+		return aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_MINUTES
+	case models.QuotaPeriodHour:
+		return aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_HOURLY
+	case models.QuotaPeriodDay:
+		return aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_DAILY
+	case models.QuotaPeriodWeek:
+		return aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_WEEKLY
+	case models.QuotaPeriodMonth:
+		return aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_MONTHLY
+	default:
+		return aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_FOREVER
+	}
 }
 
 func (a *AoyoRouterService) GetProvider(ctx context.Context, req *aoyorouter.GetProviderRequest) (*aoyorouter.GetProviderResponse, error) {
@@ -276,7 +380,7 @@ func (a *AoyoRouterService) UpdateProvider(ctx context.Context, req *aoyorouter.
 		return nil, err
 	}
 
-	provider, err := a.ProviderRepo.UpdateProvider(ctx, req.GetProviderId(), req.GetName(), int32(req.GetType()), req.GetClientId(), req.GetClientSecret())
+	provider, err := a.ProviderRepo.UpdateProvider(ctx, req.GetProviderId(), req.GetName(), int32(req.GetType()), req.GetClientId(), req.GetClientSecret(), req.GetUseProxy(), req.GetProxy())
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +389,7 @@ func (a *AoyoRouterService) UpdateProvider(ctx context.Context, req *aoyorouter.
 	defer a.configMu.Unlock()
 
 	removeProviderConfig(a.CPAPIConfig, oldProvider)
-	addProviderConfig(a.CPAPIConfig, provider)
+	a.addProviderConfig(ctx, a.CPAPIConfig, provider)
 
 	if err := config.SaveConfigPreserveComments(cpapiConfigPath, a.CPAPIConfig); err != nil {
 		return nil, err
@@ -337,6 +441,6 @@ func NewAoyoRouterService(deps Dependencies) *AoyoRouterService {
 		UserRepo: deps.UserRepo, ProviderRepo: deps.ProviderRepo, ApiKeyRepo: deps.ApiKeyRepo, UsageEntryRepo: deps.UsageEntryRepo,
 		CPAPIConfig: deps.CPAPIConfig, CodexOAuth: deps.CodexOAuth,
 		ProviderOAuth: newProviderOAuthStore(), CPAPIManagementURL: deps.CPAPIManagementURL,
-		CPAPIManagementPassword: deps.CPAPIManagementPassword,
+		CPAPIManagementPassword: deps.CPAPIManagementPassword, warp: deps.Warp,
 	}
 }

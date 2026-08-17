@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,10 +12,9 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/app"
 )
 
-
 func main() {
 	ctx := context.Background()
-	
+
 	a, err := app.New(ctx)
 	if err != nil {
 		panic(err)
@@ -30,10 +30,10 @@ func main() {
 	}()
 
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 
 	<-quit
-
+	fmt.Println("Bye-bye")
 	if err := a.GracefullyStop(ctx); err != nil {
 		panic(err)
 	}

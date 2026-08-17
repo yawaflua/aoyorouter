@@ -1,11 +1,11 @@
 import type { ProviderType } from './models/providers'
 
-export type Section = 'keys' | 'providers' | 'logs'
-export type Dialog = 'key' | 'provider' | 'secret' | 'delete-key' | 'delete-provider' | null
+export type Section = 'keys' | 'providers' | 'proxies' | 'logs'
+export type Dialog = 'key' | 'edit-key' | 'provider' | 'edit-provider' | 'secret' | 'delete-key' | 'delete-provider' | null
 
 export interface SectionDefinition {
   id: Section
-  icon: 'key' | 'provider' | 'logs'
+  icon: 'key' | 'provider' | 'proxy' | 'logs'
   label: string
   title: string
   description: string
@@ -25,6 +25,13 @@ export const sections: SectionDefinition[] = [
     label: 'Providers',
     title: 'Providers',
     description: 'Connect the model services available through your router.',
+  },
+  {
+    id: 'proxies',
+    icon: 'proxy',
+    label: 'Proxies',
+    title: 'Live proxies',
+    description: 'Inspect proxy instances currently running in the router.',
   },
   {
     id: 'logs',

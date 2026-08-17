@@ -83,6 +83,67 @@ func (ProviderType) EnumDescriptor() ([]byte, []int) {
 	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{0}
 }
 
+type QuotaResetStrategy int32
+
+const (
+	QuotaResetStrategy_QUOTA_RESET_STRATEGY_UNSPECIFIED QuotaResetStrategy = 0
+	QuotaResetStrategy_QUOTA_RESET_STRATEGY_MINUTES     QuotaResetStrategy = 1
+	QuotaResetStrategy_QUOTA_RESET_STRATEGY_HOURLY      QuotaResetStrategy = 2
+	QuotaResetStrategy_QUOTA_RESET_STRATEGY_DAILY       QuotaResetStrategy = 3
+	QuotaResetStrategy_QUOTA_RESET_STRATEGY_WEEKLY      QuotaResetStrategy = 4
+	QuotaResetStrategy_QUOTA_RESET_STRATEGY_MONTHLY     QuotaResetStrategy = 5
+	QuotaResetStrategy_QUOTA_RESET_STRATEGY_FOREVER     QuotaResetStrategy = 6
+)
+
+// Enum value maps for QuotaResetStrategy.
+var (
+	QuotaResetStrategy_name = map[int32]string{
+		0: "QUOTA_RESET_STRATEGY_UNSPECIFIED",
+		1: "QUOTA_RESET_STRATEGY_MINUTES",
+		2: "QUOTA_RESET_STRATEGY_HOURLY",
+		3: "QUOTA_RESET_STRATEGY_DAILY",
+		4: "QUOTA_RESET_STRATEGY_WEEKLY",
+		5: "QUOTA_RESET_STRATEGY_MONTHLY",
+		6: "QUOTA_RESET_STRATEGY_FOREVER",
+	}
+	QuotaResetStrategy_value = map[string]int32{
+		"QUOTA_RESET_STRATEGY_UNSPECIFIED": 0,
+		"QUOTA_RESET_STRATEGY_MINUTES":     1,
+		"QUOTA_RESET_STRATEGY_HOURLY":      2,
+		"QUOTA_RESET_STRATEGY_DAILY":       3,
+		"QUOTA_RESET_STRATEGY_WEEKLY":      4,
+		"QUOTA_RESET_STRATEGY_MONTHLY":     5,
+		"QUOTA_RESET_STRATEGY_FOREVER":     6,
+	}
+)
+
+func (x QuotaResetStrategy) Enum() *QuotaResetStrategy {
+	p := new(QuotaResetStrategy)
+	*p = x
+	return p
+}
+
+func (x QuotaResetStrategy) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (QuotaResetStrategy) Descriptor() protoreflect.EnumDescriptor {
+	return file_docs_api_v1_types_proto_enumTypes[1].Descriptor()
+}
+
+func (QuotaResetStrategy) Type() protoreflect.EnumType {
+	return &file_docs_api_v1_types_proto_enumTypes[1]
+}
+
+func (x QuotaResetStrategy) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use QuotaResetStrategy.Descriptor instead.
+func (QuotaResetStrategy) EnumDescriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{1}
+}
+
 type HealthCheckResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
@@ -229,6 +290,8 @@ type CreateProviderRequest struct {
 	Type          ProviderType           `protobuf:"varint,2,opt,name=type,proto3,enum=aoyorouter.docs.api.v1.ProviderType" json:"type,omitempty"`
 	ClientId      string                 `protobuf:"bytes,3,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	ClientSecret  string                 `protobuf:"bytes,4,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
+	UseProxy      bool                   `protobuf:"varint,5,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
+	Proxy         string                 `protobuf:"bytes,6,opt,name=proxy,proto3" json:"proxy,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -291,6 +354,20 @@ func (x *CreateProviderRequest) GetClientSecret() string {
 	return ""
 }
 
+func (x *CreateProviderRequest) GetUseProxy() bool {
+	if x != nil {
+		return x.UseProxy
+	}
+	return false
+}
+
+func (x *CreateProviderRequest) GetProxy() string {
+	if x != nil {
+		return x.Proxy
+	}
+	return ""
+}
+
 type CreateProviderResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
@@ -347,6 +424,8 @@ type CreateCodexAuthorizationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	CustomUrl     string                 `protobuf:"bytes,2,opt,name=custom_url,json=customUrl,proto3" json:"custom_url,omitempty"`
+	UseProxy      bool                   `protobuf:"varint,7,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
+	Proxy         string                 `protobuf:"bytes,8,opt,name=proxy,proto3" json:"proxy,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -391,6 +470,20 @@ func (x *CreateCodexAuthorizationRequest) GetName() string {
 func (x *CreateCodexAuthorizationRequest) GetCustomUrl() string {
 	if x != nil {
 		return x.CustomUrl
+	}
+	return ""
+}
+
+func (x *CreateCodexAuthorizationRequest) GetUseProxy() bool {
+	if x != nil {
+		return x.UseProxy
+	}
+	return false
+}
+
+func (x *CreateCodexAuthorizationRequest) GetProxy() string {
+	if x != nil {
+		return x.Proxy
 	}
 	return ""
 }
@@ -564,6 +657,8 @@ type CreateProviderAuthorizationRequest struct {
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Type          ProviderType           `protobuf:"varint,2,opt,name=type,proto3,enum=aoyorouter.docs.api.v1.ProviderType" json:"type,omitempty"`
 	CustomUrl     string                 `protobuf:"bytes,3,opt,name=custom_url,json=customUrl,proto3" json:"custom_url,omitempty"`
+	UseProxy      bool                   `protobuf:"varint,7,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
+	Proxy         string                 `protobuf:"bytes,8,opt,name=proxy,proto3" json:"proxy,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -615,6 +710,20 @@ func (x *CreateProviderAuthorizationRequest) GetType() ProviderType {
 func (x *CreateProviderAuthorizationRequest) GetCustomUrl() string {
 	if x != nil {
 		return x.CustomUrl
+	}
+	return ""
+}
+
+func (x *CreateProviderAuthorizationRequest) GetUseProxy() bool {
+	if x != nil {
+		return x.UseProxy
+	}
+	return false
+}
+
+func (x *CreateProviderAuthorizationRequest) GetProxy() string {
+	if x != nil {
+		return x.Proxy
 	}
 	return ""
 }
@@ -707,6 +816,8 @@ type CompleteProviderAuthorizationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	State         string                 `protobuf:"bytes,1,opt,name=state,proto3" json:"state,omitempty"`
 	CallbackUrl   string                 `protobuf:"bytes,2,opt,name=callback_url,json=callbackUrl,proto3" json:"callback_url,omitempty"`
+	UseProxy      bool                   `protobuf:"varint,3,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
+	Proxy         string                 `protobuf:"bytes,4,opt,name=proxy,proto3" json:"proxy,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -755,9 +866,25 @@ func (x *CompleteProviderAuthorizationRequest) GetCallbackUrl() string {
 	return ""
 }
 
+func (x *CompleteProviderAuthorizationRequest) GetUseProxy() bool {
+	if x != nil {
+		return x.UseProxy
+	}
+	return false
+}
+
+func (x *CompleteProviderAuthorizationRequest) GetProxy() string {
+	if x != nil {
+		return x.Proxy
+	}
+	return ""
+}
+
 type GetProviderAuthorizationStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	State         string                 `protobuf:"bytes,1,opt,name=state,proto3" json:"state,omitempty"`
+	UseProxy      bool                   `protobuf:"varint,2,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
+	Proxy         string                 `protobuf:"bytes,3,opt,name=proxy,proto3" json:"proxy,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -795,6 +922,20 @@ func (*GetProviderAuthorizationStatusRequest) Descriptor() ([]byte, []int) {
 func (x *GetProviderAuthorizationStatusRequest) GetState() string {
 	if x != nil {
 		return x.State
+	}
+	return ""
+}
+
+func (x *GetProviderAuthorizationStatusRequest) GetUseProxy() bool {
+	if x != nil {
+		return x.UseProxy
+	}
+	return false
+}
+
+func (x *GetProviderAuthorizationStatusRequest) GetProxy() string {
+	if x != nil {
+		return x.Proxy
 	}
 	return ""
 }
@@ -995,6 +1136,8 @@ type Provider struct {
 	ClientId      string                 `protobuf:"bytes,4,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	ClientSecret  string                 `protobuf:"bytes,5,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
 	Quota         *ProviderQuota         `protobuf:"bytes,6,opt,name=quota,proto3" json:"quota,omitempty"`
+	UseProxy      bool                   `protobuf:"varint,7,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
+	Proxy         string                 `protobuf:"bytes,8,opt,name=proxy,proto3" json:"proxy,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1069,6 +1212,20 @@ func (x *Provider) GetQuota() *ProviderQuota {
 		return x.Quota
 	}
 	return nil
+}
+
+func (x *Provider) GetUseProxy() bool {
+	if x != nil {
+		return x.UseProxy
+	}
+	return false
+}
+
+func (x *Provider) GetProxy() string {
+	if x != nil {
+		return x.Proxy
+	}
+	return ""
 }
 
 type GetProviderRequest struct {
@@ -1246,6 +1403,8 @@ type UpdateProviderRequest struct {
 	Type          ProviderType           `protobuf:"varint,3,opt,name=type,proto3,enum=aoyorouter.docs.api.v1.ProviderType" json:"type,omitempty"`
 	ClientId      string                 `protobuf:"bytes,4,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	ClientSecret  string                 `protobuf:"bytes,5,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
+	UseProxy      bool                   `protobuf:"varint,6,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
+	Proxy         string                 `protobuf:"bytes,7,opt,name=proxy,proto3" json:"proxy,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1311,6 +1470,20 @@ func (x *UpdateProviderRequest) GetClientId() string {
 func (x *UpdateProviderRequest) GetClientSecret() string {
 	if x != nil {
 		return x.ClientSecret
+	}
+	return ""
+}
+
+func (x *UpdateProviderRequest) GetUseProxy() bool {
+	if x != nil {
+		return x.UseProxy
+	}
+	return false
+}
+
+func (x *UpdateProviderRequest) GetProxy() string {
+	if x != nil {
+		return x.Proxy
 	}
 	return ""
 }
@@ -1647,6 +1820,102 @@ func (x *DeleteApiKeyResponse) GetStatus() string {
 	return ""
 }
 
+type EditApiKeyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ApiKeyId      string                 `protobuf:"bytes,1,opt,name=api_key_id,json=apiKeyId,proto3" json:"api_key_id,omitempty"`
+	ApiKey        *ApiKey                `protobuf:"bytes,2,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EditApiKeyRequest) Reset() {
+	*x = EditApiKeyRequest{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EditApiKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EditApiKeyRequest) ProtoMessage() {}
+
+func (x *EditApiKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EditApiKeyRequest.ProtoReflect.Descriptor instead.
+func (*EditApiKeyRequest) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *EditApiKeyRequest) GetApiKeyId() string {
+	if x != nil {
+		return x.ApiKeyId
+	}
+	return ""
+}
+
+func (x *EditApiKeyRequest) GetApiKey() *ApiKey {
+	if x != nil {
+		return x.ApiKey
+	}
+	return nil
+}
+
+type EditApiKeyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EditApiKeyResponse) Reset() {
+	*x = EditApiKeyResponse{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EditApiKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EditApiKeyResponse) ProtoMessage() {}
+
+func (x *EditApiKeyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EditApiKeyResponse.ProtoReflect.Descriptor instead.
+func (*EditApiKeyResponse) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *EditApiKeyResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 type GetApiKeyListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1655,7 +1924,7 @@ type GetApiKeyListRequest struct {
 
 func (x *GetApiKeyListRequest) Reset() {
 	*x = GetApiKeyListRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[29]
+	mi := &file_docs_api_v1_types_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1667,7 +1936,7 @@ func (x *GetApiKeyListRequest) String() string {
 func (*GetApiKeyListRequest) ProtoMessage() {}
 
 func (x *GetApiKeyListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[29]
+	mi := &file_docs_api_v1_types_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1680,7 +1949,7 @@ func (x *GetApiKeyListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApiKeyListRequest.ProtoReflect.Descriptor instead.
 func (*GetApiKeyListRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{29}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{31}
 }
 
 type GetApiKeyListResponse struct {
@@ -1692,7 +1961,7 @@ type GetApiKeyListResponse struct {
 
 func (x *GetApiKeyListResponse) Reset() {
 	*x = GetApiKeyListResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[30]
+	mi := &file_docs_api_v1_types_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1704,7 +1973,7 @@ func (x *GetApiKeyListResponse) String() string {
 func (*GetApiKeyListResponse) ProtoMessage() {}
 
 func (x *GetApiKeyListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[30]
+	mi := &file_docs_api_v1_types_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1717,7 +1986,7 @@ func (x *GetApiKeyListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApiKeyListResponse.ProtoReflect.Descriptor instead.
 func (*GetApiKeyListResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{30}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetApiKeyListResponse) GetApiKeys() []*ApiKey {
@@ -1728,17 +1997,23 @@ func (x *GetApiKeyListResponse) GetApiKeys() []*ApiKey {
 }
 
 type ApiKey struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	IsAdmin       string                 `protobuf:"bytes,3,opt,name=is_admin,json=isAdmin,proto3" json:"is_admin,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name               string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	IsAdmin            string                 `protobuf:"bytes,3,opt,name=is_admin,json=isAdmin,proto3" json:"is_admin,omitempty"`
+	IsActive           bool                   `protobuf:"varint,4,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	QuotaSetted        bool                   `protobuf:"varint,5,opt,name=quota_setted,json=quotaSetted,proto3" json:"quota_setted,omitempty"`
+	ReservedTokens     int64                  `protobuf:"varint,6,opt,name=reserved_tokens,json=reservedTokens,proto3" json:"reserved_tokens,omitempty"`
+	QuotaResetAt       *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=quota_reset_at,json=quotaResetAt,proto3" json:"quota_reset_at,omitempty"`
+	QuotaResetStrategy QuotaResetStrategy     `protobuf:"varint,8,opt,name=quota_reset_strategy,json=quotaResetStrategy,proto3,enum=aoyorouter.docs.api.v1.QuotaResetStrategy" json:"quota_reset_strategy,omitempty"`
+	QuotaUsed          int64                  `protobuf:"varint,9,opt,name=quota_used,json=quotaUsed,proto3" json:"quota_used,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *ApiKey) Reset() {
 	*x = ApiKey{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[31]
+	mi := &file_docs_api_v1_types_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1750,7 +2025,7 @@ func (x *ApiKey) String() string {
 func (*ApiKey) ProtoMessage() {}
 
 func (x *ApiKey) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[31]
+	mi := &file_docs_api_v1_types_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1763,7 +2038,7 @@ func (x *ApiKey) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApiKey.ProtoReflect.Descriptor instead.
 func (*ApiKey) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{31}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ApiKey) GetId() string {
@@ -1787,6 +2062,48 @@ func (x *ApiKey) GetIsAdmin() string {
 	return ""
 }
 
+func (x *ApiKey) GetIsActive() bool {
+	if x != nil {
+		return x.IsActive
+	}
+	return false
+}
+
+func (x *ApiKey) GetQuotaSetted() bool {
+	if x != nil {
+		return x.QuotaSetted
+	}
+	return false
+}
+
+func (x *ApiKey) GetReservedTokens() int64 {
+	if x != nil {
+		return x.ReservedTokens
+	}
+	return 0
+}
+
+func (x *ApiKey) GetQuotaResetAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.QuotaResetAt
+	}
+	return nil
+}
+
+func (x *ApiKey) GetQuotaResetStrategy() QuotaResetStrategy {
+	if x != nil {
+		return x.QuotaResetStrategy
+	}
+	return QuotaResetStrategy_QUOTA_RESET_STRATEGY_UNSPECIFIED
+}
+
+func (x *ApiKey) GetQuotaUsed() int64 {
+	if x != nil {
+		return x.QuotaUsed
+	}
+	return 0
+}
+
 type LogEntry struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Provider        string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
@@ -1808,7 +2125,7 @@ type LogEntry struct {
 
 func (x *LogEntry) Reset() {
 	*x = LogEntry{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[32]
+	mi := &file_docs_api_v1_types_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1820,7 +2137,7 @@ func (x *LogEntry) String() string {
 func (*LogEntry) ProtoMessage() {}
 
 func (x *LogEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[32]
+	mi := &file_docs_api_v1_types_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1833,7 +2150,7 @@ func (x *LogEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
 func (*LogEntry) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{32}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *LogEntry) GetProvider() string {
@@ -1937,7 +2254,7 @@ type GetUsageLogsRequest struct {
 
 func (x *GetUsageLogsRequest) Reset() {
 	*x = GetUsageLogsRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[33]
+	mi := &file_docs_api_v1_types_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1949,7 +2266,7 @@ func (x *GetUsageLogsRequest) String() string {
 func (*GetUsageLogsRequest) ProtoMessage() {}
 
 func (x *GetUsageLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[33]
+	mi := &file_docs_api_v1_types_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1962,7 +2279,7 @@ func (x *GetUsageLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUsageLogsRequest.ProtoReflect.Descriptor instead.
 func (*GetUsageLogsRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{33}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GetUsageLogsRequest) GetLimit() int32 {
@@ -1988,7 +2305,7 @@ type GetProviderLogsByKeyIDRequest struct {
 
 func (x *GetProviderLogsByKeyIDRequest) Reset() {
 	*x = GetProviderLogsByKeyIDRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[34]
+	mi := &file_docs_api_v1_types_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2000,7 +2317,7 @@ func (x *GetProviderLogsByKeyIDRequest) String() string {
 func (*GetProviderLogsByKeyIDRequest) ProtoMessage() {}
 
 func (x *GetProviderLogsByKeyIDRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[34]
+	mi := &file_docs_api_v1_types_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2013,7 +2330,7 @@ func (x *GetProviderLogsByKeyIDRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProviderLogsByKeyIDRequest.ProtoReflect.Descriptor instead.
 func (*GetProviderLogsByKeyIDRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{34}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *GetProviderLogsByKeyIDRequest) GetApiKeyId() string {
@@ -2033,7 +2350,7 @@ type GetProviderLogsByKeyIDResponse struct {
 
 func (x *GetProviderLogsByKeyIDResponse) Reset() {
 	*x = GetProviderLogsByKeyIDResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[35]
+	mi := &file_docs_api_v1_types_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2045,7 +2362,7 @@ func (x *GetProviderLogsByKeyIDResponse) String() string {
 func (*GetProviderLogsByKeyIDResponse) ProtoMessage() {}
 
 func (x *GetProviderLogsByKeyIDResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[35]
+	mi := &file_docs_api_v1_types_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2058,7 +2375,7 @@ func (x *GetProviderLogsByKeyIDResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProviderLogsByKeyIDResponse.ProtoReflect.Descriptor instead.
 func (*GetProviderLogsByKeyIDResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{35}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *GetProviderLogsByKeyIDResponse) GetLogs() []*LogEntry {
@@ -2084,7 +2401,7 @@ type GetUsageLogsResponse struct {
 
 func (x *GetUsageLogsResponse) Reset() {
 	*x = GetUsageLogsResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[36]
+	mi := &file_docs_api_v1_types_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2096,7 +2413,7 @@ func (x *GetUsageLogsResponse) String() string {
 func (*GetUsageLogsResponse) ProtoMessage() {}
 
 func (x *GetUsageLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[36]
+	mi := &file_docs_api_v1_types_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2109,7 +2426,7 @@ func (x *GetUsageLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUsageLogsResponse.ProtoReflect.Descriptor instead.
 func (*GetUsageLogsResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{36}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *GetUsageLogsResponse) GetLogs() []*LogEntry {
@@ -2117,6 +2434,154 @@ func (x *GetUsageLogsResponse) GetLogs() []*LogEntry {
 		return x.Logs
 	}
 	return nil
+}
+
+type GetProxiesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProxiesRequest) Reset() {
+	*x = GetProxiesRequest{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProxiesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProxiesRequest) ProtoMessage() {}
+
+func (x *GetProxiesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProxiesRequest.ProtoReflect.Descriptor instead.
+func (*GetProxiesRequest) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{39}
+}
+
+type GetProxiesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Proxies       []*ProxyProxy          `protobuf:"bytes,1,rep,name=proxies,proto3" json:"proxies,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProxiesResponse) Reset() {
+	*x = GetProxiesResponse{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProxiesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProxiesResponse) ProtoMessage() {}
+
+func (x *GetProxiesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProxiesResponse.ProtoReflect.Descriptor instead.
+func (*GetProxiesResponse) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *GetProxiesResponse) GetProxies() []*ProxyProxy {
+	if x != nil {
+		return x.Proxies
+	}
+	return nil
+}
+
+type ProxyProxy struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name           string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Url            string                 `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
+	CloudflareAddr string                 `protobuf:"bytes,4,opt,name=cloudflare_addr,json=cloudflareAddr,proto3" json:"cloudflare_addr,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ProxyProxy) Reset() {
+	*x = ProxyProxy{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProxyProxy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProxyProxy) ProtoMessage() {}
+
+func (x *ProxyProxy) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProxyProxy.ProtoReflect.Descriptor instead.
+func (*ProxyProxy) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *ProxyProxy) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ProxyProxy) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ProxyProxy) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *ProxyProxy) GetCloudflareAddr() string {
+	if x != nil {
+		return x.CloudflareAddr
+	}
+	return ""
 }
 
 var File_docs_api_v1_types_proto protoreflect.FileDescriptor
@@ -2131,20 +2596,24 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x0eSignInResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1d\n" +
 	"\n" +
-	"auth_token\x18\x02 \x01(\tR\tauthToken\"\xa7\x01\n" +
+	"auth_token\x18\x02 \x01(\tR\tauthToken\"\xda\x01\n" +
 	"\x15CreateProviderRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x128\n" +
 	"\x04type\x18\x02 \x01(\x0e2$.aoyorouter.docs.api.v1.ProviderTypeR\x04type\x12\x1b\n" +
 	"\tclient_id\x18\x03 \x01(\tR\bclientId\x12#\n" +
-	"\rclient_secret\x18\x04 \x01(\tR\fclientSecret\"Q\n" +
+	"\rclient_secret\x18\x04 \x01(\tR\fclientSecret\x12\x1b\n" +
+	"\tuse_proxy\x18\x05 \x01(\bR\buseProxy\x12\x14\n" +
+	"\x05proxy\x18\x06 \x01(\tR\x05proxy\"Q\n" +
 	"\x16CreateProviderResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1f\n" +
 	"\vprovider_id\x18\x02 \x01(\tR\n" +
-	"providerId\"T\n" +
+	"providerId\"\x87\x01\n" +
 	"\x1fCreateCodexAuthorizationRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1d\n" +
 	"\n" +
-	"custom_url\x18\x02 \x01(\tR\tcustomUrl\"\x86\x01\n" +
+	"custom_url\x18\x02 \x01(\tR\tcustomUrl\x12\x1b\n" +
+	"\tuse_proxy\x18\a \x01(\bR\buseProxy\x12\x14\n" +
+	"\x05proxy\x18\b \x01(\tR\x05proxy\"\x86\x01\n" +
 	" CreateCodexAuthorizationResponse\x12+\n" +
 	"\x11authorization_url\x18\x01 \x01(\tR\x10authorizationUrl\x12\x14\n" +
 	"\x05state\x18\x02 \x01(\tR\x05state\x12\x1f\n" +
@@ -2156,12 +2625,14 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\"CompleteCodexAuthorizationResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1f\n" +
 	"\vprovider_id\x18\x02 \x01(\tR\n" +
-	"providerId\"\x91\x01\n" +
+	"providerId\"\xc4\x01\n" +
 	"\"CreateProviderAuthorizationRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x128\n" +
 	"\x04type\x18\x02 \x01(\x0e2$.aoyorouter.docs.api.v1.ProviderTypeR\x04type\x12\x1d\n" +
 	"\n" +
-	"custom_url\x18\x03 \x01(\tR\tcustomUrl\"\xd9\x01\n" +
+	"custom_url\x18\x03 \x01(\tR\tcustomUrl\x12\x1b\n" +
+	"\tuse_proxy\x18\a \x01(\bR\buseProxy\x12\x14\n" +
+	"\x05proxy\x18\b \x01(\tR\x05proxy\"\xd9\x01\n" +
 	"#CreateProviderAuthorizationResponse\x12+\n" +
 	"\x11authorization_url\x18\x01 \x01(\tR\x10authorizationUrl\x12\x14\n" +
 	"\x05state\x18\x02 \x01(\tR\x05state\x12\x1f\n" +
@@ -2170,12 +2641,16 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x04flow\x18\x04 \x01(\tR\x04flow\x12\x1b\n" +
 	"\tuser_code\x18\x05 \x01(\tR\buserCode\x12\x1d\n" +
 	"\n" +
-	"expires_in\x18\x06 \x01(\x05R\texpiresIn\"_\n" +
+	"expires_in\x18\x06 \x01(\x05R\texpiresIn\"\x92\x01\n" +
 	"$CompleteProviderAuthorizationRequest\x12\x14\n" +
 	"\x05state\x18\x01 \x01(\tR\x05state\x12!\n" +
-	"\fcallback_url\x18\x02 \x01(\tR\vcallbackUrl\"=\n" +
+	"\fcallback_url\x18\x02 \x01(\tR\vcallbackUrl\x12\x1b\n" +
+	"\tuse_proxy\x18\x03 \x01(\bR\buseProxy\x12\x14\n" +
+	"\x05proxy\x18\x04 \x01(\tR\x05proxy\"p\n" +
 	"%GetProviderAuthorizationStatusRequest\x12\x14\n" +
-	"\x05state\x18\x01 \x01(\tR\x05state\"t\n" +
+	"\x05state\x18\x01 \x01(\tR\x05state\x12\x1b\n" +
+	"\tuse_proxy\x18\x02 \x01(\bR\buseProxy\x12\x14\n" +
+	"\x05proxy\x18\x03 \x01(\tR\x05proxy\"t\n" +
 	"#ProviderAuthorizationStatusResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1f\n" +
 	"\vprovider_id\x18\x02 \x01(\tR\n" +
@@ -2189,14 +2664,16 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\aprimary\x18\x01 \x01(\v2+.aoyorouter.docs.api.v1.ProviderQuotaWindowR\aprimary\x12I\n" +
 	"\tsecondary\x18\x02 \x01(\v2+.aoyorouter.docs.api.v1.ProviderQuotaWindowR\tsecondary\x12\x1b\n" +
 	"\tplan_type\x18\x03 \x01(\tR\bplanType\x12\x14\n" +
-	"\x05error\x18\x04 \x01(\tR\x05error\"\xe7\x01\n" +
+	"\x05error\x18\x04 \x01(\tR\x05error\"\x9a\x02\n" +
 	"\bProvider\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x128\n" +
 	"\x04type\x18\x03 \x01(\x0e2$.aoyorouter.docs.api.v1.ProviderTypeR\x04type\x12\x1b\n" +
 	"\tclient_id\x18\x04 \x01(\tR\bclientId\x12#\n" +
 	"\rclient_secret\x18\x05 \x01(\tR\fclientSecret\x12;\n" +
-	"\x05quota\x18\x06 \x01(\v2%.aoyorouter.docs.api.v1.ProviderQuotaR\x05quota\"5\n" +
+	"\x05quota\x18\x06 \x01(\v2%.aoyorouter.docs.api.v1.ProviderQuotaR\x05quota\x12\x1b\n" +
+	"\tuse_proxy\x18\a \x01(\bR\buseProxy\x12\x14\n" +
+	"\x05proxy\x18\b \x01(\tR\x05proxy\"5\n" +
 	"\x12GetProviderRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\"S\n" +
@@ -2204,14 +2681,16 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\bprovider\x18\x01 \x01(\v2 .aoyorouter.docs.api.v1.ProviderR\bprovider\"\x19\n" +
 	"\x17GetProvidersListRequest\"Z\n" +
 	"\x18GetProvidersListResponse\x12>\n" +
-	"\tproviders\x18\x01 \x03(\v2 .aoyorouter.docs.api.v1.ProviderR\tproviders\"\xc8\x01\n" +
+	"\tproviders\x18\x01 \x03(\v2 .aoyorouter.docs.api.v1.ProviderR\tproviders\"\xfb\x01\n" +
 	"\x15UpdateProviderRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x128\n" +
 	"\x04type\x18\x03 \x01(\x0e2$.aoyorouter.docs.api.v1.ProviderTypeR\x04type\x12\x1b\n" +
 	"\tclient_id\x18\x04 \x01(\tR\bclientId\x12#\n" +
-	"\rclient_secret\x18\x05 \x01(\tR\fclientSecret\"0\n" +
+	"\rclient_secret\x18\x05 \x01(\tR\fclientSecret\x12\x1b\n" +
+	"\tuse_proxy\x18\x06 \x01(\bR\buseProxy\x12\x14\n" +
+	"\x05proxy\x18\a \x01(\tR\x05proxy\"0\n" +
 	"\x16UpdateProviderResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\"8\n" +
 	"\x15DeleteProviderRequest\x12\x1f\n" +
@@ -2231,14 +2710,27 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\n" +
 	"api_key_id\x18\x01 \x01(\tR\bapiKeyId\".\n" +
 	"\x14DeleteApiKeyResponse\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\"j\n" +
+	"\x11EditApiKeyRequest\x12\x1c\n" +
+	"\n" +
+	"api_key_id\x18\x01 \x01(\tR\bapiKeyId\x127\n" +
+	"\aapi_key\x18\x02 \x01(\v2\x1e.aoyorouter.docs.api.v1.ApiKeyR\x06apiKey\",\n" +
+	"\x12EditApiKeyResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\"\x16\n" +
 	"\x14GetApiKeyListRequest\"R\n" +
 	"\x15GetApiKeyListResponse\x129\n" +
-	"\bapi_keys\x18\x01 \x03(\v2\x1e.aoyorouter.docs.api.v1.ApiKeyR\aapiKeys\"G\n" +
+	"\bapi_keys\x18\x01 \x03(\v2\x1e.aoyorouter.docs.api.v1.ApiKeyR\aapiKeys\"\xef\x02\n" +
 	"\x06ApiKey\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x19\n" +
-	"\bis_admin\x18\x03 \x01(\tR\aisAdmin\"\xd7\x03\n" +
+	"\bis_admin\x18\x03 \x01(\tR\aisAdmin\x12\x1b\n" +
+	"\tis_active\x18\x04 \x01(\bR\bisActive\x12!\n" +
+	"\fquota_setted\x18\x05 \x01(\bR\vquotaSetted\x12'\n" +
+	"\x0freserved_tokens\x18\x06 \x01(\x03R\x0ereservedTokens\x12@\n" +
+	"\x0equota_reset_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\fquotaResetAt\x12\\\n" +
+	"\x14quota_reset_strategy\x18\b \x01(\x0e2*.aoyorouter.docs.api.v1.QuotaResetStrategyR\x12quotaResetStrategy\x12\x1d\n" +
+	"\n" +
+	"quota_used\x18\t \x01(\x03R\tquotaUsed\"\xd7\x03\n" +
 	"\bLogEntry\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x12\x1c\n" +
 	"\n" +
@@ -2266,7 +2758,16 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x04logs\x18\x01 \x03(\v2 .aoyorouter.docs.api.v1.LogEntryR\x04logs\x12!\n" +
 	"\ftotal_tokens\x18\x02 \x01(\x03R\vtotalTokens\"L\n" +
 	"\x14GetUsageLogsResponse\x124\n" +
-	"\x04logs\x18\x01 \x03(\v2 .aoyorouter.docs.api.v1.LogEntryR\x04logs*\xcd\x01\n" +
+	"\x04logs\x18\x01 \x03(\v2 .aoyorouter.docs.api.v1.LogEntryR\x04logs\"\x13\n" +
+	"\x11GetProxiesRequest\"R\n" +
+	"\x12GetProxiesResponse\x12<\n" +
+	"\aproxies\x18\x01 \x03(\v2\".aoyorouter.docs.api.v1.ProxyProxyR\aproxies\"k\n" +
+	"\n" +
+	"ProxyProxy\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
+	"\x03url\x18\x03 \x01(\tR\x03url\x12'\n" +
+	"\x0fcloudflare_addr\x18\x04 \x01(\tR\x0ecloudflareAddr*\xcd\x01\n" +
 	"\fProviderType\x12\x1d\n" +
 	"\x19PROVIDER_TYPE_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14PROVIDER_TYPE_CUSTOM\x10\x01\x12\x18\n" +
@@ -2274,7 +2775,15 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x17PROVIDER_TYPE_ANTHROPIC\x10\x03\x12\x16\n" +
 	"\x12PROVIDER_TYPE_KIMI\x10\x04\x12\x16\n" +
 	"\x12PROVIDER_TYPE_GROK\x10\x05\x12\x1d\n" +
-	"\x19PROVIDER_TYPE_ANTIGRAVITY\x10\x06BAZ?github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter;aoyorouterb\x06proto3"
+	"\x19PROVIDER_TYPE_ANTIGRAVITY\x10\x06*\x82\x02\n" +
+	"\x12QuotaResetStrategy\x12$\n" +
+	" QUOTA_RESET_STRATEGY_UNSPECIFIED\x10\x00\x12 \n" +
+	"\x1cQUOTA_RESET_STRATEGY_MINUTES\x10\x01\x12\x1f\n" +
+	"\x1bQUOTA_RESET_STRATEGY_HOURLY\x10\x02\x12\x1e\n" +
+	"\x1aQUOTA_RESET_STRATEGY_DAILY\x10\x03\x12\x1f\n" +
+	"\x1bQUOTA_RESET_STRATEGY_WEEKLY\x10\x04\x12 \n" +
+	"\x1cQUOTA_RESET_STRATEGY_MONTHLY\x10\x05\x12 \n" +
+	"\x1cQUOTA_RESET_STRATEGY_FOREVER\x10\x06BAZ?github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter;aoyorouterb\x06proto3"
 
 var (
 	file_docs_api_v1_types_proto_rawDescOnce sync.Once
@@ -2288,69 +2797,79 @@ func file_docs_api_v1_types_proto_rawDescGZIP() []byte {
 	return file_docs_api_v1_types_proto_rawDescData
 }
 
-var file_docs_api_v1_types_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_docs_api_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
+var file_docs_api_v1_types_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_docs_api_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
 var file_docs_api_v1_types_proto_goTypes = []any{
 	(ProviderType)(0),                             // 0: aoyorouter.docs.api.v1.ProviderType
-	(*HealthCheckResponse)(nil),                   // 1: aoyorouter.docs.api.v1.HealthCheckResponse
-	(*SignInRequest)(nil),                         // 2: aoyorouter.docs.api.v1.SignInRequest
-	(*SignInResponse)(nil),                        // 3: aoyorouter.docs.api.v1.SignInResponse
-	(*CreateProviderRequest)(nil),                 // 4: aoyorouter.docs.api.v1.CreateProviderRequest
-	(*CreateProviderResponse)(nil),                // 5: aoyorouter.docs.api.v1.CreateProviderResponse
-	(*CreateCodexAuthorizationRequest)(nil),       // 6: aoyorouter.docs.api.v1.CreateCodexAuthorizationRequest
-	(*CreateCodexAuthorizationResponse)(nil),      // 7: aoyorouter.docs.api.v1.CreateCodexAuthorizationResponse
-	(*CompleteCodexAuthorizationRequest)(nil),     // 8: aoyorouter.docs.api.v1.CompleteCodexAuthorizationRequest
-	(*CompleteCodexAuthorizationResponse)(nil),    // 9: aoyorouter.docs.api.v1.CompleteCodexAuthorizationResponse
-	(*CreateProviderAuthorizationRequest)(nil),    // 10: aoyorouter.docs.api.v1.CreateProviderAuthorizationRequest
-	(*CreateProviderAuthorizationResponse)(nil),   // 11: aoyorouter.docs.api.v1.CreateProviderAuthorizationResponse
-	(*CompleteProviderAuthorizationRequest)(nil),  // 12: aoyorouter.docs.api.v1.CompleteProviderAuthorizationRequest
-	(*GetProviderAuthorizationStatusRequest)(nil), // 13: aoyorouter.docs.api.v1.GetProviderAuthorizationStatusRequest
-	(*ProviderAuthorizationStatusResponse)(nil),   // 14: aoyorouter.docs.api.v1.ProviderAuthorizationStatusResponse
-	(*ProviderQuotaWindow)(nil),                   // 15: aoyorouter.docs.api.v1.ProviderQuotaWindow
-	(*ProviderQuota)(nil),                         // 16: aoyorouter.docs.api.v1.ProviderQuota
-	(*Provider)(nil),                              // 17: aoyorouter.docs.api.v1.Provider
-	(*GetProviderRequest)(nil),                    // 18: aoyorouter.docs.api.v1.GetProviderRequest
-	(*GetProviderResponse)(nil),                   // 19: aoyorouter.docs.api.v1.GetProviderResponse
-	(*GetProvidersListRequest)(nil),               // 20: aoyorouter.docs.api.v1.GetProvidersListRequest
-	(*GetProvidersListResponse)(nil),              // 21: aoyorouter.docs.api.v1.GetProvidersListResponse
-	(*UpdateProviderRequest)(nil),                 // 22: aoyorouter.docs.api.v1.UpdateProviderRequest
-	(*UpdateProviderResponse)(nil),                // 23: aoyorouter.docs.api.v1.UpdateProviderResponse
-	(*DeleteProviderRequest)(nil),                 // 24: aoyorouter.docs.api.v1.DeleteProviderRequest
-	(*DeleteProviderResponse)(nil),                // 25: aoyorouter.docs.api.v1.DeleteProviderResponse
-	(*CreateApiKeyRequest)(nil),                   // 26: aoyorouter.docs.api.v1.CreateApiKeyRequest
-	(*CreateApiKeyResponse)(nil),                  // 27: aoyorouter.docs.api.v1.CreateApiKeyResponse
-	(*DeleteApiKeyRequest)(nil),                   // 28: aoyorouter.docs.api.v1.DeleteApiKeyRequest
-	(*DeleteApiKeyResponse)(nil),                  // 29: aoyorouter.docs.api.v1.DeleteApiKeyResponse
-	(*GetApiKeyListRequest)(nil),                  // 30: aoyorouter.docs.api.v1.GetApiKeyListRequest
-	(*GetApiKeyListResponse)(nil),                 // 31: aoyorouter.docs.api.v1.GetApiKeyListResponse
-	(*ApiKey)(nil),                                // 32: aoyorouter.docs.api.v1.ApiKey
-	(*LogEntry)(nil),                              // 33: aoyorouter.docs.api.v1.LogEntry
-	(*GetUsageLogsRequest)(nil),                   // 34: aoyorouter.docs.api.v1.GetUsageLogsRequest
-	(*GetProviderLogsByKeyIDRequest)(nil),         // 35: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDRequest
-	(*GetProviderLogsByKeyIDResponse)(nil),        // 36: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse
-	(*GetUsageLogsResponse)(nil),                  // 37: aoyorouter.docs.api.v1.GetUsageLogsResponse
-	(*timestamppb.Timestamp)(nil),                 // 38: google.protobuf.Timestamp
+	(QuotaResetStrategy)(0),                       // 1: aoyorouter.docs.api.v1.QuotaResetStrategy
+	(*HealthCheckResponse)(nil),                   // 2: aoyorouter.docs.api.v1.HealthCheckResponse
+	(*SignInRequest)(nil),                         // 3: aoyorouter.docs.api.v1.SignInRequest
+	(*SignInResponse)(nil),                        // 4: aoyorouter.docs.api.v1.SignInResponse
+	(*CreateProviderRequest)(nil),                 // 5: aoyorouter.docs.api.v1.CreateProviderRequest
+	(*CreateProviderResponse)(nil),                // 6: aoyorouter.docs.api.v1.CreateProviderResponse
+	(*CreateCodexAuthorizationRequest)(nil),       // 7: aoyorouter.docs.api.v1.CreateCodexAuthorizationRequest
+	(*CreateCodexAuthorizationResponse)(nil),      // 8: aoyorouter.docs.api.v1.CreateCodexAuthorizationResponse
+	(*CompleteCodexAuthorizationRequest)(nil),     // 9: aoyorouter.docs.api.v1.CompleteCodexAuthorizationRequest
+	(*CompleteCodexAuthorizationResponse)(nil),    // 10: aoyorouter.docs.api.v1.CompleteCodexAuthorizationResponse
+	(*CreateProviderAuthorizationRequest)(nil),    // 11: aoyorouter.docs.api.v1.CreateProviderAuthorizationRequest
+	(*CreateProviderAuthorizationResponse)(nil),   // 12: aoyorouter.docs.api.v1.CreateProviderAuthorizationResponse
+	(*CompleteProviderAuthorizationRequest)(nil),  // 13: aoyorouter.docs.api.v1.CompleteProviderAuthorizationRequest
+	(*GetProviderAuthorizationStatusRequest)(nil), // 14: aoyorouter.docs.api.v1.GetProviderAuthorizationStatusRequest
+	(*ProviderAuthorizationStatusResponse)(nil),   // 15: aoyorouter.docs.api.v1.ProviderAuthorizationStatusResponse
+	(*ProviderQuotaWindow)(nil),                   // 16: aoyorouter.docs.api.v1.ProviderQuotaWindow
+	(*ProviderQuota)(nil),                         // 17: aoyorouter.docs.api.v1.ProviderQuota
+	(*Provider)(nil),                              // 18: aoyorouter.docs.api.v1.Provider
+	(*GetProviderRequest)(nil),                    // 19: aoyorouter.docs.api.v1.GetProviderRequest
+	(*GetProviderResponse)(nil),                   // 20: aoyorouter.docs.api.v1.GetProviderResponse
+	(*GetProvidersListRequest)(nil),               // 21: aoyorouter.docs.api.v1.GetProvidersListRequest
+	(*GetProvidersListResponse)(nil),              // 22: aoyorouter.docs.api.v1.GetProvidersListResponse
+	(*UpdateProviderRequest)(nil),                 // 23: aoyorouter.docs.api.v1.UpdateProviderRequest
+	(*UpdateProviderResponse)(nil),                // 24: aoyorouter.docs.api.v1.UpdateProviderResponse
+	(*DeleteProviderRequest)(nil),                 // 25: aoyorouter.docs.api.v1.DeleteProviderRequest
+	(*DeleteProviderResponse)(nil),                // 26: aoyorouter.docs.api.v1.DeleteProviderResponse
+	(*CreateApiKeyRequest)(nil),                   // 27: aoyorouter.docs.api.v1.CreateApiKeyRequest
+	(*CreateApiKeyResponse)(nil),                  // 28: aoyorouter.docs.api.v1.CreateApiKeyResponse
+	(*DeleteApiKeyRequest)(nil),                   // 29: aoyorouter.docs.api.v1.DeleteApiKeyRequest
+	(*DeleteApiKeyResponse)(nil),                  // 30: aoyorouter.docs.api.v1.DeleteApiKeyResponse
+	(*EditApiKeyRequest)(nil),                     // 31: aoyorouter.docs.api.v1.EditApiKeyRequest
+	(*EditApiKeyResponse)(nil),                    // 32: aoyorouter.docs.api.v1.EditApiKeyResponse
+	(*GetApiKeyListRequest)(nil),                  // 33: aoyorouter.docs.api.v1.GetApiKeyListRequest
+	(*GetApiKeyListResponse)(nil),                 // 34: aoyorouter.docs.api.v1.GetApiKeyListResponse
+	(*ApiKey)(nil),                                // 35: aoyorouter.docs.api.v1.ApiKey
+	(*LogEntry)(nil),                              // 36: aoyorouter.docs.api.v1.LogEntry
+	(*GetUsageLogsRequest)(nil),                   // 37: aoyorouter.docs.api.v1.GetUsageLogsRequest
+	(*GetProviderLogsByKeyIDRequest)(nil),         // 38: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDRequest
+	(*GetProviderLogsByKeyIDResponse)(nil),        // 39: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse
+	(*GetUsageLogsResponse)(nil),                  // 40: aoyorouter.docs.api.v1.GetUsageLogsResponse
+	(*GetProxiesRequest)(nil),                     // 41: aoyorouter.docs.api.v1.GetProxiesRequest
+	(*GetProxiesResponse)(nil),                    // 42: aoyorouter.docs.api.v1.GetProxiesResponse
+	(*ProxyProxy)(nil),                            // 43: aoyorouter.docs.api.v1.ProxyProxy
+	(*timestamppb.Timestamp)(nil),                 // 44: google.protobuf.Timestamp
 }
 var file_docs_api_v1_types_proto_depIdxs = []int32{
 	0,  // 0: aoyorouter.docs.api.v1.CreateProviderRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
 	0,  // 1: aoyorouter.docs.api.v1.CreateProviderAuthorizationRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
-	15, // 2: aoyorouter.docs.api.v1.ProviderQuota.primary:type_name -> aoyorouter.docs.api.v1.ProviderQuotaWindow
-	15, // 3: aoyorouter.docs.api.v1.ProviderQuota.secondary:type_name -> aoyorouter.docs.api.v1.ProviderQuotaWindow
+	16, // 2: aoyorouter.docs.api.v1.ProviderQuota.primary:type_name -> aoyorouter.docs.api.v1.ProviderQuotaWindow
+	16, // 3: aoyorouter.docs.api.v1.ProviderQuota.secondary:type_name -> aoyorouter.docs.api.v1.ProviderQuotaWindow
 	0,  // 4: aoyorouter.docs.api.v1.Provider.type:type_name -> aoyorouter.docs.api.v1.ProviderType
-	16, // 5: aoyorouter.docs.api.v1.Provider.quota:type_name -> aoyorouter.docs.api.v1.ProviderQuota
-	17, // 6: aoyorouter.docs.api.v1.GetProviderResponse.provider:type_name -> aoyorouter.docs.api.v1.Provider
-	17, // 7: aoyorouter.docs.api.v1.GetProvidersListResponse.providers:type_name -> aoyorouter.docs.api.v1.Provider
+	17, // 5: aoyorouter.docs.api.v1.Provider.quota:type_name -> aoyorouter.docs.api.v1.ProviderQuota
+	18, // 6: aoyorouter.docs.api.v1.GetProviderResponse.provider:type_name -> aoyorouter.docs.api.v1.Provider
+	18, // 7: aoyorouter.docs.api.v1.GetProvidersListResponse.providers:type_name -> aoyorouter.docs.api.v1.Provider
 	0,  // 8: aoyorouter.docs.api.v1.UpdateProviderRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
-	32, // 9: aoyorouter.docs.api.v1.GetApiKeyListResponse.api_keys:type_name -> aoyorouter.docs.api.v1.ApiKey
-	38, // 10: aoyorouter.docs.api.v1.LogEntry.request_time:type_name -> google.protobuf.Timestamp
-	38, // 11: aoyorouter.docs.api.v1.LogEntry.created_at:type_name -> google.protobuf.Timestamp
-	33, // 12: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
-	33, // 13: aoyorouter.docs.api.v1.GetUsageLogsResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	35, // 9: aoyorouter.docs.api.v1.EditApiKeyRequest.api_key:type_name -> aoyorouter.docs.api.v1.ApiKey
+	35, // 10: aoyorouter.docs.api.v1.GetApiKeyListResponse.api_keys:type_name -> aoyorouter.docs.api.v1.ApiKey
+	44, // 11: aoyorouter.docs.api.v1.ApiKey.quota_reset_at:type_name -> google.protobuf.Timestamp
+	1,  // 12: aoyorouter.docs.api.v1.ApiKey.quota_reset_strategy:type_name -> aoyorouter.docs.api.v1.QuotaResetStrategy
+	44, // 13: aoyorouter.docs.api.v1.LogEntry.request_time:type_name -> google.protobuf.Timestamp
+	44, // 14: aoyorouter.docs.api.v1.LogEntry.created_at:type_name -> google.protobuf.Timestamp
+	36, // 15: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
+	36, // 16: aoyorouter.docs.api.v1.GetUsageLogsResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
+	43, // 17: aoyorouter.docs.api.v1.GetProxiesResponse.proxies:type_name -> aoyorouter.docs.api.v1.ProxyProxy
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_docs_api_v1_types_proto_init() }
@@ -2363,8 +2882,8 @@ func file_docs_api_v1_types_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_docs_api_v1_types_proto_rawDesc), len(file_docs_api_v1_types_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   37,
+			NumEnums:      2,
+			NumMessages:   42,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

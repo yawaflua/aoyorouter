@@ -2,3 +2,5 @@ auth
 config.yaml
 go.sum
 .env
+main
+proxy

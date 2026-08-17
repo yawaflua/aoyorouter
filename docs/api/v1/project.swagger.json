@@ -96,6 +96,42 @@
         "tags": [
           "AoyoRouterService"
         ]
+      },
+      "patch": {
+        "operationId": "AoyoRouterService_EditApiKey",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1EditApiKeyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "apiKeyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AoyoRouterServiceEditApiKeyBody"
+            }
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
       }
     },
     "/api/aoyo/v1/api-keys/{apiKeyId}/logs": {
@@ -289,6 +325,18 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "useProxy",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "proxy",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -454,6 +502,28 @@
         ]
       }
     },
+    "/api/aoyo/v1/proxies": {
+      "get": {
+        "operationId": "AoyoRouterService_GetProxies",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetProxiesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
     "/api/aoyo/v1/signin": {
       "post": {
         "operationId": "AoyoRouterService_SignIn",
@@ -526,6 +596,14 @@
     }
   },
   "definitions": {
+    "AoyoRouterServiceEditApiKeyBody": {
+      "type": "object",
+      "properties": {
+        "apiKey": {
+          "$ref": "#/definitions/v1ApiKey"
+        }
+      }
+    },
     "AoyoRouterServiceUpdateProviderBody": {
       "type": "object",
       "properties": {
@@ -539,6 +617,12 @@
           "type": "string"
         },
         "clientSecret": {
+          "type": "string"
+        },
+        "useProxy": {
+          "type": "boolean"
+        },
+        "proxy": {
           "type": "string"
         }
       }
@@ -582,6 +666,27 @@
         },
         "isAdmin": {
           "type": "string"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "quotaSetted": {
+          "type": "boolean"
+        },
+        "reservedTokens": {
+          "type": "string",
+          "format": "int64"
+        },
+        "quotaResetAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "quotaResetStrategy": {
+          "$ref": "#/definitions/v1QuotaResetStrategy"
+        },
+        "quotaUsed": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -614,6 +719,12 @@
           "type": "string"
         },
         "callbackUrl": {
+          "type": "string"
+        },
+        "useProxy": {
+          "type": "boolean"
+        },
+        "proxy": {
           "type": "string"
         }
       }
@@ -651,6 +762,12 @@
         },
         "customUrl": {
           "type": "string"
+        },
+        "useProxy": {
+          "type": "boolean"
+        },
+        "proxy": {
+          "type": "string"
         }
       }
     },
@@ -678,6 +795,12 @@
           "$ref": "#/definitions/v1ProviderType"
         },
         "customUrl": {
+          "type": "string"
+        },
+        "useProxy": {
+          "type": "boolean"
+        },
+        "proxy": {
           "type": "string"
         }
       }
@@ -720,6 +843,12 @@
         },
         "clientSecret": {
           "type": "string"
+        },
+        "useProxy": {
+          "type": "boolean"
+        },
+        "proxy": {
+          "type": "string"
         }
       }
     },
@@ -743,6 +872,14 @@
       }
     },
     "v1DeleteProviderResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "v1EditApiKeyResponse": {
       "type": "object",
       "properties": {
         "status": {
@@ -794,6 +931,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1Provider"
+          }
+        }
+      }
+    },
+    "v1GetProxiesResponse": {
+      "type": "object",
+      "properties": {
+        "proxies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ProxyProxy"
           }
         }
       }
@@ -889,6 +1038,12 @@
         },
         "quota": {
           "$ref": "#/definitions/v1ProviderQuota"
+        },
+        "useProxy": {
+          "type": "boolean"
+        },
+        "proxy": {
+          "type": "string"
         }
       }
     },
@@ -947,9 +1102,40 @@
         "PROVIDER_TYPE_OPENAI",
         "PROVIDER_TYPE_ANTHROPIC",
         "PROVIDER_TYPE_KIMI",
-        "PROVIDER_TYPE_GROK"
+        "PROVIDER_TYPE_GROK",
+        "PROVIDER_TYPE_ANTIGRAVITY"
       ],
       "default": "PROVIDER_TYPE_UNSPECIFIED"
+    },
+    "v1ProxyProxy": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "cloudflareAddr": {
+          "type": "string"
+        }
+      }
+    },
+    "v1QuotaResetStrategy": {
+      "type": "string",
+      "enum": [
+        "QUOTA_RESET_STRATEGY_UNSPECIFIED",
+        "QUOTA_RESET_STRATEGY_MINUTES",
+        "QUOTA_RESET_STRATEGY_HOURLY",
+        "QUOTA_RESET_STRATEGY_DAILY",
+        "QUOTA_RESET_STRATEGY_WEEKLY",
+        "QUOTA_RESET_STRATEGY_MONTHLY",
+        "QUOTA_RESET_STRATEGY_FOREVER"
+      ],
+      "default": "QUOTA_RESET_STRATEGY_UNSPECIFIED"
     },
     "v1SignInRequest": {
       "type": "object",

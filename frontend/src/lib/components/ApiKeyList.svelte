@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { formatLogTime, formatTokens } from '../format'
+  import { formatDateTime, formatLogTime, formatTokens } from '../format'
   import Icon from '../Icon.svelte'
-  import type { ApiKey, ApiKeyUsage } from '../models/apikey'
+  import { quotaResetLabels, type ApiKey, type ApiKeyUsage } from '../models/apikey'
 
   interface Props {
     keys: ApiKey[]
@@ -11,11 +11,12 @@
     usageErrors: Record<string, string>
     onClearSearch: () => void
     onCreate: () => void
+    onEdit: (key: ApiKey) => void
     onDelete: (key: ApiKey) => void
     onLoadUsage: (key: ApiKey) => Promise<void>
   }
 
-  let { keys, search, usage, usageLoading, usageErrors, onClearSearch, onCreate, onDelete, onLoadUsage }: Props = $props()
+  let { keys, search, usage, usageLoading, usageErrors, onClearSearch, onCreate, onEdit, onDelete, onLoadUsage }: Props = $props()
   let expandedId = $state('')
 
   async function toggle(key: ApiKey) {
@@ -50,6 +51,7 @@
           <div class="entity-icon key-icon"><Icon name="key" /></div>
           <div class="entity-main"><h2>{key.name}</h2><p><code>{key.id}</code></p></div>
           {#if key.isAdmin === 'true'}<span class="status-chip">Admin</span>{/if}
+          <span class:inactive={!key.isActive} class="status-chip key-status">{key.isActive ? 'Active' : 'Inactive'}</span>
           <span class:expanded={expandedId === key.id} class="expand-icon" aria-hidden="true"><Icon name="chevron" size={19} /></span>
           <button
             class="icon-button danger"
@@ -60,6 +62,13 @@
 
         {#if expandedId === key.id}
           <section class="key-details" aria-label={`${key.name} usage details`}>
+            <div class="key-quota-summary">
+              <div><span>Quota</span><strong>{key.quotaSet ? formatTokens(key.reservedTokens) : 'Unlimited'}</strong></div>
+              <div><span>Used</span><strong>{formatTokens(key.quotaUsed)}</strong></div>
+              <div><span>Resets</span><strong>{key.quotaSet && key.quotaResetStrategy !== 'QUOTA_RESET_STRATEGY_FOREVER' ? formatDateTime(key.quotaResetAt) : 'Never'}</strong></div>
+              <div><span>Frequency</span><strong>{key.quotaSet ? quotaResetLabels[key.quotaResetStrategy] : 'No limit'}</strong></div>
+              <button class="tonal" onclick={() => onEdit(key)}>Edit</button>
+            </div>
             {#if usageLoading === key.id}
               <div class="details-loading"><span class="dark-spinner"></span> Loading usage…</div>
             {:else if usageErrors[key.id]}
@@ -69,7 +78,6 @@
               </div>
             {:else if usage[key.id]}
               <div class="usage-summary">
-                <div><span>Used quota</span><strong>{formatTokens(usage[key.id].totalTokens)}</strong></div>
                 <div><span>Recent requests</span><strong>{usage[key.id].logs.length} of 10</strong></div>
               </div>
               {#if usage[key.id].logs.length}

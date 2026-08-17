@@ -1,6 +1,7 @@
 <script lang="ts">
   import { providerLabels, providerOptions } from '../app'
   import Icon from '../Icon.svelte'
+  import ProxySettings from './ProxySettings.svelte'
   import type { CodexAuthorization, ProviderAuthorization } from '../models/authorization'
   import type { ProviderType } from '../models/providers'
 
@@ -9,6 +10,8 @@
     type: ProviderType
     customUrl: string
     authorizationData: string
+    useProxy: boolean
+    proxy: string
     codexSession: CodexAuthorization | null
     providerSession: ProviderAuthorization | null
   }
@@ -30,13 +33,15 @@
   let type = $state<ProviderType>('PROVIDER_TYPE_OPENAI')
   let customUrl = $state('')
   let authorizationData = $state('')
+  let useProxy = $state(false)
+  let proxy = $state('')
   let codexSession = $state<CodexAuthorization | null>(null)
   let providerSession = $state<ProviderAuthorization | null>(null)
   let codexReady = $state(false)
   let callbackSubmitted = $state(false)
   let localError = $state('')
 
-  const draft = $derived<ProviderDraft>({ name, type, customUrl, authorizationData, codexSession, providerSession })
+  const draft = $derived<ProviderDraft>({ name, type, customUrl, authorizationData, useProxy, proxy, codexSession, providerSession })
   const canSubmit = $derived(
     !pending && (type === 'PROVIDER_TYPE_OPENAI' ? codexReady : type === 'PROVIDER_TYPE_CUSTOM' && Boolean(authorizationData.trim())),
   )
@@ -117,6 +122,7 @@
       <div class="text-field"><input id="custom-url" type="url" bind:value={customUrl} placeholder={type === 'PROVIDER_TYPE_OPENAI' ? 'Leave empty for ChatGPT Codex' : 'https://api.example.com/v1'} /></div>
       <p class="supporting">{type === 'PROVIDER_TYPE_OPENAI' ? 'Leave empty for the ChatGPT Codex endpoint. OAuth tokens do not work with api.openai.com/v1.' : 'Leave empty to use the provider’s default endpoint.'}</p>
     </div>
+    <ProxySettings bind:useProxy bind:proxy idPrefix="new-provider" disabled={pending} />
 
     {#if type === 'PROVIDER_TYPE_OPENAI'}
       <div class="oauth-panel">

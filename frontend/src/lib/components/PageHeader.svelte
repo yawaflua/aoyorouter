@@ -16,7 +16,7 @@
     <h1>{section.title}</h1>
     <p>{section.description}</p>
   </div>
-  {#if section.id !== 'logs'}
+  {#if section.id === 'keys' || section.id === 'providers'}
     <button class="filled top-action" onclick={onAction}>
       <Icon name="plus" size={20} /> {section.id === 'keys' ? 'Create key' : 'Add provider'}
     </button>

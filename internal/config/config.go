@@ -9,7 +9,8 @@ type C struct {
 	Env string `env:"ENV" env-default:"dev"`
 
 	InitialPassword string `env:"INITIAL_PASSWORD" env-default:""`
-	
+	WarpLimit       int    `env:"WARP_LIMIT" env-default:"10"`
+
 	GRPC     GRPCConfig
 	HTTP     HTTPConfig
 	Postgres postgres.Config

@@ -22,6 +22,8 @@ message CreateProviderRequest {
     ProviderType type = 2;
     string client_id = 3;
     string client_secret = 4;
+    bool use_proxy = 5;
+    string proxy = 6;
 }
 message CreateProviderResponse {
     string status = 1;
@@ -31,6 +33,8 @@ message CreateProviderResponse {
 message CreateCodexAuthorizationRequest {
     string name = 1;
     string custom_url = 2;
+    bool use_proxy = 7;
+    string proxy = 8;
 }
 message CreateCodexAuthorizationResponse {
     string authorization_url = 1;
@@ -51,6 +55,8 @@ message CreateProviderAuthorizationRequest {
     string name = 1;
     ProviderType type = 2;
     string custom_url = 3;
+    bool use_proxy = 7;
+    string proxy = 8;
 }
 
 message CreateProviderAuthorizationResponse {
@@ -65,10 +71,14 @@ message CreateProviderAuthorizationResponse {
 message CompleteProviderAuthorizationRequest {
     string state = 1;
     string callback_url = 2;
+    bool use_proxy = 3;
+    string proxy = 4;
 }
 
 message GetProviderAuthorizationStatusRequest {
     string state = 1;
+    bool use_proxy = 2;
+    string proxy = 3;
 }
 
 message ProviderAuthorizationStatusResponse {
@@ -107,6 +117,8 @@ message Provider {
     string client_id = 4;
     string client_secret = 5;
     ProviderQuota quota = 6;
+    bool use_proxy = 7;
+    string proxy = 8;
 }
 
 message GetProviderRequest {
@@ -129,6 +141,8 @@ message UpdateProviderRequest {
     ProviderType type = 3;
     string client_id = 4;
     string client_secret = 5;
+    bool use_proxy = 6;
+    string proxy = 7;
 }
 message UpdateProviderResponse {
     string status = 1;
@@ -158,8 +172,15 @@ message DeleteApiKeyResponse {
     string status = 1;
 }
 
-message GetApiKeyListRequest {
+message EditApiKeyRequest {
+    string api_key_id = 1;
+    ApiKey api_key = 2;
+}
+message EditApiKeyResponse {
+    string status = 1;
+}
 
+message GetApiKeyListRequest {
 }
 message GetApiKeyListResponse {
     repeated ApiKey api_keys = 1;
@@ -169,6 +190,22 @@ message ApiKey {
     string id = 1;
     string name = 2;
     string is_admin = 3;
+    bool is_active = 4;
+    bool quota_setted = 5;
+    int64 reserved_tokens = 6;
+    google.protobuf.Timestamp quota_reset_at = 7;
+    QuotaResetStrategy quota_reset_strategy = 8;
+    int64 quota_used = 9;
+}
+
+enum QuotaResetStrategy {
+    QUOTA_RESET_STRATEGY_UNSPECIFIED = 0;
+    QUOTA_RESET_STRATEGY_MINUTES = 1;
+    QUOTA_RESET_STRATEGY_HOURLY = 2;
+    QUOTA_RESET_STRATEGY_DAILY = 3;
+    QUOTA_RESET_STRATEGY_WEEKLY = 4;
+    QUOTA_RESET_STRATEGY_MONTHLY = 5;
+    QUOTA_RESET_STRATEGY_FOREVER = 6;
 }
 
 message LogEntry {
@@ -201,4 +238,16 @@ message GetProviderLogsByKeyIDResponse {
 
 message GetUsageLogsResponse {
     repeated LogEntry logs = 1;
+}
+
+message GetProxiesRequest {
+}
+message GetProxiesResponse {
+    repeated ProxyProxy proxies = 1;
+}
+message ProxyProxy {
+    string id = 1;
+    string name = 2;
+    string url = 3;
+    string cloudflare_addr = 4;
 }

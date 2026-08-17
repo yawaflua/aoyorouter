@@ -18,6 +18,8 @@
     <circle cx="8" cy="15" r="4"></circle><path d="m11 12 8-8m-2 2 2 2m-5 1 2 2"></path>
   {:else if name === 'provider'}
     <path d="M8 3v4m8-4v4M6 7h12v3a6 6 0 0 1-12 0V7Zm6 9v5"></path>
+  {:else if name === 'proxy'}
+    <circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="6" r="2.5"></circle><circle cx="18" cy="18" r="2.5"></circle><path d="m8.2 10.8 7.6-3.6m-7.6 6 7.6 3.6"></path>
   {:else if name === 'logs'}
     <path d="M5 4h14v16H5zM8 8h8m-8 4h8m-8 4h5"></path>
   {:else if name === 'plus'}

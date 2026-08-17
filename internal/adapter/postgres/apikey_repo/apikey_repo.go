@@ -60,7 +60,7 @@ func (r *ApiKeyRepo) CreateApiKey(ctx context.Context, name string) (*models.Api
 func (r *ApiKeyRepo) GetApiKeyByID(ctx context.Context, id string) (*models.ApiKey, error) {
 	conn := r.DB.GetConnection(ctx)
 
-	sql, args, err := squirrel.Select("id", "name", "key", "created_at", "updated_at", "is_deleted", "is_active").
+	sql, args, err := squirrel.Select("id", "name", "key", "quota_setted", "quota_tokens", "quota_period", "quota_reset_at", "reserved_tokens", "created_at", "updated_at", "is_deleted", "is_active").
 		From("api_keys").
 		Where(squirrel.Eq{"id": id}).
 		PlaceholderFormat(squirrel.Dollar).
@@ -69,15 +69,110 @@ func (r *ApiKeyRepo) GetApiKeyByID(ctx context.Context, id string) (*models.ApiK
 		return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeyByID: %w", err)
 	}
 	var apiKey models.ApiKey
-	if err := conn.QueryRow(ctx, sql, args...).Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive); err != nil {
+	if err := conn.QueryRow(ctx, sql, args...).Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.QuotaSetted, &apiKey.QuotaTokens, &apiKey.QuotaPeriod, &apiKey.QuotaResetAt, &apiKey.ReservedTokens, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive); err != nil {
 		return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeyByID: %w", err)
 	}
 	return &apiKey, nil
 }
 
+func (r *ApiKeyRepo) GetApiKeyByKey(ctx context.Context, key string) (*models.ApiKey, error) {
+	conn := r.DB.GetConnection(ctx)
+	sql, args, err := squirrel.Select("id", "name", "key", "quota_setted", "quota_tokens", "quota_period", "quota_reset_at", "reserved_tokens", "created_at", "updated_at", "is_deleted", "is_active").
+		From("api_keys").
+		Where(squirrel.Eq{"key": key}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeyByKey: %w", err)
+	}
+	rows, err := conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeyByKey: %w", err)
+	}
+	defer rows.Close()
+
+	var apiKey models.ApiKey
+	if rows.Next() {
+		if err := rows.Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.QuotaSetted, &apiKey.QuotaTokens, &apiKey.QuotaPeriod, &apiKey.QuotaResetAt, &apiKey.ReservedTokens, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive); err != nil {
+			return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeyByKey: %w", err)
+		}
+	}
+	return &apiKey, nil
+}
+
+func (r *ApiKeyRepo) UpdateApiKeyQuota(ctx context.Context, apiKey *models.ApiKey) error {
+	conn := r.DB.GetConnection(ctx)
+	if apiKey.QuotaSetted && apiKey.QuotaResetAt.Before(time.Now().UTC()) {
+
+		var newQuotaResetAt time.Time
+
+		switch apiKey.QuotaPeriod {
+		case models.QuotaPeriodMonth:
+			newQuotaResetAt = apiKey.QuotaResetAt.Add(30 * 24 * time.Hour)
+		case models.QuotaPeriodWeek:
+			newQuotaResetAt = apiKey.QuotaResetAt.Add(7 * 24 * time.Hour)
+		case models.QuotaPeriodDay:
+			newQuotaResetAt = apiKey.QuotaResetAt.Add(24 * time.Hour)
+		case models.QuotaPeriodHour:
+			newQuotaResetAt = apiKey.QuotaResetAt.Add(1 * time.Hour)
+		case models.QuotaPeriodMinute:
+			newQuotaResetAt = apiKey.QuotaResetAt.Add(1 * time.Minute)
+		default:
+			fmt.Println("Forever")
+		}
+		apiKey.QuotaResetAt = newQuotaResetAt
+
+		apiKey.QuotaTokens = 0
+	}
+
+	sql, args, err := squirrel.Update("api_keys").
+		Set("quota_tokens", apiKey.QuotaTokens).
+		Set("quota_period", apiKey.QuotaPeriod).
+		Set("quota_reset_at", apiKey.QuotaResetAt).
+		Set("reserved_tokens", apiKey.ReservedTokens).
+		Set("updated_at", time.Now()).
+		Where(squirrel.Eq{"id": apiKey.ID}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("postgres.apikey_repo.UpdateApiKeyQuota: %w", err)
+	}
+	_, err = conn.Exec(ctx, sql, args...)
+	if err != nil {
+		return fmt.Errorf("postgres.apikey_repo.UpdateApiKeyQuota: %w", err)
+	}
+	return nil
+}
+
+func (r *ApiKeyRepo) UpdateApiKey(ctx context.Context, apiKey *models.ApiKey) error {
+	conn := r.DB.GetConnection(ctx)
+	sql, args, err := squirrel.Update("api_keys").
+		Set("name", apiKey.Name).
+		Set("is_active", apiKey.IsActive).
+		Set("quota_setted", apiKey.QuotaSetted).
+		Set("quota_period", apiKey.QuotaPeriod).
+		Set("quota_reset_at", apiKey.QuotaResetAt).
+		Set("reserved_tokens", apiKey.ReservedTokens).
+		Set("updated_at", time.Now().UTC()).
+		Where(squirrel.Eq{"id": apiKey.ID, "is_deleted": false}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("postgres.apikey_repo.UpdateApiKey: %w", err)
+	}
+	result, err := conn.Exec(ctx, sql, args...)
+	if err != nil {
+		return fmt.Errorf("postgres.apikey_repo.UpdateApiKey: %w", err)
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("postgres.apikey_repo.UpdateApiKey: api key not found")
+	}
+	return nil
+}
+
 func (r *ApiKeyRepo) GetApiKeys(ctx context.Context) ([]*models.ApiKey, error) {
 	conn := r.DB.GetConnection(ctx)
-	rows, err := conn.Query(ctx, "SELECT id, name, key, created_at, updated_at, is_deleted, is_active FROM api_keys WHERE is_deleted = false")
+	rows, err := conn.Query(ctx, "SELECT id, name, key, quota_setted, quota_tokens, quota_period, quota_reset_at, reserved_tokens, created_at, updated_at, is_deleted, is_active FROM api_keys WHERE is_deleted = false")
 	if err != nil {
 		return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeys: %w", err)
 	}
@@ -86,7 +181,7 @@ func (r *ApiKeyRepo) GetApiKeys(ctx context.Context) ([]*models.ApiKey, error) {
 	var apiKeys []*models.ApiKey
 	for rows.Next() {
 		var apiKey models.ApiKey
-		if err := rows.Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive); err != nil {
+		if err := rows.Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.QuotaSetted, &apiKey.QuotaTokens, &apiKey.QuotaPeriod, &apiKey.QuotaResetAt, &apiKey.ReservedTokens, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive); err != nil {
 			return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeys: %w", err)
 		}
 		apiKeys = append(apiKeys, &apiKey)

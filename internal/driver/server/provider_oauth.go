@@ -61,7 +61,7 @@ func (a *AoyoRouterService) CreateProviderAuthorization(ctx context.Context, req
 		customURL = definition.DefaultURL
 	}
 
-	provider, err := a.ProviderRepo.CreateProvider(ctx, name, int32(req.GetType()), customURL, "oauth:pending")
+	provider, err := a.ProviderRepo.CreateProvider(ctx, name, int32(req.GetType()), customURL, "oauth:pending", req.GetUseProxy(), req.GetProxy())
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (a *AoyoRouterService) CreateProviderAuthorization(ctx context.Context, req
 		query.Set("is_webui", "true")
 	}
 	var response managementAuthorization
-	if err := a.managementJSON(ctx, http.MethodGet, definition.Endpoint, query, nil, &response); err != nil {
+	if err := a.managementJSON(ctx, http.MethodGet, definition.Endpoint, query, nil, &response, req.GetUseProxy(), req.GetProxy()); err != nil {
 		_ = a.ProviderRepo.DeleteProvider(ctx, provider.ID)
 		return nil, status.Errorf(codes.Unavailable, "failed to start %s authorization: %v", definition.Provider, err)
 	}
@@ -123,7 +123,7 @@ func (a *AoyoRouterService) CompleteProviderAuthorization(ctx context.Context, r
 		return providerAuthorizationOK(session), nil
 	}
 	if !providerOAuthUsesCallback(session.Provider) {
-		return a.providerAuthorizationStatus(ctx, state, session)
+		return a.providerAuthorizationStatus(ctx, state, session, req.GetUseProxy(), req.GetProxy())
 	}
 	callbackURL := strings.TrimSpace(req.GetCallbackUrl())
 	if callbackURL == "" {
@@ -131,13 +131,13 @@ func (a *AoyoRouterService) CompleteProviderAuthorization(ctx context.Context, r
 	}
 	body := map[string]string{"provider": session.Provider, "redirect_url": callbackURL}
 	var response managementAuthorization
-	if err := a.managementJSON(ctx, http.MethodPost, "/v0/management/oauth-callback", nil, body, &response); err != nil {
+	if err := a.managementJSON(ctx, http.MethodPost, "/v0/management/oauth-callback", nil, body, &response, req.GetUseProxy(), req.GetProxy()); err != nil {
 		if completed, completionErr := a.completeStoredProviderAuthorization(ctx, state, session); completionErr == nil && completed {
 			return providerAuthorizationOK(session), nil
 		}
 		return nil, status.Errorf(codes.InvalidArgument, "failed to submit authorization callback: %v", err)
 	}
-	return a.providerAuthorizationStatus(ctx, state, session)
+	return a.providerAuthorizationStatus(ctx, state, session, req.GetUseProxy(), req.GetProxy())
 }
 
 func (a *AoyoRouterService) GetProviderAuthorizationStatus(ctx context.Context, req *aoyorouter.GetProviderAuthorizationStatusRequest) (*aoyorouter.ProviderAuthorizationStatusResponse, error) {
@@ -154,12 +154,12 @@ func (a *AoyoRouterService) GetProviderAuthorizationStatus(ctx context.Context, 
 	} else if completed {
 		return providerAuthorizationOK(session), nil
 	}
-	return a.providerAuthorizationStatus(ctx, state, session)
+	return a.providerAuthorizationStatus(ctx, state, session, req.GetUseProxy(), req.GetProxy())
 }
 
-func (a *AoyoRouterService) providerAuthorizationStatus(ctx context.Context, state string, session providerOAuthSession) (*aoyorouter.ProviderAuthorizationStatusResponse, error) {
+func (a *AoyoRouterService) providerAuthorizationStatus(ctx context.Context, state string, session providerOAuthSession, useProxy bool, proxyURL string) (*aoyorouter.ProviderAuthorizationStatusResponse, error) {
 	var response managementAuthorization
-	if err := a.managementJSON(ctx, http.MethodGet, "/v0/management/get-auth-status", url.Values{"state": {state}}, nil, &response); err != nil {
+	if err := a.managementJSON(ctx, http.MethodGet, "/v0/management/get-auth-status", url.Values{"state": {state}}, nil, &response, useProxy, proxyURL); err != nil {
 		return nil, status.Errorf(codes.Unavailable, "failed to check authorization status: %v", err)
 	}
 	switch response.Status {
@@ -246,7 +246,7 @@ func (a *AoyoRouterService) cleanupProviderOAuth(ctx context.Context, state stri
 	_ = a.ProviderRepo.DeleteProvider(ctx, session.ProviderID)
 }
 
-func (a *AoyoRouterService) managementJSON(ctx context.Context, method, path string, query url.Values, body any, output any) error {
+func (a *AoyoRouterService) managementJSON(ctx context.Context, method, path string, query url.Values, body any, output any, useProxy bool, proxyURL string) error {
 	endpoint := strings.TrimRight(a.CPAPIManagementURL, "/") + path
 	if len(query) > 0 {
 		endpoint += "?" + query.Encode()
@@ -268,7 +268,11 @@ func (a *AoyoRouterService) managementJSON(ctx context.Context, method, path str
 	if body != nil {
 		request.Header.Set("Content-Type", "application/json")
 	}
-	response, err := http.DefaultClient.Do(request)
+	client, err := proxyHTTPClient(useProxy, proxyURL)
+	if err != nil {
+		return err
+	}
+	response, err := client.Do(request)
 	if err != nil {
 		return err
 	}

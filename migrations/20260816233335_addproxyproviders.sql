@@ -1,0 +1,8 @@
+-- +goose Up
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS use_proxy BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS proxy TEXT NOT NULL DEFAULT '';
+
+
+-- +goose Down
+ALTER TABLE providers DROP COLUMN IF EXISTS use_proxy;
+ALTER TABLE providers DROP COLUMN IF EXISTS proxy;

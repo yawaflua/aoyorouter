@@ -72,7 +72,7 @@ func (a *AoyoRouterService) CreateCodexAuthorization(ctx context.Context, req *a
 	challengeBytes := sha256.Sum256([]byte(verifier))
 	challenge := base64.RawURLEncoding.EncodeToString(challengeBytes[:])
 
-	provider, err := a.ProviderRepo.CreateProvider(ctx, name, int32(aoyorouter.ProviderType_PROVIDER_TYPE_OPENAI), strings.TrimSpace(req.GetCustomUrl()), "oauth:pending")
+	provider, err := a.ProviderRepo.CreateProvider(ctx, name, int32(aoyorouter.ProviderType_PROVIDER_TYPE_OPENAI), strings.TrimSpace(req.GetCustomUrl()), "oauth:pending", req.GetUseProxy(), req.GetProxy())
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (a *AoyoRouterService) CompleteCodexAuthorization(ctx context.Context, req 
 		return nil, status.Error(codes.NotFound, "pending Codex provider was not found")
 	}
 
-	tokens, err := exchangeCodexCode(ctx, code, session.Verifier)
+	tokens, err := exchangeCodexCode(ctx, code, session.Verifier, provider.UseProxy, provider.Proxy)
 	if err != nil {
 		cleanupPending()
 		return nil, status.Errorf(codes.Unauthenticated, "failed to exchange Codex authorization code: %v", err)
@@ -183,7 +183,7 @@ func parseCodexCallback(input string) (string, string, error) {
 	return code, strings.TrimSpace(parsed.Query().Get("state")), nil
 }
 
-func exchangeCodexCode(ctx context.Context, code, verifier string) (*codexTokenResponse, error) {
+func exchangeCodexCode(ctx context.Context, code, verifier string, useProxy bool, proxyURL string) (*codexTokenResponse, error) {
 	form := url.Values{
 		"grant_type":    {"authorization_code"},
 		"client_id":     {codexClientID},
@@ -197,7 +197,11 @@ func exchangeCodexCode(ctx context.Context, code, verifier string) (*codexTokenR
 	}
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Set("Accept", "application/json")
-	response, err := http.DefaultClient.Do(request)
+	client, err := proxyHTTPClient(useProxy, proxyURL)
+	if err != nil {
+		return nil, err
+	}
+	response, err := client.Do(request)
 	if err != nil {
 		return nil, err
 	}

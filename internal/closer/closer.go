@@ -33,6 +33,7 @@ func (c *C) Wait() {
 }
 
 func (c *C) CloseAll() {
+	c.log.Info("gracefully stops")
 	c.once.Do(func() {
 		defer close(c.done)
 

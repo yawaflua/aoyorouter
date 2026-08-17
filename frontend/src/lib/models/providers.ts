@@ -14,7 +14,23 @@ export interface Provider {
   name: string
   type: ProviderType
   customUrl: string
+  clientSecret: string
+  useProxy: boolean
+  proxy: string
   quota: ProviderQuota | null
+}
+
+export interface ProviderConnectionInput {
+  name: string
+  type: ProviderType
+  customUrl: string
+  authorizationData: string
+  useProxy: boolean
+  proxy: string
+}
+
+export interface UpdateProviderInput extends ProviderConnectionInput {
+  id: string
 }
 
 export function parseProvider(value: unknown): Provider {
@@ -24,8 +40,15 @@ export function parseProvider(value: unknown): Provider {
     name: text(item.name),
     type: providerType(item.type),
     customUrl: text(item.clientId ?? item.client_id),
+    clientSecret: text(item.clientSecret ?? item.client_secret),
+    useProxy: booleanValue(item.useProxy ?? item.use_proxy),
+    proxy: text(item.proxy),
     quota: parseQuota(item.quota),
   }
+}
+
+function booleanValue(value: unknown): boolean {
+  return value === true || value === 'true' || value === 1
 }
 
 export function providerType(value: unknown): ProviderType {

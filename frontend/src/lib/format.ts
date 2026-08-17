@@ -5,6 +5,12 @@ export function formatTokens(tokens: number): string {
   return `${(tokens / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 })}M tokens`
 }
 
+export function formatDateTime(value: string): string {
+  if (!value) return 'Not scheduled'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
+}
+
 export function formatLogTime(entry: LogEntry): string {
   const value = entry.requestTime || entry.createdAt
   if (!value) return 'Unknown time'

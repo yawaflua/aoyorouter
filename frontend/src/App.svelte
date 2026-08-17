@@ -2,6 +2,7 @@
   import { ApiClient } from './lib/api'
   import { getSection, providerLabels, type Dialog, type Section } from './lib/app'
   import ApiKeyList from './lib/components/ApiKeyList.svelte'
+  import ApiKeyEditDialog from './lib/components/ApiKeyEditDialog.svelte'
   import CollectionToolbar from './lib/components/CollectionToolbar.svelte'
   import DeleteDialog from './lib/components/DeleteDialog.svelte'
   import KeyDialog from './lib/components/KeyDialog.svelte'
@@ -9,14 +10,18 @@
   import Navigation from './lib/components/Navigation.svelte'
   import PageHeader from './lib/components/PageHeader.svelte'
   import ProviderDialog, { type ProviderDraft } from './lib/components/ProviderDialog.svelte'
+  import ProviderEditDialog from './lib/components/ProviderEditDialog.svelte'
   import ProviderList from './lib/components/ProviderList.svelte'
+  import ProxyList from './lib/components/ProxyList.svelte'
   import SecretDialog from './lib/components/SecretDialog.svelte'
   import SignIn from './lib/components/SignIn.svelte'
   import Icon from './lib/Icon.svelte'
   import { ApiError } from './lib/models/apierror'
-  import type { ApiKey, ApiKeyUsage } from './lib/models/apikey'
+  import type { ApiKey, ApiKeyUsage, UpdateApiKeyInput } from './lib/models/apikey'
   import type { LogEntry } from './lib/models/logentry'
-  import type { Provider } from './lib/models/providers'
+  import type { LiveProxy } from './lib/models/liveproxy'
+  import type { Provider, UpdateProviderInput } from './lib/models/providers'
+  import { validateProxy } from './lib/models/proxy'
 
   const PASSWORD_KEY = 'aoyo.password'
   const storedPassword = sessionStorage.getItem(PASSWORD_KEY) ?? ''
@@ -33,6 +38,7 @@
 
   let apiKeys = $state<ApiKey[]>([])
   let providers = $state<Provider[]>([])
+  let proxies = $state<LiveProxy[]>([])
   let logs = $state<LogEntry[]>([])
   let keyUsage = $state<Record<string, ApiKeyUsage>>({})
   let keyUsageLoading = $state('')
@@ -49,6 +55,11 @@
   const filteredProviders = $derived(
     providers.filter((provider) =>
       `${provider.name} ${provider.customUrl} ${providerLabels[provider.type]}`.toLowerCase().includes(normalizedSearch),
+    ),
+  )
+  const filteredProxies = $derived(
+    proxies.filter((proxy) =>
+      `${proxy.name} ${proxy.id} ${proxy.url} ${proxy.cloudflareAddress}`.toLowerCase().includes(normalizedSearch),
     ),
   )
 
@@ -82,6 +93,7 @@
     password = ''
     apiKeys = []
     providers = []
+    proxies = []
     logs = []
     closeDialog()
     if (showNotice) notice = 'Signed out.'
@@ -97,6 +109,9 @@
           break
         case 'providers':
           providers = await client.getProviders()
+          break
+        case 'proxies':
+          proxies = await client.getProxies()
           break
         case 'logs':
           logs = await client.getUsageLogs()
@@ -128,7 +143,8 @@
   }
 
   function openSectionDialog() {
-    openDialog(section === 'keys' ? 'key' : 'provider')
+    if (section === 'keys') openDialog('key')
+    if (section === 'providers') openDialog('provider')
   }
 
   async function runDialogAction<T>(action: () => Promise<T>): Promise<T> {
@@ -173,6 +189,26 @@
     openDialog('delete-key')
   }
 
+  function requestKeyEdit(key: ApiKey) {
+    targetKey = key
+    openDialog('edit-key')
+  }
+
+  async function updateKey(input: UpdateApiKeyInput) {
+    await runDialogAction(async () => {
+      if (!input.name.trim()) throw new Error('Give this key a name.')
+      if (input.quotaSet && (!Number.isSafeInteger(input.reservedTokens) || input.reservedTokens <= 0)) {
+        throw new Error('Quota must be greater than zero million tokens.')
+      }
+      await client.updateApiKey({ ...input, name: input.name.trim() })
+      await loadSection('keys')
+      delete keyUsage[input.id]
+      keyUsage = { ...keyUsage }
+      notice = `“${input.name.trim()}” updated.`
+      closeDialog()
+    }).catch(() => undefined)
+  }
+
   async function deleteKey() {
     if (!targetKey) return
     const key = targetKey
@@ -196,22 +232,23 @@
     if (draft.type === 'PROVIDER_TYPE_OPENAI' && /(^|\.)api\.openai\.com$/i.test(new URL(draft.customUrl || 'https://chatgpt.com').hostname)) {
       throw new Error('Codex OAuth tokens cannot use api.openai.com. Leave Custom URL empty to use the ChatGPT Codex endpoint.')
     }
+    return validateProxy(draft)
   }
 
   async function generateCodexAuthorization(draft: ProviderDraft) {
     return runDialogAction(async () => {
-      validateProvider(draft)
-      return client.createCodexAuthorization(draft.name.trim(), draft.customUrl.trim())
+      const proxy = validateProvider(draft)
+      return client.createCodexAuthorization({ name: draft.name.trim(), customUrl: draft.customUrl.trim(), ...proxy })
     })
   }
 
   async function generateProviderAuthorization(draft: ProviderDraft) {
     return runDialogAction(async () => {
-      validateProvider(draft)
+      const proxy = validateProvider(draft)
       if (draft.type === 'PROVIDER_TYPE_OPENAI' || draft.type === 'PROVIDER_TYPE_CUSTOM') {
         throw new Error('This provider does not use OAuth authorization.')
       }
-      return client.createProviderAuthorization({ name: draft.name.trim(), type: draft.type, customUrl: draft.customUrl.trim() })
+      return client.createProviderAuthorization({ name: draft.name.trim(), type: draft.type, customUrl: draft.customUrl.trim(), ...proxy })
     })
   }
 
@@ -220,18 +257,19 @@
       if (!draft.providerSession) throw new Error('Start provider authorization first.')
 
       const auth = draft.providerSession
+      const proxy = validateProxy(draft)
       let submitted = callbackSubmitted
       let result
       if (auth.flow === 'callback' && !submitted) {
-        result = await client.completeProviderAuthorization(auth.state, draft.authorizationData.trim())
+        result = await client.completeProviderAuthorization(auth.state, draft.authorizationData.trim(), proxy.useProxy, proxy.proxy)
         submitted = true
       } else {
-        result = await client.getProviderAuthorizationStatus(auth.state)
+        result = await client.getProviderAuthorizationStatus(auth.state, proxy.useProxy, proxy.proxy)
       }
 
       for (let attempt = 0; result.status === 'pending' && attempt < 20; attempt += 1) {
         await new Promise((resolve) => window.setTimeout(resolve, 750))
-        result = await client.getProviderAuthorizationStatus(auth.state)
+        result = await client.getProviderAuthorizationStatus(auth.state, proxy.useProxy, proxy.proxy)
       }
 
       if (result.status === 'error') throw new Error(result.error || 'Authorization failed. Start a new authorization flow.')
@@ -249,7 +287,7 @@
 
   async function createProvider(draft: ProviderDraft) {
     await runDialogAction(async () => {
-      validateProvider(draft)
+      const proxy = validateProvider(draft)
       if (draft.type === 'PROVIDER_TYPE_OPENAI') {
         if (!draft.codexSession) throw new Error('Generate a new Codex authorization link.')
         await client.completeCodexAuthorization({ state: draft.codexSession.state, callbackUrl: draft.authorizationData.trim() })
@@ -260,6 +298,7 @@
           type: draft.type,
           customUrl: draft.customUrl.trim(),
           authorizationData: draft.authorizationData.trim(),
+          ...proxy,
         })
       } else {
         throw new Error('Complete provider authorization first.')
@@ -273,6 +312,36 @@
   function requestProviderDelete(provider: Provider) {
     targetProvider = provider
     openDialog('delete-provider')
+  }
+
+  function requestProviderEdit(provider: Provider) {
+    targetProvider = provider
+    openDialog('edit-provider')
+  }
+
+  async function updateProvider(input: UpdateProviderInput) {
+    await runDialogAction(async () => {
+      if (!input.name.trim()) throw new Error('Give this provider a name.')
+      if (!input.authorizationData.trim()) throw new Error('Authorization data is required.')
+      if (input.customUrl.trim()) {
+        try {
+          new URL(input.customUrl.trim())
+        } catch {
+          throw new Error('Enter a valid custom URL, including https://.')
+        }
+      }
+      const proxy = validateProxy(input)
+      await client.updateProvider({
+        ...input,
+        name: input.name.trim(),
+        customUrl: input.customUrl.trim(),
+        authorizationData: input.authorizationData.trim(),
+        ...proxy,
+      })
+      await loadSection('providers')
+      notice = `“${input.name.trim()}” updated.`
+      closeDialog()
+    }).catch(() => undefined)
   }
 
   async function deleteProvider() {
@@ -312,8 +381,8 @@
         {#if section !== 'logs'}
           <CollectionToolbar
             bind:search
-            entity={section === 'keys' ? 'API keys' : 'providers'}
-            total={section === 'keys' ? filteredKeys.length : filteredProviders.length}
+            entity={section === 'keys' ? 'API keys' : section === 'providers' ? 'providers' : 'live proxies'}
+            total={section === 'keys' ? filteredKeys.length : section === 'providers' ? filteredProviders.length : filteredProxies.length}
             onRefresh={() => loadSection(section)}
           />
         {/if}
@@ -336,6 +405,7 @@
             usageErrors={keyUsageErrors}
             onClearSearch={() => (search = '')}
             onCreate={() => openDialog('key')}
+            onEdit={requestKeyEdit}
             onDelete={requestKeyDelete}
             onLoadUsage={loadKeyUsage}
           />
@@ -345,8 +415,11 @@
             {search}
             onClearSearch={() => (search = '')}
             onCreate={() => openDialog('provider')}
+            onEdit={requestProviderEdit}
             onDelete={requestProviderDelete}
           />
+        {:else if section === 'proxies'}
+          <ProxyList proxies={filteredProxies} {search} onClearSearch={() => (search = '')} onCopy={copy} />
         {:else}
           <LogList {logs} />
         {/if}
@@ -357,9 +430,11 @@
 
 {#if dialog}
   <div class="scrim" role="presentation" onclick={(event) => event.target === event.currentTarget && closeDialog()}>
-    <div class:wide-dialog={dialog === 'provider'} class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" tabindex="-1">
+    <div class:wide-dialog={dialog === 'provider' || dialog === 'edit-provider' || dialog === 'edit-key'} class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" tabindex="-1">
       {#if dialog === 'key'}
         <KeyDialog pending={actionPending} error={dialogError} onSubmit={createKey} onClose={closeDialog} />
+      {:else if dialog === 'edit-key' && targetKey}
+        <ApiKeyEditDialog apiKey={targetKey} pending={actionPending} error={dialogError} onSubmit={updateKey} onClose={closeDialog} />
       {:else if dialog === 'secret'}
         <SecretDialog value={createdKey} onCopy={() => copy(createdKey, 'API key copied.')} onClose={closeDialog} />
       {:else if dialog === 'provider'}
@@ -373,6 +448,8 @@
           onCopy={copy}
           onClose={closeDialog}
         />
+      {:else if dialog === 'edit-provider' && targetProvider}
+        <ProviderEditDialog provider={targetProvider} pending={actionPending} error={dialogError} onSubmit={updateProvider} onClose={closeDialog} />
       {:else if dialog === 'delete-key' && targetKey}
         <DeleteDialog entity="API key" name={targetKey.name} pending={actionPending} error={dialogError} onDelete={deleteKey} onClose={closeDialog} />
       {:else if dialog === 'delete-provider' && targetProvider}

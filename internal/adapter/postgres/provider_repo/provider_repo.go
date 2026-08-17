@@ -19,12 +19,12 @@ func NewProviderRepo(db *postgres.DB) *ProviderRepo {
 	return &ProviderRepo{DB: db}
 }
 
-func (r *ProviderRepo) CreateProvider(ctx context.Context, name string, providerType int32, clientID, clientSecret string) (*models.Provider, error) {
+func (r *ProviderRepo) CreateProvider(ctx context.Context, name string, providerType int32, clientID, clientSecret string, useProxy bool, proxy string) (*models.Provider, error) {
 	id := uuid.NewString()
 	now := time.Now()
 	sql, args, err := squirrel.Insert("providers").
-		Columns("id", "name", "type", "client_id", "client_secret", "created_at", "updated_at").
-		Values(id, name, providerType, clientID, clientSecret, now, now).
+		Columns("id", "name", "type", "client_id", "client_secret", "use_proxy", "proxy", "created_at", "updated_at").
+		Values(id, name, providerType, clientID, clientSecret, useProxy, proxy, now, now).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
@@ -39,7 +39,7 @@ func (r *ProviderRepo) CreateProvider(ctx context.Context, name string, provider
 func (r *ProviderRepo) GetProvider(ctx context.Context, id string) (*models.Provider, error) {
 	conn := r.DB.GetConnection(ctx)
 
-	sql, args, err := squirrel.Select("id", "name", "type", "client_id", "client_secret", "credentials", "created_at", "updated_at").
+	sql, args, err := squirrel.Select("id", "name", "type", "client_id", "client_secret", "credentials", "use_proxy", "proxy", "created_at", "updated_at").
 		From("providers").
 		Where(squirrel.Eq{"id": id}).
 		PlaceholderFormat(squirrel.Dollar).
@@ -59,7 +59,7 @@ func (r *ProviderRepo) GetProvider(ctx context.Context, id string) (*models.Prov
 
 func (r *ProviderRepo) GetProviders(ctx context.Context) ([]*models.Provider, error) {
 	conn := r.DB.GetConnection(ctx)
-	sql, args, err := squirrel.Select("id", "name", "type", "client_id", "client_secret", "credentials", "created_at", "updated_at").
+	sql, args, err := squirrel.Select("id", "name", "type", "client_id", "client_secret", "credentials", "use_proxy", "proxy", "created_at", "updated_at").
 		From("providers").
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
@@ -89,7 +89,7 @@ func (r *ProviderRepo) GetProviders(ctx context.Context) ([]*models.Provider, er
 
 func (r *ProviderRepo) GetProviderById(ctx context.Context, id string) (*models.Provider, error) {
 	conn := r.DB.GetConnection(ctx)
-	sql, args, err := squirrel.Select("id", "name", "type", "client_id", "client_secret", "credentials", "created_at", "updated_at").
+	sql, args, err := squirrel.Select("id", "name", "type", "client_id", "client_secret", "credentials", "use_proxy", "proxy", "created_at", "updated_at").
 		From("providers").
 		Where(squirrel.Eq{"id": id}).
 		PlaceholderFormat(squirrel.Dollar).
@@ -105,13 +105,15 @@ func (r *ProviderRepo) GetProviderById(ctx context.Context, id string) (*models.
 	return &provider, nil
 }
 
-func (r *ProviderRepo) UpdateProvider(ctx context.Context, id, name string, providerType int32, clientID, clientSecret string) (*models.Provider, error) {
+func (r *ProviderRepo) UpdateProvider(ctx context.Context, id, name string, providerType int32, clientID, clientSecret string, useProxy bool, proxy string) (*models.Provider, error) {
 	conn := r.DB.GetConnection(ctx)
 	sql, args, err := squirrel.Update("providers").
 		Set("name", name).
 		Set("type", providerType).
 		Set("client_id", clientID).
 		Set("client_secret", clientSecret).
+		Set("use_proxy", useProxy).
+		Set("proxy", proxy).
 		Set("updated_at", time.Now()).
 		Where(squirrel.Eq{"id": id}).
 		PlaceholderFormat(squirrel.Dollar).
@@ -151,7 +153,7 @@ type rowScanner interface {
 }
 
 func scanProvider(row rowScanner, provider *models.Provider) error {
-	return row.Scan(&provider.ID, &provider.Name, &provider.Type, &provider.ClientID, &provider.ClientSecret, &provider.Credentials, &provider.CreatedAt, &provider.UpdatedAt)
+	return row.Scan(&provider.ID, &provider.Name, &provider.Type, &provider.ClientID, &provider.ClientSecret, &provider.Credentials, &provider.UseProxy, &provider.Proxy, &provider.CreatedAt, &provider.UpdatedAt)
 }
 
 func (r *ProviderRepo) DeleteProvider(ctx context.Context, id string) error {

@@ -30,7 +30,7 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 		panic("pbHandler is nil")
 	}
 
-	access.RegisterProvider("psql", cliproxyapi.NewAccessProvider(p.ApiKeyRepo(ctx)))
+	access.RegisterProvider("psql", cliproxyapi.NewAccessProvider(p.ApiKeyRepo(ctx), p.logger))
 	err := p.registerAllProviders(ctx)
 	if err != nil {
 		return fmt.Errorf("registerAllProviders error: %w", err)
@@ -53,6 +53,7 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 
 	credentialStore := cliproxyapi.NewProviderCredentialStore(p.ProviderRepo(ctx))
 	auth.RegisterTokenStore(credentialStore)
+
 	coreAuthManager := coreauth.NewManager(credentialStore, nil, nil)
 	if err := os.Setenv("MANAGEMENT_PASSWORD", p.Config().InitialPassword); err != nil {
 		return fmt.Errorf("set CLIProxyAPI management password: %w", err)
@@ -132,6 +133,7 @@ func (p *P) CLIProxyAPIConfig() *config.Config {
 			SDKConfig: config.SDKConfig{
 				APIKeys: make([]string, 0),
 			},
+			UsageStatisticsEnabled: true,
 		}
 
 		p.cliproxy_config.Payload.Override = append(p.cliproxy_config.Payload.Override, config.PayloadRule{
@@ -164,32 +166,49 @@ func (p *P) registerAllProviders(ctx context.Context) error {
 	}
 
 	for _, provider := range providers {
+		if provider.UseProxy && provider.Proxy == "" {
+			proxy := p.Warp(ctx).CreateProxy(ctx, provider.ID)
+			if proxy != nil {
+				provider.Proxy = "http://" + proxy.Addr().String()
+			}
+		}
 		switch aoyorouter.ProviderType(provider.Type) {
+
+		case aoyorouter.ProviderType_PROVIDER_TYPE_ANTIGRAVITY:
+			if strings.HasPrefix(provider.ClientSecret, "oauth:") {
+				continue
+			}
+			cfg.GeminiKey = append(cfg.GeminiKey, config.GeminiKey{
+				APIKey:   provider.ClientSecret,
+				BaseURL:  provider.ClientID,
+				ProxyURL: provider.Proxy,
+			})
 		case aoyorouter.ProviderType_PROVIDER_TYPE_OPENAI:
 			if strings.HasPrefix(provider.ClientSecret, "oauth:") {
 				continue
 			}
 			cfg.CodexKey = append(cfg.CodexKey, config.CodexKey{
-				APIKey:  provider.ClientSecret,
-				BaseURL: provider.ClientID,
+				APIKey:   provider.ClientSecret,
+				BaseURL:  provider.ClientID,
+				ProxyURL: provider.Proxy,
 			})
-
 		case aoyorouter.ProviderType_PROVIDER_TYPE_ANTHROPIC:
 			if strings.HasPrefix(provider.ClientSecret, "oauth:") {
 				continue
 			}
 			cfg.ClaudeKey = append(cfg.ClaudeKey, config.ClaudeKey{
-				APIKey:  provider.ClientSecret,
-				BaseURL: provider.ClientID,
+				APIKey:   provider.ClientSecret,
+				BaseURL:  provider.ClientID,
+				ProxyURL: provider.Proxy,
 			})
 		case aoyorouter.ProviderType_PROVIDER_TYPE_GROK:
 			if strings.HasPrefix(provider.ClientSecret, "oauth:") {
 				continue
 			}
 			cfg.XAIKey = append(cfg.XAIKey, config.XAIKey{
-				APIKey:  provider.ClientSecret,
-				BaseURL: provider.ClientID,
-				Prefix:  "grok",
+				APIKey:   provider.ClientSecret,
+				BaseURL:  provider.ClientID,
+				ProxyURL: provider.Proxy,
 			})
 		case aoyorouter.ProviderType_PROVIDER_TYPE_KIMI:
 			if strings.HasPrefix(provider.ClientSecret, "oauth:") {

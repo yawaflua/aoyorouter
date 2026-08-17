@@ -3,7 +3,7 @@
 
   interface Props {
     search: string
-    entity: 'API keys' | 'providers'
+    entity: 'API keys' | 'providers' | 'live proxies'
     total: number
     onRefresh: () => void
   }

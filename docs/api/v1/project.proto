@@ -95,6 +95,13 @@ service AoyoRouterService {
         };
     }
 
+    rpc EditApiKey(EditApiKeyRequest) returns (EditApiKeyResponse) {
+        option (google.api.http) = {
+            patch: "/api/aoyo/v1/api-keys/{api_key_id}"
+            body: "*"
+        };
+    }
+
     rpc DeleteApiKey(DeleteApiKeyRequest) returns (DeleteApiKeyResponse) {
         option (google.api.http) = {
             delete: "/api/aoyo/v1/api-keys/{api_key_id}"
@@ -116,6 +123,12 @@ service AoyoRouterService {
     rpc GetProviderLogsByKeyID(GetProviderLogsByKeyIDRequest) returns (GetProviderLogsByKeyIDResponse) {
         option (google.api.http) = {
             get: "/api/aoyo/v1/api-keys/{api_key_id}/logs"
+        };
+    }
+
+    rpc GetProxies(GetProxiesRequest) returns (GetProxiesResponse) {
+        option (google.api.http) = {
+            get: "/api/aoyo/v1/proxies"
         };
     }
 }

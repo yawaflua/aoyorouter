@@ -11,6 +11,7 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/provider_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/usage_entry_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/user_repo"
+	"github.com/yawaflua/aoyorouter/internal/adapter/warp"
 	"github.com/yawaflua/aoyorouter/internal/app/provider/cliproxyapi"
 	"github.com/yawaflua/aoyorouter/internal/closer"
 	"github.com/yawaflua/aoyorouter/internal/config"
@@ -35,6 +36,8 @@ type P struct {
 	cliproxy        *cliproxy.Service
 	cliproxy_config *cpapi_config.Config
 	usagePlugin     *cliproxyapi.UsagePlugin
+
+	warp *warp.Warp
 }
 
 func New() *P {
@@ -67,6 +70,7 @@ func (p *P) Server(ctx context.Context) *server.AoyoRouterService {
 			CPAPIConfig:             p.CLIProxyAPIConfig(),
 			CPAPIManagementURL:      fmt.Sprintf("http://127.0.0.1:%d", p.Config().HTTP.Port),
 			CPAPIManagementPassword: p.Config().InitialPassword,
+			Warp:                    p.Warp(ctx),
 		})
 	}
 
@@ -115,4 +119,12 @@ func (p *P) UsagePlugin(ctx context.Context) *cliproxyapi.UsagePlugin {
 	}
 
 	return p.usagePlugin
+}
+
+func (p *P) Warp(ctx context.Context) *warp.Warp {
+	if p.warp == nil {
+		p.warp = warp.New(ctx, p.Logger(), p.Closer(), p.Config())
+	}
+
+	return p.warp
 }

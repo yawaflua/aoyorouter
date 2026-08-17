@@ -1,5 +1,5 @@
 import { ApiError, errorMessage } from './models/apierror'
-import type { ApiKey, ApiKeyUsage, CreatedApiKey } from './models/apikey'
+import { parseApiKey, type ApiKey, type ApiKeyUsage, type CreatedApiKey, type UpdateApiKeyInput } from './models/apikey'
 import {
   parseAuthorizationStatus,
   type CodexAuthorization,
@@ -7,7 +7,14 @@ import {
   type ProviderAuthorizationStatus,
 } from './models/authorization'
 import { parseLogEntry, type LogEntry } from './models/logentry'
-import { parseProvider, type Provider, type ProviderType } from './models/providers'
+import { parseLiveProxy, type LiveProxy } from './models/liveproxy'
+import {
+  parseProvider,
+  type Provider,
+  type ProviderConnectionInput,
+  type ProviderType,
+  type UpdateProviderInput,
+} from './models/providers'
 import { record, text, type JsonRecord } from './utils'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
@@ -48,16 +55,7 @@ export class ApiClient {
   async getApiKeys(): Promise<ApiKey[]> {
     const response = await this.request('/api/aoyo/v1/api-keys')
     const items = response.apiKeys ?? response.api_keys
-    return Array.isArray(items)
-      ? items.map((value) => {
-          const item = record(value)
-          return {
-            id: text(item.id),
-            name: text(item.name),
-            isAdmin: text(item.isAdmin ?? item.is_admin),
-          }
-        })
-      : []
+    return Array.isArray(items) ? items.map(parseApiKey) : []
   }
 
   async createApiKey(name: string, isAdmin: boolean): Promise<CreatedApiKey> {
@@ -75,17 +73,35 @@ export class ApiClient {
     await this.request(`/api/aoyo/v1/api-keys/${encodeURIComponent(id)}`, { method: 'DELETE' })
   }
 
+  async updateApiKey(input: UpdateApiKeyInput): Promise<void> {
+    await this.request(`/api/aoyo/v1/api-keys/${encodeURIComponent(input.id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        apiKey: {
+          id: input.id,
+          name: input.name,
+          isAdmin: input.isAdmin,
+          isActive: input.isActive,
+          quotaSetted: input.quotaSet,
+          reservedTokens: String(input.reservedTokens),
+          quotaResetAt: input.quotaResetAt || undefined,
+          quotaResetStrategy: input.quotaResetStrategy,
+        },
+      }),
+    })
+  }
+
   async getProviders(): Promise<Provider[]> {
     const response = await this.request('/api/aoyo/v1/providers')
     return Array.isArray(response.providers) ? response.providers.map(parseProvider) : []
   }
 
-  async createProvider(input: {
-    name: string
-    type: ProviderType
-    customUrl: string
-    authorizationData: string
-  }): Promise<string> {
+  async getProxies(): Promise<LiveProxy[]> {
+    const response = await this.request('/api/aoyo/v1/proxies')
+    return Array.isArray(response.proxies) ? response.proxies.map(parseLiveProxy) : []
+  }
+
+  async createProvider(input: ProviderConnectionInput): Promise<string> {
     const response = await this.request('/api/aoyo/v1/providers', {
       method: 'POST',
       body: JSON.stringify({
@@ -93,15 +109,17 @@ export class ApiClient {
         type: input.type,
         clientId: input.customUrl,
         clientSecret: input.authorizationData,
+        useProxy: input.useProxy,
+        proxy: input.proxy,
       }),
     })
     return text(response.providerId ?? response.provider_id)
   }
 
-  async createCodexAuthorization(name: string, customUrl: string): Promise<CodexAuthorization> {
+  async createCodexAuthorization(input: Pick<ProviderConnectionInput, 'name' | 'customUrl' | 'useProxy' | 'proxy'>): Promise<CodexAuthorization> {
     const response = await this.request('/api/aoyo/v1/providers/codex/authorize', {
       method: 'POST',
-      body: JSON.stringify({ name, customUrl }),
+      body: JSON.stringify(input),
     })
     return {
       authorizationUrl: text(response.authorizationUrl ?? response.authorization_url),
@@ -125,6 +143,8 @@ export class ApiClient {
     name: string
     type: Exclude<ProviderType, 'PROVIDER_TYPE_CUSTOM' | 'PROVIDER_TYPE_OPENAI'>
     customUrl: string
+    useProxy: boolean
+    proxy: string
   }): Promise<ProviderAuthorization> {
     const response = await this.request('/api/aoyo/v1/providers/authorize', {
       method: 'POST',
@@ -140,17 +160,37 @@ export class ApiClient {
     }
   }
 
-  async completeProviderAuthorization(state: string, callbackUrl: string): Promise<ProviderAuthorizationStatus> {
+  async completeProviderAuthorization(
+    state: string,
+    callbackUrl: string,
+    useProxy: boolean,
+    proxy: string,
+  ): Promise<ProviderAuthorizationStatus> {
     const response = await this.request('/api/aoyo/v1/providers/authorize/complete', {
       method: 'POST',
-      body: JSON.stringify({ state, callbackUrl }),
+      body: JSON.stringify({ state, callbackUrl, useProxy, proxy }),
     })
     return parseAuthorizationStatus(response)
   }
 
-  async getProviderAuthorizationStatus(state: string): Promise<ProviderAuthorizationStatus> {
-    const response = await this.request(`/api/aoyo/v1/providers/authorize/${encodeURIComponent(state)}`)
+  async getProviderAuthorizationStatus(state: string, useProxy: boolean, proxy: string): Promise<ProviderAuthorizationStatus> {
+    const query = new URLSearchParams({ useProxy: String(useProxy), proxy })
+    const response = await this.request(`/api/aoyo/v1/providers/authorize/${encodeURIComponent(state)}?${query}`)
     return parseAuthorizationStatus(response)
+  }
+
+  async updateProvider(input: UpdateProviderInput): Promise<void> {
+    await this.request(`/api/aoyo/v1/providers/${encodeURIComponent(input.id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        name: input.name,
+        type: input.type,
+        clientId: input.customUrl,
+        clientSecret: input.authorizationData,
+        useProxy: input.useProxy,
+        proxy: input.proxy,
+      }),
+    })
   }
 
   async deleteProvider(id: string): Promise<void> {

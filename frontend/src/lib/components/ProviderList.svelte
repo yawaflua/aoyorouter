@@ -9,29 +9,55 @@
     search: string
     onClearSearch: () => void
     onCreate: () => void
+    onEdit: (provider: Provider) => void
     onDelete: (provider: Provider) => void
   }
 
-  let { providers, search, onClearSearch, onCreate, onDelete }: Props = $props()
+  let { providers, search, onClearSearch, onCreate, onEdit, onDelete }: Props = $props()
+  let expandedId = $state('')
+
+  function toggle(provider: Provider) {
+    expandedId = expandedId === provider.id ? '' : provider.id
+  }
+
+  function onKeydown(event: KeyboardEvent, provider: Provider) {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    event.preventDefault()
+    toggle(provider)
+  }
 </script>
 
 {#if providers.length}
   <div class="data-list" aria-label="Providers">
     {#each providers as provider (provider.id)}
-      <article class="data-row provider-row">
-        <div class="entity-icon provider-icon"><span>{provider.name.slice(0, 1).toUpperCase()}</span></div>
-        <div class="entity-main"><h2>{provider.name}</h2><p>{provider.customUrl || 'Default endpoint'}</p></div>
-        <span class="type-label">{providerLabels[provider.type]}</span>
-        {#if provider.quota}
-          <div class="quota" title={quotaReset(provider)}>
-            <div><span style={`width:${Math.max(0, 100 - (provider.quota.primary?.usedPercent ?? 100))}%`}></span></div>
-            <small>{quotaLabel(provider)}</small>
-          </div>
+      <article class:provider-expanded={expandedId === provider.id} class="provider-item">
+        <div class="data-row provider-row" role="button" tabindex="0" aria-expanded={expandedId === provider.id} onclick={() => toggle(provider)} onkeydown={(event) => onKeydown(event, provider)}>
+          <div class="entity-icon provider-icon"><span>{provider.name.slice(0, 1).toUpperCase()}</span></div>
+          <div class="entity-main"><h2>{provider.name}</h2><p>{provider.customUrl || 'Default endpoint'}</p></div>
+          <span class="type-label">{providerLabels[provider.type]}</span>
+          {#if provider.quota}
+            <div class="quota" title={quotaReset(provider)}>
+              <div><span style={`width:${Math.max(0, 100 - (provider.quota.primary?.usedPercent ?? 100))}%`}></span></div>
+              <small>{quotaLabel(provider)}</small>
+            </div>
+          {/if}
+          <span class="status-dot"><i></i> Connected</span>
+          <span class:expanded={expandedId === provider.id} class="expand-icon" aria-hidden="true"><Icon name="chevron" size={19} /></span>
+          <button class="icon-button danger" onclick={(event) => { event.stopPropagation(); onDelete(provider) }} aria-label={`Delete ${provider.name}`}>
+            <Icon name="trash" size={20} />
+          </button>
+        </div>
+        {#if expandedId === provider.id}
+          <section class="provider-details" aria-label={`${provider.name} settings`}>
+            <dl>
+              <div><dt>Provider ID</dt><dd><code>{provider.id}</code></dd></div>
+              <div><dt>Type</dt><dd>{providerLabels[provider.type]}</dd></div>
+              <div><dt>Endpoint</dt><dd>{provider.customUrl || 'Default endpoint'}</dd></div>
+              <div><dt>Proxy</dt><dd>{provider.useProxy ? (provider.proxy || 'Cloudflare WARP (managed)') : 'Disabled'}</dd></div>
+            </dl>
+            <button class="tonal" onclick={() => onEdit(provider)}>Edit</button>
+          </section>
         {/if}
-        <span class="status-dot"><i></i> Connected</span>
-        <button class="icon-button danger" onclick={() => onDelete(provider)} aria-label={`Delete ${provider.name}`}>
-          <Icon name="trash" size={20} />
-        </button>
       </article>
     {/each}
   </div>

@@ -33,10 +33,12 @@ const (
 	AoyoRouterService_UpdateProvider_FullMethodName                 = "/aoyorouter.docs.api.v1.AoyoRouterService/UpdateProvider"
 	AoyoRouterService_DeleteProvider_FullMethodName                 = "/aoyorouter.docs.api.v1.AoyoRouterService/DeleteProvider"
 	AoyoRouterService_CreateApiKey_FullMethodName                   = "/aoyorouter.docs.api.v1.AoyoRouterService/CreateApiKey"
+	AoyoRouterService_EditApiKey_FullMethodName                     = "/aoyorouter.docs.api.v1.AoyoRouterService/EditApiKey"
 	AoyoRouterService_DeleteApiKey_FullMethodName                   = "/aoyorouter.docs.api.v1.AoyoRouterService/DeleteApiKey"
 	AoyoRouterService_GetApiKeyList_FullMethodName                  = "/aoyorouter.docs.api.v1.AoyoRouterService/GetApiKeyList"
 	AoyoRouterService_GetUsageLogs_FullMethodName                   = "/aoyorouter.docs.api.v1.AoyoRouterService/GetUsageLogs"
 	AoyoRouterService_GetProviderLogsByKeyID_FullMethodName         = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProviderLogsByKeyID"
+	AoyoRouterService_GetProxies_FullMethodName                     = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProxies"
 )
 
 // AoyoRouterServiceClient is the client API for AoyoRouterService service.
@@ -56,10 +58,12 @@ type AoyoRouterServiceClient interface {
 	UpdateProvider(ctx context.Context, in *UpdateProviderRequest, opts ...grpc.CallOption) (*UpdateProviderResponse, error)
 	DeleteProvider(ctx context.Context, in *DeleteProviderRequest, opts ...grpc.CallOption) (*DeleteProviderResponse, error)
 	CreateApiKey(ctx context.Context, in *CreateApiKeyRequest, opts ...grpc.CallOption) (*CreateApiKeyResponse, error)
+	EditApiKey(ctx context.Context, in *EditApiKeyRequest, opts ...grpc.CallOption) (*EditApiKeyResponse, error)
 	DeleteApiKey(ctx context.Context, in *DeleteApiKeyRequest, opts ...grpc.CallOption) (*DeleteApiKeyResponse, error)
 	GetApiKeyList(ctx context.Context, in *GetApiKeyListRequest, opts ...grpc.CallOption) (*GetApiKeyListResponse, error)
 	GetUsageLogs(ctx context.Context, in *GetUsageLogsRequest, opts ...grpc.CallOption) (*GetUsageLogsResponse, error)
 	GetProviderLogsByKeyID(ctx context.Context, in *GetProviderLogsByKeyIDRequest, opts ...grpc.CallOption) (*GetProviderLogsByKeyIDResponse, error)
+	GetProxies(ctx context.Context, in *GetProxiesRequest, opts ...grpc.CallOption) (*GetProxiesResponse, error)
 }
 
 type aoyoRouterServiceClient struct {
@@ -200,6 +204,16 @@ func (c *aoyoRouterServiceClient) CreateApiKey(ctx context.Context, in *CreateAp
 	return out, nil
 }
 
+func (c *aoyoRouterServiceClient) EditApiKey(ctx context.Context, in *EditApiKeyRequest, opts ...grpc.CallOption) (*EditApiKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EditApiKeyResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_EditApiKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *aoyoRouterServiceClient) DeleteApiKey(ctx context.Context, in *DeleteApiKeyRequest, opts ...grpc.CallOption) (*DeleteApiKeyResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteApiKeyResponse)
@@ -240,6 +254,16 @@ func (c *aoyoRouterServiceClient) GetProviderLogsByKeyID(ctx context.Context, in
 	return out, nil
 }
 
+func (c *aoyoRouterServiceClient) GetProxies(ctx context.Context, in *GetProxiesRequest, opts ...grpc.CallOption) (*GetProxiesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetProxiesResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_GetProxies_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AoyoRouterServiceServer is the server API for AoyoRouterService service.
 // All implementations must embed UnimplementedAoyoRouterServiceServer
 // for forward compatibility.
@@ -257,10 +281,12 @@ type AoyoRouterServiceServer interface {
 	UpdateProvider(context.Context, *UpdateProviderRequest) (*UpdateProviderResponse, error)
 	DeleteProvider(context.Context, *DeleteProviderRequest) (*DeleteProviderResponse, error)
 	CreateApiKey(context.Context, *CreateApiKeyRequest) (*CreateApiKeyResponse, error)
+	EditApiKey(context.Context, *EditApiKeyRequest) (*EditApiKeyResponse, error)
 	DeleteApiKey(context.Context, *DeleteApiKeyRequest) (*DeleteApiKeyResponse, error)
 	GetApiKeyList(context.Context, *GetApiKeyListRequest) (*GetApiKeyListResponse, error)
 	GetUsageLogs(context.Context, *GetUsageLogsRequest) (*GetUsageLogsResponse, error)
 	GetProviderLogsByKeyID(context.Context, *GetProviderLogsByKeyIDRequest) (*GetProviderLogsByKeyIDResponse, error)
+	GetProxies(context.Context, *GetProxiesRequest) (*GetProxiesResponse, error)
 	mustEmbedUnimplementedAoyoRouterServiceServer()
 }
 
@@ -310,6 +336,9 @@ func (UnimplementedAoyoRouterServiceServer) DeleteProvider(context.Context, *Del
 func (UnimplementedAoyoRouterServiceServer) CreateApiKey(context.Context, *CreateApiKeyRequest) (*CreateApiKeyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateApiKey not implemented")
 }
+func (UnimplementedAoyoRouterServiceServer) EditApiKey(context.Context, *EditApiKeyRequest) (*EditApiKeyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method EditApiKey not implemented")
+}
 func (UnimplementedAoyoRouterServiceServer) DeleteApiKey(context.Context, *DeleteApiKeyRequest) (*DeleteApiKeyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteApiKey not implemented")
 }
@@ -321,6 +350,9 @@ func (UnimplementedAoyoRouterServiceServer) GetUsageLogs(context.Context, *GetUs
 }
 func (UnimplementedAoyoRouterServiceServer) GetProviderLogsByKeyID(context.Context, *GetProviderLogsByKeyIDRequest) (*GetProviderLogsByKeyIDResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetProviderLogsByKeyID not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) GetProxies(context.Context, *GetProxiesRequest) (*GetProxiesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetProxies not implemented")
 }
 func (UnimplementedAoyoRouterServiceServer) mustEmbedUnimplementedAoyoRouterServiceServer() {}
 func (UnimplementedAoyoRouterServiceServer) testEmbeddedByValue()                           {}
@@ -577,6 +609,24 @@ func _AoyoRouterService_CreateApiKey_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AoyoRouterService_EditApiKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EditApiKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).EditApiKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_EditApiKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).EditApiKey(ctx, req.(*EditApiKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AoyoRouterService_DeleteApiKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteApiKeyRequest)
 	if err := dec(in); err != nil {
@@ -649,6 +699,24 @@ func _AoyoRouterService_GetProviderLogsByKeyID_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AoyoRouterService_GetProxies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProxiesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).GetProxies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_GetProxies_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).GetProxies(ctx, req.(*GetProxiesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AoyoRouterService_ServiceDesc is the grpc.ServiceDesc for AoyoRouterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -709,6 +777,10 @@ var AoyoRouterService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AoyoRouterService_CreateApiKey_Handler,
 		},
 		{
+			MethodName: "EditApiKey",
+			Handler:    _AoyoRouterService_EditApiKey_Handler,
+		},
+		{
 			MethodName: "DeleteApiKey",
 			Handler:    _AoyoRouterService_DeleteApiKey_Handler,
 		},
@@ -723,6 +795,10 @@ var AoyoRouterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProviderLogsByKeyID",
 			Handler:    _AoyoRouterService_GetProviderLogsByKeyID_Handler,
+		},
+		{
+			MethodName: "GetProxies",
+			Handler:    _AoyoRouterService_GetProxies_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -44,8 +44,8 @@ func (u *UsagePlugin) HandleUsage(ctx context.Context, record usage.Record) {
 		OutputTokens: record.Detail.OutputTokens,
 		TotalTokens:  record.Detail.TotalTokens,
 		CachedTokens: record.Detail.CachedTokens,
-		RequestedAt:  record.RequestedAt,
-		CreatedAt:    time.Now(),
+		RequestedAt:  record.RequestedAt.UTC(),
+		CreatedAt:    time.Now().UTC(),
 		Latency:      int(record.Latency),
 		Reasoning:    record.ReasoningEffort,
 		Failed:       record.Failed,
@@ -53,10 +53,20 @@ func (u *UsagePlugin) HandleUsage(ctx context.Context, record usage.Record) {
 	if !record.Failed {
 		usageEntry.Error = fmt.Sprintf("%d %s", record.Fail.StatusCode, record.Fail.Body)
 	}
-	model, err := u.UsageRepo.SaveUsageEntry(ctx, usageEntry)
-	if err != nil {
-		u.Logger.Error("HandleUsage caused error:", slog.Any("err", err))
-		return
-	}
-	u.Logger.Debug("Saved usage entry", slog.Any("model", model))
+	key.QuotaTokens += record.Detail.TotalTokens
+	go func() {
+		err = u.APIKeysRepo.UpdateApiKeyQuota(ctx, key)
+		if err != nil {
+			u.Logger.Error("HandleUsage caused error:", slog.Any("err", err))
+			return
+		}
+	}()
+	go func() {
+		model, err := u.UsageRepo.SaveUsageEntry(ctx, usageEntry)
+		if err != nil {
+			u.Logger.Error("HandleUsage caused error:", slog.Any("err", err))
+			return
+		}
+		u.Logger.Debug("Saved usage entry", slog.Any("model", model))
+	}()
 }
