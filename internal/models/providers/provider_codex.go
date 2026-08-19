@@ -1,14 +1,21 @@
-package server
+package providers
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
+	"github.com/yawaflua/aoyorouter/internal/models"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 )
+
+type CodexProvider struct{}
+
+
 
 type codexUsageWindow struct {
 	UsedPercent   float64 `json:"used_percent"`
@@ -29,7 +36,39 @@ type codexUsageResponse struct {
 	} `json:"rate_limit"`
 }
 
-func loadCodexQuota(ctx context.Context, credentials map[string]any) *aoyorouter.ProviderQuota {
+func (c *CodexProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
+	for index, key := range cfg.CodexKey {
+		if key.APIKey == provider.ClientSecret && key.BaseURL == provider.ClientID {
+			cfg.CodexKey = append(cfg.CodexKey[:index], cfg.CodexKey[index+1:]...)
+			return
+		}
+	}
+}
+
+// AddProviderConfig implements [providers.ProviderConfig].
+func (c *CodexProvider) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
+	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
+		return
+	}
+	cfg.CodexKey = append(cfg.CodexKey, config.CodexKey{APIKey: provider.ClientSecret, BaseURL: provider.ClientID, ProxyURL: provider.Proxy})
+}
+
+// GetOAuthDefinition implements [providers.ProviderConfig].
+func (c *CodexProvider) GetOAuthDefinition() *ProviderOAuthDefinition {
+	return &ProviderOAuthDefinition{
+		Endpoint:           "/v0/management/codex-auth-url",
+		Callback:           true,
+		Provider:           "codex",
+		CredentialProvider: "codex",
+	}
+}
+
+// LoadQuota implements [providers.ProviderConfig].
+func (c *CodexProvider) LoadQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
+	return loadCodexQuota(ctx, credentials, useProxy, proxyURL)
+}
+
+func loadCodexQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
 	if len(credentials) == 0 {
 		return &aoyorouter.ProviderQuota{Error: "quota unavailable"}
 	}
@@ -37,6 +76,10 @@ func loadCodexQuota(ctx context.Context, credentials map[string]any) *aoyorouter
 	accountID, _ := credentials["account_id"].(string)
 	if accessToken == "" || accountID == "" {
 		return &aoyorouter.ProviderQuota{Error: "Codex credentials are incomplete"}
+	}
+	client, err := proxyHTTPClient(useProxy, proxyURL)
+	if err != nil {
+		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
 	}
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://chatgpt.com/backend-api/wham/usage", nil)
 	if err != nil {
@@ -46,7 +89,7 @@ func loadCodexQuota(ctx context.Context, credentials map[string]any) *aoyorouter
 	request.Header.Set("Chatgpt-Account-Id", accountID)
 	request.Header.Set("Accept", "application/json")
 	request.Header.Set("Originator", "codex_cli_rs")
-	response, err := http.DefaultClient.Do(request)
+	response, err := client.Do(request)
 	if err != nil {
 		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
 	}

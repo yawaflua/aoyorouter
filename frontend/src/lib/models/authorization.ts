@@ -1,11 +1,5 @@
 import { record, text } from '../utils'
 
-export interface CodexAuthorization {
-  authorizationUrl: string
-  state: string
-  providerId: string
-}
-
 export interface ProviderAuthorization {
   authorizationUrl: string
   state: string

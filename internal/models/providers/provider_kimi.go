@@ -1,4 +1,4 @@
-package server
+package providers
 
 import (
 	"context"
@@ -8,23 +8,51 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
+	"github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
+	"github.com/yawaflua/aoyorouter/internal/models"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 )
 
-const kimiUsageURL = "https://api.kimi.com/coding/v1/usages"
+type KimiProvider struct {
+}
 
-var kimiQuotaHTTPClient = &http.Client{Timeout: 8 * time.Second}
+// RemoveProviderConfig implements [ProviderConfig].
+func (k *KimiProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
+	for index, configured := range cfg.OpenAICompatibility {
+		if configured.Name == provider.Name && configured.BaseURL == provider.ClientID {
+			cfg.OpenAICompatibility = append(cfg.OpenAICompatibility[:index], cfg.OpenAICompatibility[index+1:]...)
+			return
+		}
+	}
+}
 
-func kimiOAuthDefinition() providerOAuthDefinition {
-	return providerOAuthDefinition{
+// AddProviderConfig implements [providers.ProviderConfig].
+func (k *KimiProvider) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
+	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
+		return
+	}
+	cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{Name: "kimi", BaseURL: provider.ClientID, APIKeyEntries: []config.OpenAICompatibilityAPIKey{{APIKey: provider.ClientSecret}}})
+
+}
+
+// GetOAuthDefinition implements [providers.ProviderConfig].
+func (k *KimiProvider) GetOAuthDefinition() *ProviderOAuthDefinition {
+	return &ProviderOAuthDefinition{
 		Provider:           "kimi",
 		CredentialProvider: "kimi",
 		Endpoint:           "/v0/management/kimi-auth-url",
 		DefaultURL:         "https://api.kimi.com/coding",
 	}
 }
+
+// LoadQuota implements [providers.ProviderConfig].
+func (k *KimiProvider) LoadQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
+	
+	return loadKimiQuota(ctx, credentials, useProxy, proxyURL)
+}
+
+const kimiUsageURL = "https://api.kimi.com/coding/v1/usages"
 
 type kimiUsageResponse struct {
 	Usage  *kimiUsageDetail `json:"usage"`
@@ -47,7 +75,7 @@ type kimiUsageDetail struct {
 	ResetTime string `json:"resetTime"`
 }
 
-func loadKimiQuota(ctx context.Context, credentials map[string]any) *aoyorouter.ProviderQuota {
+func loadKimiQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
 	accessToken, _ := credentials["access_token"].(string)
 	if strings.TrimSpace(accessToken) == "" {
 		return &aoyorouter.ProviderQuota{Error: "Kimi credentials are incomplete"}
@@ -63,7 +91,11 @@ func loadKimiQuota(ctx context.Context, credentials map[string]any) *aoyorouter.
 		request.Header.Set("X-Msh-Device-Id", deviceID)
 	}
 
-	response, err := kimiQuotaHTTPClient.Do(request)
+	server, err := proxyHTTPClient(useProxy, proxyURL)
+	if err != nil {
+		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
+	}
+	response, err := server.Do(request)
 	if err != nil {
 		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
 	}

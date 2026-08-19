@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"log/slog"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -14,7 +15,9 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/usage_entry_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/user_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/warp"
+	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
 	"github.com/yawaflua/aoyorouter/internal/models"
+	provider_conf "github.com/yawaflua/aoyorouter/internal/models/providers"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -25,32 +28,32 @@ import (
 const cpapiConfigPath = "config.yaml"
 
 type Dependencies struct {
-	UserRepo                *user_repo.UserRepo
-	ProviderRepo            *provider_repo.ProviderRepo
-	ApiKeyRepo              *apikey_repo.ApiKeyRepo
-	UsageEntryRepo          *usage_entry_repo.UsageEntryRepo
-	CPAPIConfig             *config.Config
-	CodexOAuth              *codexOAuthStore
-	Warp                    *warp.Warp
-	CPAPIManagementURL      string
-	CPAPIManagementPassword string
-	Logger                  *slog.Logger
+	UserRepo       *user_repo.UserRepo
+	ProviderRepo   *provider_repo.ProviderRepo
+	ApiKeyRepo     *apikey_repo.ApiKeyRepo
+	UsageEntryRepo *usage_entry_repo.UsageEntryRepo
+	CPAPIConfig    *config.Config
+	Warp           *warp.Warp
+	Management     *cliproxyapi.Management
+	Logger         *slog.Logger
 }
 
 type AoyoRouterService struct {
-	UserRepo                *user_repo.UserRepo
-	ProviderRepo            *provider_repo.ProviderRepo
-	ApiKeyRepo              *apikey_repo.ApiKeyRepo
-	UsageEntryRepo          *usage_entry_repo.UsageEntryRepo
-	CPAPIConfig             *config.Config
-	CodexOAuth              *codexOAuthStore
-	ProviderOAuth           *providerOAuthStore
-	CPAPIManagementURL      string
-	CPAPIManagementPassword string
-	configMu                sync.Mutex
-	warp                    *warp.Warp
-	logger                  *slog.Logger
+	UserRepo       *user_repo.UserRepo
+	ProviderRepo   *provider_repo.ProviderRepo
+	ApiKeyRepo     *apikey_repo.ApiKeyRepo
+	UsageEntryRepo *usage_entry_repo.UsageEntryRepo
+	CPAPIConfig    *config.Config
+	Management     *cliproxyapi.Management
+	configMu       sync.Mutex
+	warp           *warp.Warp
+	logger         *slog.Logger
 	aoyorouter.UnimplementedAoyoRouterServiceServer
+}
+
+// UpdateProxy implements [aoyorouter.AoyoRouterServiceServer].
+func (a *AoyoRouterService) UpdateProxy(ctx context.Context, req *aoyorouter.UpdateProxyRequest) (*aoyorouter.UpdateProxyResponse, error) {
+	return nil, status.Error(codes.Code(418), "method is obsolete")
 }
 
 // EditApiKey implements [aoyorouter.AoyoRouterServiceServer].
@@ -95,36 +98,38 @@ func (a *AoyoRouterService) EditApiKey(ctx context.Context, req *aoyorouter.Edit
 	return &aoyorouter.EditApiKeyResponse{Status: "ok"}, nil
 }
 
-func quotaPeriod(strategy aoyorouter.QuotaResetStrategy) (models.QuotaPeriod, time.Duration, error) {
-	switch strategy {
-	case aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_MINUTES:
-		return models.QuotaPeriodMinute, time.Minute, nil
-	case aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_HOURLY:
-		return models.QuotaPeriodHour, time.Hour, nil
-	case aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_DAILY:
-		return models.QuotaPeriodDay, 24 * time.Hour, nil
-	case aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_WEEKLY:
-		return models.QuotaPeriodWeek, 7 * 24 * time.Hour, nil
-	case aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_MONTHLY:
-		return models.QuotaPeriodMonth, 30 * 24 * time.Hour, nil
-	case aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_FOREVER:
-		return models.QuotaPeriodForever, 0, nil
-	default:
-		return "", 0, status.Error(codes.InvalidArgument, "unsupported quota_reset_strategy")
-	}
-}
-
 // GetProxies implements [aoyorouter.AoyoRouterServiceServer].
 func (a *AoyoRouterService) GetProxies(context.Context, *aoyorouter.GetProxiesRequest) (*aoyorouter.GetProxiesResponse, error) {
 	proxies := a.warp.Proxies()
 	resp := aoyorouter.GetProxiesResponse{}
+	resp.AvailableEndpoints = make([]*aoyorouter.ProxyEndpoint, 0, len(a.warp.Endpoints()))
+	for endpoint := range a.warp.Endpoints() {
+		resp.AvailableEndpoints = append(resp.AvailableEndpoints, &aoyorouter.ProxyEndpoint{
+			Addr: endpoint.AddrPort.String(),
+			Rtt:  strconv.FormatFloat(endpoint.RTT.Seconds(), 'f', 2, 64),
+		})
+	}
+
 	for addr, names := range proxies {
 		for name, proxy := range names {
-			resp.Proxies = append(resp.Proxies, &aoyorouter.ProxyProxy{
+			warpInfo, err := proxy.GetWARPInfo()
+			if err != nil {
+				return nil, err
+			}
+
+			protoWarpInfo := aoyorouter.WARPInfo{
+				Ip:             warpInfo.IP.String(),
+				HttpType:       warpInfo.HTTP,
+				ServerCity:     warpInfo.ServerPlace,
+				ServerLocation: warpInfo.ServerPlace,
+				Tls:            warpInfo.TLS,
+			}
+			resp.Proxies = append(resp.Proxies, &aoyorouter.Proxy{
 				Id:             name,
 				Name:           name,
 				Url:            proxy.Addr().String(),
 				CloudflareAddr: addr,
+				WarpInfo:       &protoWarpInfo,
 			})
 		}
 	}
@@ -224,7 +229,7 @@ func (a *AoyoRouterService) CreateProvider(ctx context.Context, req *aoyorouter.
 		req.ClientId = "https://api.openai.com/v1"
 	}
 
-	provider, err := a.ProviderRepo.CreateProvider(ctx, req.GetName(), int32(req.GetType()), req.GetClientId(), req.GetClientSecret(), req.GetUseProxy(), req.GetProxy())
+	provider, err := a.ProviderRepo.CreateProvider(ctx, req.GetName(), int32(req.GetType()), req.GetClientId(), req.GetClientSecret(), req.GetUseProxy(), req.GetProxy(), req.GetProxy() == "")
 
 	if err != nil {
 		return nil, err
@@ -307,23 +312,6 @@ func (a *AoyoRouterService) GetApiKeyList(ctx context.Context, _ *aoyorouter.Get
 	return &aoyorouter.GetApiKeyListResponse{ApiKeys: result}, nil
 }
 
-func quotaResetStrategy(period models.QuotaPeriod) aoyorouter.QuotaResetStrategy {
-	switch period {
-	case models.QuotaPeriodMinute:
-		return aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_MINUTES
-	case models.QuotaPeriodHour:
-		return aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_HOURLY
-	case models.QuotaPeriodDay:
-		return aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_DAILY
-	case models.QuotaPeriodWeek:
-		return aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_WEEKLY
-	case models.QuotaPeriodMonth:
-		return aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_MONTHLY
-	default:
-		return aoyorouter.QuotaResetStrategy_QUOTA_RESET_STRATEGY_FOREVER
-	}
-}
-
 func (a *AoyoRouterService) GetProvider(ctx context.Context, req *aoyorouter.GetProviderRequest) (*aoyorouter.GetProviderResponse, error) {
 	provider, err := a.ProviderRepo.GetProvider(ctx, req.GetProviderId())
 
@@ -344,29 +332,18 @@ func (a *AoyoRouterService) GetProvidersList(ctx context.Context, _ *aoyorouter.
 	for _, provider := range providers {
 		item := providerToProto(provider)
 		if providerOAuthReady(provider.ClientSecret, provider.Credentials) {
-			switch aoyorouter.ProviderType(provider.Type) {
-			case aoyorouter.ProviderType_PROVIDER_TYPE_OPENAI:
-				item.Quota = loadCodexQuota(ctx, provider.Credentials)
-			case aoyorouter.ProviderType_PROVIDER_TYPE_KIMI:
-				item.Quota = loadKimiQuota(ctx, provider.Credentials)
-			case aoyorouter.ProviderType_PROVIDER_TYPE_ANTIGRAVITY:
-				item.Quota = loadAntigravityQuota(ctx, provider.Credentials)
+			conf, err := provider_conf.ProviderOAuthConfig(aoyorouter.ProviderType(provider.Type))
+			if err != nil {
+				continue
+			}
+			if quota := conf.LoadQuota(ctx, provider.Credentials, provider.UseProxy, provider.Proxy); quota != nil {
+				item.Quota = quota
 			}
 		}
 		result = append(result, item)
 	}
 
 	return &aoyorouter.GetProvidersListResponse{Providers: result}, nil
-}
-
-func providerOAuthReady(clientSecret string, credentials map[string]any) bool {
-	if !strings.HasPrefix(clientSecret, "oauth:") {
-		return false
-	}
-	if clientSecret != "oauth:pending" {
-		return true
-	}
-	return providerCredentialsCompleted(credentials)
 }
 
 func (a *AoyoRouterService) HealthCheck(context.Context, *emptypb.Empty) (*aoyorouter.HealthCheckResponse, error) {
@@ -383,7 +360,7 @@ func (a *AoyoRouterService) UpdateProvider(ctx context.Context, req *aoyorouter.
 		return nil, err
 	}
 
-	provider, err := a.ProviderRepo.UpdateProvider(ctx, req.GetProviderId(), req.GetName(), int32(req.GetType()), req.GetClientId(), req.GetClientSecret(), req.GetUseProxy(), req.GetProxy())
+	provider, err := a.ProviderRepo.UpdateProvider(ctx, req.GetProviderId(), req.GetName(), int32(req.GetType()), req.GetClientId(), req.GetClientSecret(), req.GetUseProxy(), req.GetProxy(), req.GetProxy() == "")
 	if err != nil {
 		return nil, err
 	}
@@ -401,49 +378,13 @@ func (a *AoyoRouterService) UpdateProvider(ctx context.Context, req *aoyorouter.
 	return &aoyorouter.UpdateProviderResponse{Status: "ok"}, nil
 }
 
-func validateProvider(name string, providerType aoyorouter.ProviderType, secret string) error {
-	if name == "" || secret == "" {
-		return status.Error(codes.InvalidArgument, "name and client_secret are required")
-	}
-
-	switch providerType {
-	case aoyorouter.ProviderType_PROVIDER_TYPE_UNSPECIFIED:
-		return status.Error(codes.InvalidArgument, "unsupported provider type")
-
-	case aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM, aoyorouter.ProviderType_PROVIDER_TYPE_OPENAI, aoyorouter.ProviderType_PROVIDER_TYPE_ANTHROPIC, aoyorouter.ProviderType_PROVIDER_TYPE_KIMI, aoyorouter.ProviderType_PROVIDER_TYPE_GROK, aoyorouter.ProviderType_PROVIDER_TYPE_ANTIGRAVITY:
-		return nil
-
-	default:
-		return status.Error(codes.InvalidArgument, "unsupported provider type")
-	}
-}
-
-func removeString(values []string, target string) []string {
-	result := values[:0]
-	for _, value := range values {
-		if value != target {
-			result = append(result, value)
-		}
-	}
-	return result
-}
-
 func NewAoyoRouterService(deps Dependencies) *AoyoRouterService {
 	if deps.CPAPIConfig == nil {
 		panic("server.NewAoyoRouterService: CPAPIConfig is nil")
 	}
 
-	if deps.CodexOAuth == nil {
-		deps.CodexOAuth = newCodexOAuthStore()
-	}
-	if deps.CPAPIManagementURL == "" || deps.CPAPIManagementPassword == "" {
-		panic("server.NewAoyoRouterService: CLIProxyAPI management connection is not configured")
-	}
-
 	return &AoyoRouterService{
 		UserRepo: deps.UserRepo, ProviderRepo: deps.ProviderRepo, ApiKeyRepo: deps.ApiKeyRepo, UsageEntryRepo: deps.UsageEntryRepo,
-		CPAPIConfig: deps.CPAPIConfig, CodexOAuth: deps.CodexOAuth,
-		ProviderOAuth: newProviderOAuthStore(), CPAPIManagementURL: deps.CPAPIManagementURL,
-		CPAPIManagementPassword: deps.CPAPIManagementPassword, warp: deps.Warp, logger: deps.Logger,
+		CPAPIConfig: deps.CPAPIConfig, Management: deps.Management, warp: deps.Warp, logger: deps.Logger,
 	}
 }

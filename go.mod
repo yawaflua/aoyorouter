@@ -10,7 +10,7 @@ require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/router-for-me/CLIProxyAPI/v7 v7.2.133
-	github.com/shahradelahi/cloudflare-warp v0.0.0-00010101000000-000000000000
+	github.com/yawaflua/cloudflare-warp v1.2.1
 	golang.org/x/sync v0.22.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260803160001-6ac0973c030d
 	google.golang.org/grpc v1.83.0
@@ -106,4 +106,4 @@ require (
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect
 )
 
-replace github.com/shahradelahi/cloudflare-warp => github.com/yawaflua/cloudflare-warp v1.0.1
+// replace github.com/yawaflua/cloudflare-warp => ../cloudflare-warp

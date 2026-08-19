@@ -58,7 +58,7 @@
               <div><dt>Provider ID</dt><dd><code>{provider.id}</code></dd></div>
               <div><dt>Type</dt><dd>{providerLabels[provider.type]}</dd></div>
               <div><dt>Endpoint</dt><dd>{provider.customUrl || 'Default endpoint'}</dd></div>
-              <div><dt>Proxy</dt><dd>{provider.useProxy ? (provider.proxy || 'Cloudflare WARP (managed)') : 'Disabled'}</dd></div>
+              <div><dt>Proxy</dt><dd>{provider.useProxy ? (provider.isCloudflare ? 'Cloudflare WARP' : provider.proxy || "Enabled") : 'Disabled'}</dd></div>
             </dl>
             <button class="tonal" onclick={() => onEdit(provider)}>Edit</button>
           </section>

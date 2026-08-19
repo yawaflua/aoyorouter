@@ -29,20 +29,6 @@ service AoyoRouterService {
         };
     }
 
-    rpc CreateCodexAuthorization(CreateCodexAuthorizationRequest) returns (CreateCodexAuthorizationResponse) {
-        option (google.api.http) = {
-            post: "/api/aoyo/v1/providers/codex/authorize"
-            body: "*"
-        };
-    }
-
-    rpc CompleteCodexAuthorization(CompleteCodexAuthorizationRequest) returns (CompleteCodexAuthorizationResponse) {
-        option (google.api.http) = {
-            post: "/api/aoyo/v1/providers/codex/complete"
-            body: "*"
-        };
-    }
-
     rpc CreateProviderAuthorization(CreateProviderAuthorizationRequest) returns (CreateProviderAuthorizationResponse) {
         option (google.api.http) = {
             post: "/api/aoyo/v1/providers/authorize"
@@ -131,4 +117,12 @@ service AoyoRouterService {
             get: "/api/aoyo/v1/proxies"
         };
     }
+
+    rpc UpdateProxy(UpdateProxyRequest) returns (UpdateProxyResponse) {
+        option (google.api.http) = {
+            patch: "/api/aoyo/v1/proxies/{proxy_id}"
+            body: "*"
+        };
+    }
+
 }

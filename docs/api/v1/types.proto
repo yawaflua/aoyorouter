@@ -30,27 +30,6 @@ message CreateProviderResponse {
     string provider_id = 2;
 }
 
-message CreateCodexAuthorizationRequest {
-    string name = 1;
-    string custom_url = 2;
-    bool use_proxy = 7;
-    string proxy = 8;
-}
-message CreateCodexAuthorizationResponse {
-    string authorization_url = 1;
-    string state = 2;
-    string provider_id = 3;
-}
-
-message CompleteCodexAuthorizationRequest {
-    string state = 1;
-    string callback_url = 2;
-}
-message CompleteCodexAuthorizationResponse {
-    string status = 1;
-    string provider_id = 2;
-}
-
 message CreateProviderAuthorizationRequest {
     string name = 1;
     ProviderType type = 2;
@@ -71,8 +50,9 @@ message CreateProviderAuthorizationResponse {
 message CompleteProviderAuthorizationRequest {
     string state = 1;
     string callback_url = 2;
+    ProviderType type = 4;
     bool use_proxy = 3;
-    string proxy = 4;
+    string proxy = 5;
 }
 
 message GetProviderAuthorizationStatusRequest {
@@ -119,6 +99,7 @@ message Provider {
     ProviderQuota quota = 6;
     bool use_proxy = 7;
     string proxy = 8;
+    bool is_cloudflare = 9;
 }
 
 message GetProviderRequest {
@@ -243,11 +224,36 @@ message GetUsageLogsResponse {
 message GetProxiesRequest {
 }
 message GetProxiesResponse {
-    repeated ProxyProxy proxies = 1;
+    repeated Proxy proxies = 1;
+    repeated ProxyEndpoint available_endpoints = 2;
 }
-message ProxyProxy {
+
+message ProxyEndpoint {
+    string addr = 1;
+    string rtt = 2;
+}
+
+message UpdateProxyRequest {
+    string proxy_id = 1;
+    string cloudflare_endpoint = 3;
+    string new_endpoint = 4;
+}
+message UpdateProxyResponse {
+    Proxy proxy = 1;
+    string status = 2;
+}
+message Proxy {
     string id = 1;
     string name = 2;
     string url = 3;
     string cloudflare_addr = 4;
+    WARPInfo warp_info = 5;
+}
+
+message WARPInfo {
+    string ip = 1;
+    string http_type = 2;
+    string server_city = 3;
+    string server_location = 4;
+    string tls = 5;
 }

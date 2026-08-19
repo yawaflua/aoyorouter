@@ -344,70 +344,6 @@
         ]
       }
     },
-    "/api/aoyo/v1/providers/codex/authorize": {
-      "post": {
-        "operationId": "AoyoRouterService_CreateCodexAuthorization",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1CreateCodexAuthorizationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1CreateCodexAuthorizationRequest"
-            }
-          }
-        ],
-        "tags": [
-          "AoyoRouterService"
-        ]
-      }
-    },
-    "/api/aoyo/v1/providers/codex/complete": {
-      "post": {
-        "operationId": "AoyoRouterService_CompleteCodexAuthorization",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1CompleteCodexAuthorizationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1CompleteCodexAuthorizationRequest"
-            }
-          }
-        ],
-        "tags": [
-          "AoyoRouterService"
-        ]
-      }
-    },
     "/api/aoyo/v1/providers/{providerId}": {
       "get": {
         "operationId": "AoyoRouterService_GetProvider",
@@ -524,6 +460,44 @@
         ]
       }
     },
+    "/api/aoyo/v1/proxies/{proxyId}": {
+      "patch": {
+        "operationId": "AoyoRouterService_UpdateProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UpdateProxyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "proxyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AoyoRouterServiceUpdateProxyBody"
+            }
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
     "/api/aoyo/v1/signin": {
       "post": {
         "operationId": "AoyoRouterService_SignIn",
@@ -627,6 +601,17 @@
         }
       }
     },
+    "AoyoRouterServiceUpdateProxyBody": {
+      "type": "object",
+      "properties": {
+        "cloudflareEndpoint": {
+          "type": "string"
+        },
+        "newEndpoint": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -690,28 +675,6 @@
         }
       }
     },
-    "v1CompleteCodexAuthorizationRequest": {
-      "type": "object",
-      "properties": {
-        "state": {
-          "type": "string"
-        },
-        "callbackUrl": {
-          "type": "string"
-        }
-      }
-    },
-    "v1CompleteCodexAuthorizationResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "string"
-        },
-        "providerId": {
-          "type": "string"
-        }
-      }
-    },
     "v1CompleteProviderAuthorizationRequest": {
       "type": "object",
       "properties": {
@@ -720,6 +683,9 @@
         },
         "callbackUrl": {
           "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/v1ProviderType"
         },
         "useProxy": {
           "type": "boolean"
@@ -750,37 +716,6 @@
           "type": "string"
         },
         "apiKeyId": {
-          "type": "string"
-        }
-      }
-    },
-    "v1CreateCodexAuthorizationRequest": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "customUrl": {
-          "type": "string"
-        },
-        "useProxy": {
-          "type": "boolean"
-        },
-        "proxy": {
-          "type": "string"
-        }
-      }
-    },
-    "v1CreateCodexAuthorizationResponse": {
-      "type": "object",
-      "properties": {
-        "authorizationUrl": {
-          "type": "string"
-        },
-        "state": {
-          "type": "string"
-        },
-        "providerId": {
           "type": "string"
         }
       }
@@ -942,7 +877,14 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v1ProxyProxy"
+            "$ref": "#/definitions/v1Proxy"
+          }
+        },
+        "availableEndpoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ProxyEndpoint"
           }
         }
       }
@@ -1107,7 +1049,7 @@
       ],
       "default": "PROVIDER_TYPE_UNSPECIFIED"
     },
-    "v1ProxyProxy": {
+    "v1Proxy": {
       "type": "object",
       "properties": {
         "id": {
@@ -1120,6 +1062,20 @@
           "type": "string"
         },
         "cloudflareAddr": {
+          "type": "string"
+        },
+        "warpInfo": {
+          "$ref": "#/definitions/v1WARPInfo"
+        }
+      }
+    },
+    "v1ProxyEndpoint": {
+      "type": "object",
+      "properties": {
+        "addr": {
+          "type": "string"
+        },
+        "rtt": {
           "type": "string"
         }
       }
@@ -1160,6 +1116,37 @@
       "type": "object",
       "properties": {
         "status": {
+          "type": "string"
+        }
+      }
+    },
+    "v1UpdateProxyResponse": {
+      "type": "object",
+      "properties": {
+        "proxy": {
+          "$ref": "#/definitions/v1Proxy"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "v1WARPInfo": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "string"
+        },
+        "httpType": {
+          "type": "string"
+        },
+        "serverCity": {
+          "type": "string"
+        },
+        "serverLocation": {
+          "type": "string"
+        },
+        "tls": {
           "type": "string"
         }
       }

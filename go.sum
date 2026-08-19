@@ -198,8 +198,8 @@ github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65E
 github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/wlynxg/anet v0.0.5 h1:J3VJGi1gvo0JwZ/P1/Yc/8p63SoW98B5dHkYDmpgvvU=
 github.com/wlynxg/anet v0.0.5/go.mod h1:eay5PRQr7fIVAMbTbchTnO9gG65Hg/uYGdc7mguHxoA=
-github.com/yawaflua/cloudflare-warp v1.0.1 h1:h1zEz5uOLnTDuMk0lPpAwd8ZG9MhK8ayZCN1y9g3BOA=
-github.com/yawaflua/cloudflare-warp v1.0.1/go.mod h1:hN79bo8xOXrwddXyJru9MiMJmlgIZNRn5wFMFHH3Jsk=
+github.com/yawaflua/cloudflare-warp v1.2.1 h1:t8Uvssu1Cze9fjYvvTHwXK0N0xVmeSb0FRptAz2eNQ0=
+github.com/yawaflua/cloudflare-warp v1.2.1/go.mod h1:7psHCM03qeCcST4ZuX2eTJ8xiQPbDYT95KxUFXWEwM8=
 github.com/zeebo/xxh3 v1.1.0 h1:s7DLGDK45Dyfg7++yxI0khrfwq9661w9EN78eP/UZVs=
 github.com/zeebo/xxh3 v1.1.0/go.mod h1:IisAie1LELR4xhVinxWS5+zf1lA4p0MW4T+w+W07F5s=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=

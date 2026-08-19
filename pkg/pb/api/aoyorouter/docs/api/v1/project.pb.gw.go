@@ -111,60 +111,6 @@ func local_request_AoyoRouterService_CreateProvider_0(ctx context.Context, marsh
 	return msg, metadata, err
 }
 
-func request_AoyoRouterService_CreateCodexAuthorization_0(ctx context.Context, marshaler runtime.Marshaler, client AoyoRouterServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq CreateCodexAuthorizationRequest
-		metadata runtime.ServerMetadata
-	)
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if req.Body != nil {
-		_, _ = io.Copy(io.Discard, req.Body)
-	}
-	msg, err := client.CreateCodexAuthorization(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-}
-
-func local_request_AoyoRouterService_CreateCodexAuthorization_0(ctx context.Context, marshaler runtime.Marshaler, server AoyoRouterServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq CreateCodexAuthorizationRequest
-		metadata runtime.ServerMetadata
-	)
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	msg, err := server.CreateCodexAuthorization(ctx, &protoReq)
-	return msg, metadata, err
-}
-
-func request_AoyoRouterService_CompleteCodexAuthorization_0(ctx context.Context, marshaler runtime.Marshaler, client AoyoRouterServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq CompleteCodexAuthorizationRequest
-		metadata runtime.ServerMetadata
-	)
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if req.Body != nil {
-		_, _ = io.Copy(io.Discard, req.Body)
-	}
-	msg, err := client.CompleteCodexAuthorization(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-}
-
-func local_request_AoyoRouterService_CompleteCodexAuthorization_0(ctx context.Context, marshaler runtime.Marshaler, server AoyoRouterServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq CompleteCodexAuthorizationRequest
-		metadata runtime.ServerMetadata
-	)
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	msg, err := server.CompleteCodexAuthorization(ctx, &protoReq)
-	return msg, metadata, err
-}
-
 func request_AoyoRouterService_CreateProviderAuthorization_0(ctx context.Context, marshaler runtime.Marshaler, client AoyoRouterServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq CreateProviderAuthorizationRequest
@@ -643,6 +589,51 @@ func local_request_AoyoRouterService_GetProxies_0(ctx context.Context, marshaler
 	return msg, metadata, err
 }
 
+func request_AoyoRouterService_UpdateProxy_0(ctx context.Context, marshaler runtime.Marshaler, client AoyoRouterServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateProxyRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["proxy_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proxy_id")
+	}
+	protoReq.ProxyId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proxy_id", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.UpdateProxy(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_AoyoRouterService_UpdateProxy_0(ctx context.Context, marshaler runtime.Marshaler, server AoyoRouterServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateProxyRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["proxy_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proxy_id")
+	}
+	protoReq.ProxyId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proxy_id", err)
+	}
+	msg, err := server.UpdateProxy(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 // RegisterAoyoRouterServiceHandlerServer registers the http handlers for service AoyoRouterService to "mux".
 // UnaryRPC     :call AoyoRouterServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -708,46 +699,6 @@ func RegisterAoyoRouterServiceHandlerServer(ctx context.Context, mux *runtime.Se
 			return
 		}
 		forward_AoyoRouterService_CreateProvider_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
-	mux.Handle(http.MethodPost, pattern_AoyoRouterService_CreateCodexAuthorization_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		var stream runtime.ServerTransportStream
-		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/aoyorouter.docs.api.v1.AoyoRouterService/CreateCodexAuthorization", runtime.WithHTTPPathPattern("/api/aoyo/v1/providers/codex/authorize"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := local_request_AoyoRouterService_CreateCodexAuthorization_0(annotatedContext, inboundMarshaler, server, req, pathParams)
-		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_AoyoRouterService_CreateCodexAuthorization_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
-	mux.Handle(http.MethodPost, pattern_AoyoRouterService_CompleteCodexAuthorization_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		var stream runtime.ServerTransportStream
-		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/aoyorouter.docs.api.v1.AoyoRouterService/CompleteCodexAuthorization", runtime.WithHTTPPathPattern("/api/aoyo/v1/providers/codex/complete"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := local_request_AoyoRouterService_CompleteCodexAuthorization_0(annotatedContext, inboundMarshaler, server, req, pathParams)
-		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_AoyoRouterService_CompleteCodexAuthorization_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodPost, pattern_AoyoRouterService_CreateProviderAuthorization_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -1029,6 +980,26 @@ func RegisterAoyoRouterServiceHandlerServer(ctx context.Context, mux *runtime.Se
 		}
 		forward_AoyoRouterService_GetProxies_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPatch, pattern_AoyoRouterService_UpdateProxy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/aoyorouter.docs.api.v1.AoyoRouterService/UpdateProxy", runtime.WithHTTPPathPattern("/api/aoyo/v1/proxies/{proxy_id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_AoyoRouterService_UpdateProxy_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_AoyoRouterService_UpdateProxy_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 
 	return nil
 }
@@ -1119,40 +1090,6 @@ func RegisterAoyoRouterServiceHandlerClient(ctx context.Context, mux *runtime.Se
 			return
 		}
 		forward_AoyoRouterService_CreateProvider_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
-	mux.Handle(http.MethodPost, pattern_AoyoRouterService_CreateCodexAuthorization_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/aoyorouter.docs.api.v1.AoyoRouterService/CreateCodexAuthorization", runtime.WithHTTPPathPattern("/api/aoyo/v1/providers/codex/authorize"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_AoyoRouterService_CreateCodexAuthorization_0(annotatedContext, inboundMarshaler, client, req, pathParams)
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_AoyoRouterService_CreateCodexAuthorization_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
-	mux.Handle(http.MethodPost, pattern_AoyoRouterService_CompleteCodexAuthorization_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/aoyorouter.docs.api.v1.AoyoRouterService/CompleteCodexAuthorization", runtime.WithHTTPPathPattern("/api/aoyo/v1/providers/codex/complete"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_AoyoRouterService_CompleteCodexAuthorization_0(annotatedContext, inboundMarshaler, client, req, pathParams)
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_AoyoRouterService_CompleteCodexAuthorization_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodPost, pattern_AoyoRouterService_CreateProviderAuthorization_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -1392,6 +1329,23 @@ func RegisterAoyoRouterServiceHandlerClient(ctx context.Context, mux *runtime.Se
 		}
 		forward_AoyoRouterService_GetProxies_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPatch, pattern_AoyoRouterService_UpdateProxy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/aoyorouter.docs.api.v1.AoyoRouterService/UpdateProxy", runtime.WithHTTPPathPattern("/api/aoyo/v1/proxies/{proxy_id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_AoyoRouterService_UpdateProxy_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_AoyoRouterService_UpdateProxy_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	return nil
 }
 
@@ -1399,8 +1353,6 @@ var (
 	pattern_AoyoRouterService_HealthCheck_0                    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "aoyo", "v1", "healthz"}, ""))
 	pattern_AoyoRouterService_SignIn_0                         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "aoyo", "v1", "signin"}, ""))
 	pattern_AoyoRouterService_CreateProvider_0                 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "aoyo", "v1", "providers"}, ""))
-	pattern_AoyoRouterService_CreateCodexAuthorization_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"api", "aoyo", "v1", "providers", "codex", "authorize"}, ""))
-	pattern_AoyoRouterService_CompleteCodexAuthorization_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"api", "aoyo", "v1", "providers", "codex", "complete"}, ""))
 	pattern_AoyoRouterService_CreateProviderAuthorization_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"api", "aoyo", "v1", "providers", "authorize"}, ""))
 	pattern_AoyoRouterService_CompleteProviderAuthorization_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"api", "aoyo", "v1", "providers", "authorize", "complete"}, ""))
 	pattern_AoyoRouterService_GetProviderAuthorizationStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "aoyo", "v1", "providers", "authorize", "state"}, ""))
@@ -1415,14 +1367,13 @@ var (
 	pattern_AoyoRouterService_GetUsageLogs_0                   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"api", "aoyo", "v1", "usage", "logs"}, ""))
 	pattern_AoyoRouterService_GetProviderLogsByKeyID_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"api", "aoyo", "v1", "api-keys", "api_key_id", "logs"}, ""))
 	pattern_AoyoRouterService_GetProxies_0                     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "aoyo", "v1", "proxies"}, ""))
+	pattern_AoyoRouterService_UpdateProxy_0                    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "aoyo", "v1", "proxies", "proxy_id"}, ""))
 )
 
 var (
 	forward_AoyoRouterService_HealthCheck_0                    = runtime.ForwardResponseMessage
 	forward_AoyoRouterService_SignIn_0                         = runtime.ForwardResponseMessage
 	forward_AoyoRouterService_CreateProvider_0                 = runtime.ForwardResponseMessage
-	forward_AoyoRouterService_CreateCodexAuthorization_0       = runtime.ForwardResponseMessage
-	forward_AoyoRouterService_CompleteCodexAuthorization_0     = runtime.ForwardResponseMessage
 	forward_AoyoRouterService_CreateProviderAuthorization_0    = runtime.ForwardResponseMessage
 	forward_AoyoRouterService_CompleteProviderAuthorization_0  = runtime.ForwardResponseMessage
 	forward_AoyoRouterService_GetProviderAuthorizationStatus_0 = runtime.ForwardResponseMessage
@@ -1437,4 +1388,5 @@ var (
 	forward_AoyoRouterService_GetUsageLogs_0                   = runtime.ForwardResponseMessage
 	forward_AoyoRouterService_GetProviderLogsByKeyID_0         = runtime.ForwardResponseMessage
 	forward_AoyoRouterService_GetProxies_0                     = runtime.ForwardResponseMessage
+	forward_AoyoRouterService_UpdateProxy_0                    = runtime.ForwardResponseMessage
 )

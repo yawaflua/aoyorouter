@@ -23,8 +23,6 @@ const (
 	AoyoRouterService_HealthCheck_FullMethodName                    = "/aoyorouter.docs.api.v1.AoyoRouterService/HealthCheck"
 	AoyoRouterService_SignIn_FullMethodName                         = "/aoyorouter.docs.api.v1.AoyoRouterService/SignIn"
 	AoyoRouterService_CreateProvider_FullMethodName                 = "/aoyorouter.docs.api.v1.AoyoRouterService/CreateProvider"
-	AoyoRouterService_CreateCodexAuthorization_FullMethodName       = "/aoyorouter.docs.api.v1.AoyoRouterService/CreateCodexAuthorization"
-	AoyoRouterService_CompleteCodexAuthorization_FullMethodName     = "/aoyorouter.docs.api.v1.AoyoRouterService/CompleteCodexAuthorization"
 	AoyoRouterService_CreateProviderAuthorization_FullMethodName    = "/aoyorouter.docs.api.v1.AoyoRouterService/CreateProviderAuthorization"
 	AoyoRouterService_CompleteProviderAuthorization_FullMethodName  = "/aoyorouter.docs.api.v1.AoyoRouterService/CompleteProviderAuthorization"
 	AoyoRouterService_GetProviderAuthorizationStatus_FullMethodName = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProviderAuthorizationStatus"
@@ -39,6 +37,7 @@ const (
 	AoyoRouterService_GetUsageLogs_FullMethodName                   = "/aoyorouter.docs.api.v1.AoyoRouterService/GetUsageLogs"
 	AoyoRouterService_GetProviderLogsByKeyID_FullMethodName         = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProviderLogsByKeyID"
 	AoyoRouterService_GetProxies_FullMethodName                     = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProxies"
+	AoyoRouterService_UpdateProxy_FullMethodName                    = "/aoyorouter.docs.api.v1.AoyoRouterService/UpdateProxy"
 )
 
 // AoyoRouterServiceClient is the client API for AoyoRouterService service.
@@ -48,8 +47,6 @@ type AoyoRouterServiceClient interface {
 	HealthCheck(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthCheckResponse, error)
 	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*SignInResponse, error)
 	CreateProvider(ctx context.Context, in *CreateProviderRequest, opts ...grpc.CallOption) (*CreateProviderResponse, error)
-	CreateCodexAuthorization(ctx context.Context, in *CreateCodexAuthorizationRequest, opts ...grpc.CallOption) (*CreateCodexAuthorizationResponse, error)
-	CompleteCodexAuthorization(ctx context.Context, in *CompleteCodexAuthorizationRequest, opts ...grpc.CallOption) (*CompleteCodexAuthorizationResponse, error)
 	CreateProviderAuthorization(ctx context.Context, in *CreateProviderAuthorizationRequest, opts ...grpc.CallOption) (*CreateProviderAuthorizationResponse, error)
 	CompleteProviderAuthorization(ctx context.Context, in *CompleteProviderAuthorizationRequest, opts ...grpc.CallOption) (*ProviderAuthorizationStatusResponse, error)
 	GetProviderAuthorizationStatus(ctx context.Context, in *GetProviderAuthorizationStatusRequest, opts ...grpc.CallOption) (*ProviderAuthorizationStatusResponse, error)
@@ -64,6 +61,7 @@ type AoyoRouterServiceClient interface {
 	GetUsageLogs(ctx context.Context, in *GetUsageLogsRequest, opts ...grpc.CallOption) (*GetUsageLogsResponse, error)
 	GetProviderLogsByKeyID(ctx context.Context, in *GetProviderLogsByKeyIDRequest, opts ...grpc.CallOption) (*GetProviderLogsByKeyIDResponse, error)
 	GetProxies(ctx context.Context, in *GetProxiesRequest, opts ...grpc.CallOption) (*GetProxiesResponse, error)
+	UpdateProxy(ctx context.Context, in *UpdateProxyRequest, opts ...grpc.CallOption) (*UpdateProxyResponse, error)
 }
 
 type aoyoRouterServiceClient struct {
@@ -98,26 +96,6 @@ func (c *aoyoRouterServiceClient) CreateProvider(ctx context.Context, in *Create
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateProviderResponse)
 	err := c.cc.Invoke(ctx, AoyoRouterService_CreateProvider_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *aoyoRouterServiceClient) CreateCodexAuthorization(ctx context.Context, in *CreateCodexAuthorizationRequest, opts ...grpc.CallOption) (*CreateCodexAuthorizationResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateCodexAuthorizationResponse)
-	err := c.cc.Invoke(ctx, AoyoRouterService_CreateCodexAuthorization_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *aoyoRouterServiceClient) CompleteCodexAuthorization(ctx context.Context, in *CompleteCodexAuthorizationRequest, opts ...grpc.CallOption) (*CompleteCodexAuthorizationResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CompleteCodexAuthorizationResponse)
-	err := c.cc.Invoke(ctx, AoyoRouterService_CompleteCodexAuthorization_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -264,6 +242,16 @@ func (c *aoyoRouterServiceClient) GetProxies(ctx context.Context, in *GetProxies
 	return out, nil
 }
 
+func (c *aoyoRouterServiceClient) UpdateProxy(ctx context.Context, in *UpdateProxyRequest, opts ...grpc.CallOption) (*UpdateProxyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateProxyResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_UpdateProxy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AoyoRouterServiceServer is the server API for AoyoRouterService service.
 // All implementations must embed UnimplementedAoyoRouterServiceServer
 // for forward compatibility.
@@ -271,8 +259,6 @@ type AoyoRouterServiceServer interface {
 	HealthCheck(context.Context, *emptypb.Empty) (*HealthCheckResponse, error)
 	SignIn(context.Context, *SignInRequest) (*SignInResponse, error)
 	CreateProvider(context.Context, *CreateProviderRequest) (*CreateProviderResponse, error)
-	CreateCodexAuthorization(context.Context, *CreateCodexAuthorizationRequest) (*CreateCodexAuthorizationResponse, error)
-	CompleteCodexAuthorization(context.Context, *CompleteCodexAuthorizationRequest) (*CompleteCodexAuthorizationResponse, error)
 	CreateProviderAuthorization(context.Context, *CreateProviderAuthorizationRequest) (*CreateProviderAuthorizationResponse, error)
 	CompleteProviderAuthorization(context.Context, *CompleteProviderAuthorizationRequest) (*ProviderAuthorizationStatusResponse, error)
 	GetProviderAuthorizationStatus(context.Context, *GetProviderAuthorizationStatusRequest) (*ProviderAuthorizationStatusResponse, error)
@@ -287,6 +273,7 @@ type AoyoRouterServiceServer interface {
 	GetUsageLogs(context.Context, *GetUsageLogsRequest) (*GetUsageLogsResponse, error)
 	GetProviderLogsByKeyID(context.Context, *GetProviderLogsByKeyIDRequest) (*GetProviderLogsByKeyIDResponse, error)
 	GetProxies(context.Context, *GetProxiesRequest) (*GetProxiesResponse, error)
+	UpdateProxy(context.Context, *UpdateProxyRequest) (*UpdateProxyResponse, error)
 	mustEmbedUnimplementedAoyoRouterServiceServer()
 }
 
@@ -305,12 +292,6 @@ func (UnimplementedAoyoRouterServiceServer) SignIn(context.Context, *SignInReque
 }
 func (UnimplementedAoyoRouterServiceServer) CreateProvider(context.Context, *CreateProviderRequest) (*CreateProviderResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateProvider not implemented")
-}
-func (UnimplementedAoyoRouterServiceServer) CreateCodexAuthorization(context.Context, *CreateCodexAuthorizationRequest) (*CreateCodexAuthorizationResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateCodexAuthorization not implemented")
-}
-func (UnimplementedAoyoRouterServiceServer) CompleteCodexAuthorization(context.Context, *CompleteCodexAuthorizationRequest) (*CompleteCodexAuthorizationResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CompleteCodexAuthorization not implemented")
 }
 func (UnimplementedAoyoRouterServiceServer) CreateProviderAuthorization(context.Context, *CreateProviderAuthorizationRequest) (*CreateProviderAuthorizationResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateProviderAuthorization not implemented")
@@ -353,6 +334,9 @@ func (UnimplementedAoyoRouterServiceServer) GetProviderLogsByKeyID(context.Conte
 }
 func (UnimplementedAoyoRouterServiceServer) GetProxies(context.Context, *GetProxiesRequest) (*GetProxiesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetProxies not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) UpdateProxy(context.Context, *UpdateProxyRequest) (*UpdateProxyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateProxy not implemented")
 }
 func (UnimplementedAoyoRouterServiceServer) mustEmbedUnimplementedAoyoRouterServiceServer() {}
 func (UnimplementedAoyoRouterServiceServer) testEmbeddedByValue()                           {}
@@ -425,42 +409,6 @@ func _AoyoRouterService_CreateProvider_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AoyoRouterServiceServer).CreateProvider(ctx, req.(*CreateProviderRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AoyoRouterService_CreateCodexAuthorization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateCodexAuthorizationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AoyoRouterServiceServer).CreateCodexAuthorization(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AoyoRouterService_CreateCodexAuthorization_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AoyoRouterServiceServer).CreateCodexAuthorization(ctx, req.(*CreateCodexAuthorizationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AoyoRouterService_CompleteCodexAuthorization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CompleteCodexAuthorizationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AoyoRouterServiceServer).CompleteCodexAuthorization(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AoyoRouterService_CompleteCodexAuthorization_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AoyoRouterServiceServer).CompleteCodexAuthorization(ctx, req.(*CompleteCodexAuthorizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -717,6 +665,24 @@ func _AoyoRouterService_GetProxies_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AoyoRouterService_UpdateProxy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateProxyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).UpdateProxy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_UpdateProxy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).UpdateProxy(ctx, req.(*UpdateProxyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AoyoRouterService_ServiceDesc is the grpc.ServiceDesc for AoyoRouterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -735,14 +701,6 @@ var AoyoRouterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateProvider",
 			Handler:    _AoyoRouterService_CreateProvider_Handler,
-		},
-		{
-			MethodName: "CreateCodexAuthorization",
-			Handler:    _AoyoRouterService_CreateCodexAuthorization_Handler,
-		},
-		{
-			MethodName: "CompleteCodexAuthorization",
-			Handler:    _AoyoRouterService_CompleteCodexAuthorization_Handler,
 		},
 		{
 			MethodName: "CreateProviderAuthorization",
@@ -799,6 +757,10 @@ var AoyoRouterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProxies",
 			Handler:    _AoyoRouterService_GetProxies_Handler,
+		},
+		{
+			MethodName: "UpdateProxy",
+			Handler:    _AoyoRouterService_UpdateProxy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

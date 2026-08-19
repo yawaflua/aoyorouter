@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/cliproxy"
@@ -12,7 +11,7 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/usage_entry_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/user_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/warp"
-	"github.com/yawaflua/aoyorouter/internal/app/provider/cliproxyapi"
+	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
 	"github.com/yawaflua/aoyorouter/internal/closer"
 	"github.com/yawaflua/aoyorouter/internal/config"
 	"github.com/yawaflua/aoyorouter/internal/driver/server"
@@ -36,6 +35,7 @@ type P struct {
 	cliproxy        *cliproxy.Service
 	cliproxy_config *cpapi_config.Config
 	usagePlugin     *cliproxyapi.UsagePlugin
+	management      *cliproxyapi.Management
 
 	warp *warp.Warp
 }
@@ -63,15 +63,14 @@ func (p *P) Closer() *closer.C {
 func (p *P) Server(ctx context.Context) *server.AoyoRouterService {
 	if p.server == nil {
 		p.server = server.NewAoyoRouterService(server.Dependencies{
-			UserRepo:                p.UserRepo(ctx),
-			ProviderRepo:            p.ProviderRepo(ctx),
-			ApiKeyRepo:              p.ApiKeyRepo(ctx),
-			UsageEntryRepo:          p.UsageEntryRepo(ctx),
-			CPAPIConfig:             p.CLIProxyAPIConfig(),
-			CPAPIManagementURL:      fmt.Sprintf("http://127.0.0.1:%d", p.Config().HTTP.Port),
-			CPAPIManagementPassword: p.Config().InitialPassword,
-			Warp:                    p.Warp(ctx),
-			Logger:                  p.Logger(),
+			UserRepo:       p.UserRepo(ctx),
+			ProviderRepo:   p.ProviderRepo(ctx),
+			ApiKeyRepo:     p.ApiKeyRepo(ctx),
+			UsageEntryRepo: p.UsageEntryRepo(ctx),
+			CPAPIConfig:    p.CLIProxyAPIConfig(),
+			Management:     p.Management(ctx),
+			Warp:           p.Warp(ctx),
+			Logger:         p.Logger(),
 		})
 	}
 
@@ -128,4 +127,12 @@ func (p *P) Warp(ctx context.Context) *warp.Warp {
 	}
 
 	return p.warp
+}
+
+func (p *P) Management(ctx context.Context) *cliproxyapi.Management {
+	if p.management == nil {
+		p.management = cliproxyapi.NewManagement(p.Config(), p.Logger())
+	}
+
+	return p.management
 }

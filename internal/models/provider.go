@@ -11,6 +11,7 @@ type Provider struct {
 	Credentials  map[string]any `json:"credentials"`
 	UseProxy     bool           `json:"use_proxy"`
 	Proxy        string         `json:"proxy"`
+	IsCloudflare bool           `json:"is_cloudflare"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 }

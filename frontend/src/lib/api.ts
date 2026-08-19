@@ -2,12 +2,11 @@ import { ApiError, errorMessage } from './models/apierror'
 import { parseApiKey, type ApiKey, type ApiKeyUsage, type CreatedApiKey, type UpdateApiKeyInput } from './models/apikey'
 import {
   parseAuthorizationStatus,
-  type CodexAuthorization,
   type ProviderAuthorization,
   type ProviderAuthorizationStatus,
 } from './models/authorization'
 import { parseLogEntry, type LogEntry } from './models/logentry'
-import { parseLiveProxy, type LiveProxy } from './models/liveproxy'
+import { parseEndpoint, parseLiveProxy, type Endpoint, type LiveProxy } from './models/liveproxy'
 import {
   parseProvider,
   parseProviderModel,
@@ -52,7 +51,7 @@ export class ApiClient {
     const items = response.data
     return Array.isArray(items) ? items.map(parseProviderModel) : []
   }
-  
+
   async signIn(): Promise<void> {
     await this.request('/api/aoyo/v1/signin', {
       method: 'POST',
@@ -104,9 +103,17 @@ export class ApiClient {
     return Array.isArray(response.providers) ? response.providers.map(parseProvider) : []
   }
 
-  async getProxies(): Promise<LiveProxy[]> {
+  async getProxies(): Promise<{ resp_proxies: LiveProxy[], availableEndpoints: Endpoint[] }> {
     const response = await this.request('/api/aoyo/v1/proxies')
-    return Array.isArray(response.proxies) ? response.proxies.map(parseLiveProxy) : []
+    let resp_proxies: LiveProxy[] = []
+    let availableEndpoints: Endpoint[] = []
+    if (Array.isArray(response.proxies)) {
+      resp_proxies = response.proxies.map(parseLiveProxy)
+    }
+    if (Array.isArray(response.availableEndpoints)) {
+      availableEndpoints = response.availableEndpoints.map(parseEndpoint)
+    }
+    return { resp_proxies, availableEndpoints }
   }
 
   async createProvider(input: ProviderConnectionInput): Promise<string> {
@@ -124,32 +131,17 @@ export class ApiClient {
     return text(response.providerId ?? response.provider_id)
   }
 
-  async createCodexAuthorization(input: Pick<ProviderConnectionInput, 'name' | 'customUrl' | 'useProxy' | 'proxy'>): Promise<CodexAuthorization> {
-    const response = await this.request('/api/aoyo/v1/providers/codex/authorize', {
-      method: 'POST',
+  async updateProxy(input: { id: string, cloudflareEndpoint: string, newEndpoint: string }): Promise<LiveProxy> {
+    const response = await this.request(`/api/aoyo/v1/proxies/${encodeURIComponent(input.id)}`, {
+      method: 'PATCH',
       body: JSON.stringify(input),
     })
-    return {
-      authorizationUrl: text(response.authorizationUrl ?? response.authorization_url),
-      state: text(response.state),
-      providerId: text(response.providerId ?? response.provider_id),
-    }
-  }
-
-  async completeCodexAuthorization(input: {
-    state: string
-    callbackUrl: string
-  }): Promise<string> {
-    const response = await this.request('/api/aoyo/v1/providers/codex/complete', {
-      method: 'POST',
-      body: JSON.stringify(input),
-    })
-    return text(response.providerId ?? response.provider_id)
+    return parseLiveProxy(response)
   }
 
   async createProviderAuthorization(input: {
     name: string
-    type: Exclude<ProviderType, 'PROVIDER_TYPE_CUSTOM' | 'PROVIDER_TYPE_OPENAI'>
+    type: Exclude<ProviderType, 'PROVIDER_TYPE_CUSTOM'>
     customUrl: string
     useProxy: boolean
     proxy: string

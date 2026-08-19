@@ -1,7 +1,7 @@
 import type { ProviderType } from './models/providers'
 
 export type Section = 'keys' | 'providers' | 'proxies' | 'logs'
-export type Dialog = 'key' | 'edit-key' | 'provider' | 'edit-provider' | 'secret' | 'delete-key' | 'delete-provider' | null
+export type Dialog = 'key' | 'edit-key' | 'provider' | 'edit-provider' | 'secret' | 'delete-key' | 'delete-provider' | 'edit-proxy' | null
 
 export interface SectionDefinition {
   id: Section

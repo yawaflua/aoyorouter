@@ -420,238 +420,6 @@ func (x *CreateProviderResponse) GetProviderId() string {
 	return ""
 }
 
-type CreateCodexAuthorizationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	CustomUrl     string                 `protobuf:"bytes,2,opt,name=custom_url,json=customUrl,proto3" json:"custom_url,omitempty"`
-	UseProxy      bool                   `protobuf:"varint,7,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
-	Proxy         string                 `protobuf:"bytes,8,opt,name=proxy,proto3" json:"proxy,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CreateCodexAuthorizationRequest) Reset() {
-	*x = CreateCodexAuthorizationRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateCodexAuthorizationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateCodexAuthorizationRequest) ProtoMessage() {}
-
-func (x *CreateCodexAuthorizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateCodexAuthorizationRequest.ProtoReflect.Descriptor instead.
-func (*CreateCodexAuthorizationRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *CreateCodexAuthorizationRequest) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *CreateCodexAuthorizationRequest) GetCustomUrl() string {
-	if x != nil {
-		return x.CustomUrl
-	}
-	return ""
-}
-
-func (x *CreateCodexAuthorizationRequest) GetUseProxy() bool {
-	if x != nil {
-		return x.UseProxy
-	}
-	return false
-}
-
-func (x *CreateCodexAuthorizationRequest) GetProxy() string {
-	if x != nil {
-		return x.Proxy
-	}
-	return ""
-}
-
-type CreateCodexAuthorizationResponse struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	AuthorizationUrl string                 `protobuf:"bytes,1,opt,name=authorization_url,json=authorizationUrl,proto3" json:"authorization_url,omitempty"`
-	State            string                 `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
-	ProviderId       string                 `protobuf:"bytes,3,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
-}
-
-func (x *CreateCodexAuthorizationResponse) Reset() {
-	*x = CreateCodexAuthorizationResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateCodexAuthorizationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateCodexAuthorizationResponse) ProtoMessage() {}
-
-func (x *CreateCodexAuthorizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateCodexAuthorizationResponse.ProtoReflect.Descriptor instead.
-func (*CreateCodexAuthorizationResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *CreateCodexAuthorizationResponse) GetAuthorizationUrl() string {
-	if x != nil {
-		return x.AuthorizationUrl
-	}
-	return ""
-}
-
-func (x *CreateCodexAuthorizationResponse) GetState() string {
-	if x != nil {
-		return x.State
-	}
-	return ""
-}
-
-func (x *CreateCodexAuthorizationResponse) GetProviderId() string {
-	if x != nil {
-		return x.ProviderId
-	}
-	return ""
-}
-
-type CompleteCodexAuthorizationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	State         string                 `protobuf:"bytes,1,opt,name=state,proto3" json:"state,omitempty"`
-	CallbackUrl   string                 `protobuf:"bytes,2,opt,name=callback_url,json=callbackUrl,proto3" json:"callback_url,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CompleteCodexAuthorizationRequest) Reset() {
-	*x = CompleteCodexAuthorizationRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CompleteCodexAuthorizationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CompleteCodexAuthorizationRequest) ProtoMessage() {}
-
-func (x *CompleteCodexAuthorizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CompleteCodexAuthorizationRequest.ProtoReflect.Descriptor instead.
-func (*CompleteCodexAuthorizationRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *CompleteCodexAuthorizationRequest) GetState() string {
-	if x != nil {
-		return x.State
-	}
-	return ""
-}
-
-func (x *CompleteCodexAuthorizationRequest) GetCallbackUrl() string {
-	if x != nil {
-		return x.CallbackUrl
-	}
-	return ""
-}
-
-type CompleteCodexAuthorizationResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
-	ProviderId    string                 `protobuf:"bytes,2,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CompleteCodexAuthorizationResponse) Reset() {
-	*x = CompleteCodexAuthorizationResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CompleteCodexAuthorizationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CompleteCodexAuthorizationResponse) ProtoMessage() {}
-
-func (x *CompleteCodexAuthorizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CompleteCodexAuthorizationResponse.ProtoReflect.Descriptor instead.
-func (*CompleteCodexAuthorizationResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *CompleteCodexAuthorizationResponse) GetStatus() string {
-	if x != nil {
-		return x.Status
-	}
-	return ""
-}
-
-func (x *CompleteCodexAuthorizationResponse) GetProviderId() string {
-	if x != nil {
-		return x.ProviderId
-	}
-	return ""
-}
-
 type CreateProviderAuthorizationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -665,7 +433,7 @@ type CreateProviderAuthorizationRequest struct {
 
 func (x *CreateProviderAuthorizationRequest) Reset() {
 	*x = CreateProviderAuthorizationRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[9]
+	mi := &file_docs_api_v1_types_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -677,7 +445,7 @@ func (x *CreateProviderAuthorizationRequest) String() string {
 func (*CreateProviderAuthorizationRequest) ProtoMessage() {}
 
 func (x *CreateProviderAuthorizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[9]
+	mi := &file_docs_api_v1_types_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -690,7 +458,7 @@ func (x *CreateProviderAuthorizationRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use CreateProviderAuthorizationRequest.ProtoReflect.Descriptor instead.
 func (*CreateProviderAuthorizationRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{9}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateProviderAuthorizationRequest) GetName() string {
@@ -742,7 +510,7 @@ type CreateProviderAuthorizationResponse struct {
 
 func (x *CreateProviderAuthorizationResponse) Reset() {
 	*x = CreateProviderAuthorizationResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[10]
+	mi := &file_docs_api_v1_types_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -754,7 +522,7 @@ func (x *CreateProviderAuthorizationResponse) String() string {
 func (*CreateProviderAuthorizationResponse) ProtoMessage() {}
 
 func (x *CreateProviderAuthorizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[10]
+	mi := &file_docs_api_v1_types_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -767,7 +535,7 @@ func (x *CreateProviderAuthorizationResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use CreateProviderAuthorizationResponse.ProtoReflect.Descriptor instead.
 func (*CreateProviderAuthorizationResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{10}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CreateProviderAuthorizationResponse) GetAuthorizationUrl() string {
@@ -816,15 +584,16 @@ type CompleteProviderAuthorizationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	State         string                 `protobuf:"bytes,1,opt,name=state,proto3" json:"state,omitempty"`
 	CallbackUrl   string                 `protobuf:"bytes,2,opt,name=callback_url,json=callbackUrl,proto3" json:"callback_url,omitempty"`
+	Type          ProviderType           `protobuf:"varint,4,opt,name=type,proto3,enum=aoyorouter.docs.api.v1.ProviderType" json:"type,omitempty"`
 	UseProxy      bool                   `protobuf:"varint,3,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
-	Proxy         string                 `protobuf:"bytes,4,opt,name=proxy,proto3" json:"proxy,omitempty"`
+	Proxy         string                 `protobuf:"bytes,5,opt,name=proxy,proto3" json:"proxy,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CompleteProviderAuthorizationRequest) Reset() {
 	*x = CompleteProviderAuthorizationRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[11]
+	mi := &file_docs_api_v1_types_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -836,7 +605,7 @@ func (x *CompleteProviderAuthorizationRequest) String() string {
 func (*CompleteProviderAuthorizationRequest) ProtoMessage() {}
 
 func (x *CompleteProviderAuthorizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[11]
+	mi := &file_docs_api_v1_types_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -849,7 +618,7 @@ func (x *CompleteProviderAuthorizationRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use CompleteProviderAuthorizationRequest.ProtoReflect.Descriptor instead.
 func (*CompleteProviderAuthorizationRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{11}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CompleteProviderAuthorizationRequest) GetState() string {
@@ -864,6 +633,13 @@ func (x *CompleteProviderAuthorizationRequest) GetCallbackUrl() string {
 		return x.CallbackUrl
 	}
 	return ""
+}
+
+func (x *CompleteProviderAuthorizationRequest) GetType() ProviderType {
+	if x != nil {
+		return x.Type
+	}
+	return ProviderType_PROVIDER_TYPE_UNSPECIFIED
 }
 
 func (x *CompleteProviderAuthorizationRequest) GetUseProxy() bool {
@@ -891,7 +667,7 @@ type GetProviderAuthorizationStatusRequest struct {
 
 func (x *GetProviderAuthorizationStatusRequest) Reset() {
 	*x = GetProviderAuthorizationStatusRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[12]
+	mi := &file_docs_api_v1_types_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -903,7 +679,7 @@ func (x *GetProviderAuthorizationStatusRequest) String() string {
 func (*GetProviderAuthorizationStatusRequest) ProtoMessage() {}
 
 func (x *GetProviderAuthorizationStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[12]
+	mi := &file_docs_api_v1_types_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -916,7 +692,7 @@ func (x *GetProviderAuthorizationStatusRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use GetProviderAuthorizationStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetProviderAuthorizationStatusRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{12}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetProviderAuthorizationStatusRequest) GetState() string {
@@ -951,7 +727,7 @@ type ProviderAuthorizationStatusResponse struct {
 
 func (x *ProviderAuthorizationStatusResponse) Reset() {
 	*x = ProviderAuthorizationStatusResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[13]
+	mi := &file_docs_api_v1_types_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -963,7 +739,7 @@ func (x *ProviderAuthorizationStatusResponse) String() string {
 func (*ProviderAuthorizationStatusResponse) ProtoMessage() {}
 
 func (x *ProviderAuthorizationStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[13]
+	mi := &file_docs_api_v1_types_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -976,7 +752,7 @@ func (x *ProviderAuthorizationStatusResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ProviderAuthorizationStatusResponse.ProtoReflect.Descriptor instead.
 func (*ProviderAuthorizationStatusResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{13}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ProviderAuthorizationStatusResponse) GetStatus() string {
@@ -1011,7 +787,7 @@ type ProviderQuotaWindow struct {
 
 func (x *ProviderQuotaWindow) Reset() {
 	*x = ProviderQuotaWindow{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[14]
+	mi := &file_docs_api_v1_types_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1023,7 +799,7 @@ func (x *ProviderQuotaWindow) String() string {
 func (*ProviderQuotaWindow) ProtoMessage() {}
 
 func (x *ProviderQuotaWindow) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[14]
+	mi := &file_docs_api_v1_types_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1036,7 +812,7 @@ func (x *ProviderQuotaWindow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProviderQuotaWindow.ProtoReflect.Descriptor instead.
 func (*ProviderQuotaWindow) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{14}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ProviderQuotaWindow) GetUsedPercent() float64 {
@@ -1072,7 +848,7 @@ type ProviderQuota struct {
 
 func (x *ProviderQuota) Reset() {
 	*x = ProviderQuota{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[15]
+	mi := &file_docs_api_v1_types_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1084,7 +860,7 @@ func (x *ProviderQuota) String() string {
 func (*ProviderQuota) ProtoMessage() {}
 
 func (x *ProviderQuota) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[15]
+	mi := &file_docs_api_v1_types_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1097,7 +873,7 @@ func (x *ProviderQuota) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProviderQuota.ProtoReflect.Descriptor instead.
 func (*ProviderQuota) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{15}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ProviderQuota) GetPrimary() *ProviderQuotaWindow {
@@ -1144,7 +920,7 @@ type Provider struct {
 
 func (x *Provider) Reset() {
 	*x = Provider{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[16]
+	mi := &file_docs_api_v1_types_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1156,7 +932,7 @@ func (x *Provider) String() string {
 func (*Provider) ProtoMessage() {}
 
 func (x *Provider) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[16]
+	mi := &file_docs_api_v1_types_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1169,7 +945,7 @@ func (x *Provider) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Provider.ProtoReflect.Descriptor instead.
 func (*Provider) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{16}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Provider) GetId() string {
@@ -1237,7 +1013,7 @@ type GetProviderRequest struct {
 
 func (x *GetProviderRequest) Reset() {
 	*x = GetProviderRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[17]
+	mi := &file_docs_api_v1_types_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1249,7 +1025,7 @@ func (x *GetProviderRequest) String() string {
 func (*GetProviderRequest) ProtoMessage() {}
 
 func (x *GetProviderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[17]
+	mi := &file_docs_api_v1_types_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1262,7 +1038,7 @@ func (x *GetProviderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProviderRequest.ProtoReflect.Descriptor instead.
 func (*GetProviderRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{17}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetProviderRequest) GetProviderId() string {
@@ -1281,7 +1057,7 @@ type GetProviderResponse struct {
 
 func (x *GetProviderResponse) Reset() {
 	*x = GetProviderResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[18]
+	mi := &file_docs_api_v1_types_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1293,7 +1069,7 @@ func (x *GetProviderResponse) String() string {
 func (*GetProviderResponse) ProtoMessage() {}
 
 func (x *GetProviderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[18]
+	mi := &file_docs_api_v1_types_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1306,7 +1082,7 @@ func (x *GetProviderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProviderResponse.ProtoReflect.Descriptor instead.
 func (*GetProviderResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{18}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetProviderResponse) GetProvider() *Provider {
@@ -1324,7 +1100,7 @@ type GetProvidersListRequest struct {
 
 func (x *GetProvidersListRequest) Reset() {
 	*x = GetProvidersListRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[19]
+	mi := &file_docs_api_v1_types_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1336,7 +1112,7 @@ func (x *GetProvidersListRequest) String() string {
 func (*GetProvidersListRequest) ProtoMessage() {}
 
 func (x *GetProvidersListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[19]
+	mi := &file_docs_api_v1_types_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1349,7 +1125,7 @@ func (x *GetProvidersListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProvidersListRequest.ProtoReflect.Descriptor instead.
 func (*GetProvidersListRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{19}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{15}
 }
 
 type GetProvidersListResponse struct {
@@ -1361,7 +1137,7 @@ type GetProvidersListResponse struct {
 
 func (x *GetProvidersListResponse) Reset() {
 	*x = GetProvidersListResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[20]
+	mi := &file_docs_api_v1_types_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1373,7 +1149,7 @@ func (x *GetProvidersListResponse) String() string {
 func (*GetProvidersListResponse) ProtoMessage() {}
 
 func (x *GetProvidersListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[20]
+	mi := &file_docs_api_v1_types_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1386,7 +1162,7 @@ func (x *GetProvidersListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProvidersListResponse.ProtoReflect.Descriptor instead.
 func (*GetProvidersListResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{20}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetProvidersListResponse) GetProviders() []*Provider {
@@ -1411,7 +1187,7 @@ type UpdateProviderRequest struct {
 
 func (x *UpdateProviderRequest) Reset() {
 	*x = UpdateProviderRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[21]
+	mi := &file_docs_api_v1_types_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1423,7 +1199,7 @@ func (x *UpdateProviderRequest) String() string {
 func (*UpdateProviderRequest) ProtoMessage() {}
 
 func (x *UpdateProviderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[21]
+	mi := &file_docs_api_v1_types_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1436,7 +1212,7 @@ func (x *UpdateProviderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProviderRequest.ProtoReflect.Descriptor instead.
 func (*UpdateProviderRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{21}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateProviderRequest) GetProviderId() string {
@@ -1497,7 +1273,7 @@ type UpdateProviderResponse struct {
 
 func (x *UpdateProviderResponse) Reset() {
 	*x = UpdateProviderResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[22]
+	mi := &file_docs_api_v1_types_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1509,7 +1285,7 @@ func (x *UpdateProviderResponse) String() string {
 func (*UpdateProviderResponse) ProtoMessage() {}
 
 func (x *UpdateProviderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[22]
+	mi := &file_docs_api_v1_types_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1522,7 +1298,7 @@ func (x *UpdateProviderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProviderResponse.ProtoReflect.Descriptor instead.
 func (*UpdateProviderResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{22}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *UpdateProviderResponse) GetStatus() string {
@@ -1541,7 +1317,7 @@ type DeleteProviderRequest struct {
 
 func (x *DeleteProviderRequest) Reset() {
 	*x = DeleteProviderRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[23]
+	mi := &file_docs_api_v1_types_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1553,7 +1329,7 @@ func (x *DeleteProviderRequest) String() string {
 func (*DeleteProviderRequest) ProtoMessage() {}
 
 func (x *DeleteProviderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[23]
+	mi := &file_docs_api_v1_types_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1566,7 +1342,7 @@ func (x *DeleteProviderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProviderRequest.ProtoReflect.Descriptor instead.
 func (*DeleteProviderRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{23}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *DeleteProviderRequest) GetProviderId() string {
@@ -1585,7 +1361,7 @@ type DeleteProviderResponse struct {
 
 func (x *DeleteProviderResponse) Reset() {
 	*x = DeleteProviderResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[24]
+	mi := &file_docs_api_v1_types_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1597,7 +1373,7 @@ func (x *DeleteProviderResponse) String() string {
 func (*DeleteProviderResponse) ProtoMessage() {}
 
 func (x *DeleteProviderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[24]
+	mi := &file_docs_api_v1_types_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1610,7 +1386,7 @@ func (x *DeleteProviderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProviderResponse.ProtoReflect.Descriptor instead.
 func (*DeleteProviderResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{24}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *DeleteProviderResponse) GetStatus() string {
@@ -1630,7 +1406,7 @@ type CreateApiKeyRequest struct {
 
 func (x *CreateApiKeyRequest) Reset() {
 	*x = CreateApiKeyRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[25]
+	mi := &file_docs_api_v1_types_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1642,7 +1418,7 @@ func (x *CreateApiKeyRequest) String() string {
 func (*CreateApiKeyRequest) ProtoMessage() {}
 
 func (x *CreateApiKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[25]
+	mi := &file_docs_api_v1_types_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1655,7 +1431,7 @@ func (x *CreateApiKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateApiKeyRequest.ProtoReflect.Descriptor instead.
 func (*CreateApiKeyRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{25}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CreateApiKeyRequest) GetName() string {
@@ -1683,7 +1459,7 @@ type CreateApiKeyResponse struct {
 
 func (x *CreateApiKeyResponse) Reset() {
 	*x = CreateApiKeyResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[26]
+	mi := &file_docs_api_v1_types_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1695,7 +1471,7 @@ func (x *CreateApiKeyResponse) String() string {
 func (*CreateApiKeyResponse) ProtoMessage() {}
 
 func (x *CreateApiKeyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[26]
+	mi := &file_docs_api_v1_types_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1708,7 +1484,7 @@ func (x *CreateApiKeyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateApiKeyResponse.ProtoReflect.Descriptor instead.
 func (*CreateApiKeyResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{26}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *CreateApiKeyResponse) GetStatus() string {
@@ -1741,7 +1517,7 @@ type DeleteApiKeyRequest struct {
 
 func (x *DeleteApiKeyRequest) Reset() {
 	*x = DeleteApiKeyRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[27]
+	mi := &file_docs_api_v1_types_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1753,7 +1529,7 @@ func (x *DeleteApiKeyRequest) String() string {
 func (*DeleteApiKeyRequest) ProtoMessage() {}
 
 func (x *DeleteApiKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[27]
+	mi := &file_docs_api_v1_types_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1766,7 +1542,7 @@ func (x *DeleteApiKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteApiKeyRequest.ProtoReflect.Descriptor instead.
 func (*DeleteApiKeyRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{27}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *DeleteApiKeyRequest) GetApiKeyId() string {
@@ -1785,7 +1561,7 @@ type DeleteApiKeyResponse struct {
 
 func (x *DeleteApiKeyResponse) Reset() {
 	*x = DeleteApiKeyResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[28]
+	mi := &file_docs_api_v1_types_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1797,7 +1573,7 @@ func (x *DeleteApiKeyResponse) String() string {
 func (*DeleteApiKeyResponse) ProtoMessage() {}
 
 func (x *DeleteApiKeyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[28]
+	mi := &file_docs_api_v1_types_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1810,7 +1586,7 @@ func (x *DeleteApiKeyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteApiKeyResponse.ProtoReflect.Descriptor instead.
 func (*DeleteApiKeyResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{28}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *DeleteApiKeyResponse) GetStatus() string {
@@ -1830,7 +1606,7 @@ type EditApiKeyRequest struct {
 
 func (x *EditApiKeyRequest) Reset() {
 	*x = EditApiKeyRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[29]
+	mi := &file_docs_api_v1_types_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1842,7 +1618,7 @@ func (x *EditApiKeyRequest) String() string {
 func (*EditApiKeyRequest) ProtoMessage() {}
 
 func (x *EditApiKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[29]
+	mi := &file_docs_api_v1_types_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1855,7 +1631,7 @@ func (x *EditApiKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EditApiKeyRequest.ProtoReflect.Descriptor instead.
 func (*EditApiKeyRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{29}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *EditApiKeyRequest) GetApiKeyId() string {
@@ -1881,7 +1657,7 @@ type EditApiKeyResponse struct {
 
 func (x *EditApiKeyResponse) Reset() {
 	*x = EditApiKeyResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[30]
+	mi := &file_docs_api_v1_types_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1893,7 +1669,7 @@ func (x *EditApiKeyResponse) String() string {
 func (*EditApiKeyResponse) ProtoMessage() {}
 
 func (x *EditApiKeyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[30]
+	mi := &file_docs_api_v1_types_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1906,7 +1682,7 @@ func (x *EditApiKeyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EditApiKeyResponse.ProtoReflect.Descriptor instead.
 func (*EditApiKeyResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{30}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *EditApiKeyResponse) GetStatus() string {
@@ -1924,7 +1700,7 @@ type GetApiKeyListRequest struct {
 
 func (x *GetApiKeyListRequest) Reset() {
 	*x = GetApiKeyListRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[31]
+	mi := &file_docs_api_v1_types_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1936,7 +1712,7 @@ func (x *GetApiKeyListRequest) String() string {
 func (*GetApiKeyListRequest) ProtoMessage() {}
 
 func (x *GetApiKeyListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[31]
+	mi := &file_docs_api_v1_types_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1949,7 +1725,7 @@ func (x *GetApiKeyListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApiKeyListRequest.ProtoReflect.Descriptor instead.
 func (*GetApiKeyListRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{31}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{27}
 }
 
 type GetApiKeyListResponse struct {
@@ -1961,7 +1737,7 @@ type GetApiKeyListResponse struct {
 
 func (x *GetApiKeyListResponse) Reset() {
 	*x = GetApiKeyListResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[32]
+	mi := &file_docs_api_v1_types_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1973,7 +1749,7 @@ func (x *GetApiKeyListResponse) String() string {
 func (*GetApiKeyListResponse) ProtoMessage() {}
 
 func (x *GetApiKeyListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[32]
+	mi := &file_docs_api_v1_types_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1986,7 +1762,7 @@ func (x *GetApiKeyListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApiKeyListResponse.ProtoReflect.Descriptor instead.
 func (*GetApiKeyListResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{32}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetApiKeyListResponse) GetApiKeys() []*ApiKey {
@@ -2013,7 +1789,7 @@ type ApiKey struct {
 
 func (x *ApiKey) Reset() {
 	*x = ApiKey{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[33]
+	mi := &file_docs_api_v1_types_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2025,7 +1801,7 @@ func (x *ApiKey) String() string {
 func (*ApiKey) ProtoMessage() {}
 
 func (x *ApiKey) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[33]
+	mi := &file_docs_api_v1_types_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2038,7 +1814,7 @@ func (x *ApiKey) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApiKey.ProtoReflect.Descriptor instead.
 func (*ApiKey) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{33}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ApiKey) GetId() string {
@@ -2125,7 +1901,7 @@ type LogEntry struct {
 
 func (x *LogEntry) Reset() {
 	*x = LogEntry{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[34]
+	mi := &file_docs_api_v1_types_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2137,7 +1913,7 @@ func (x *LogEntry) String() string {
 func (*LogEntry) ProtoMessage() {}
 
 func (x *LogEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[34]
+	mi := &file_docs_api_v1_types_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2150,7 +1926,7 @@ func (x *LogEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
 func (*LogEntry) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{34}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *LogEntry) GetProvider() string {
@@ -2254,7 +2030,7 @@ type GetUsageLogsRequest struct {
 
 func (x *GetUsageLogsRequest) Reset() {
 	*x = GetUsageLogsRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[35]
+	mi := &file_docs_api_v1_types_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2266,7 +2042,7 @@ func (x *GetUsageLogsRequest) String() string {
 func (*GetUsageLogsRequest) ProtoMessage() {}
 
 func (x *GetUsageLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[35]
+	mi := &file_docs_api_v1_types_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2279,7 +2055,7 @@ func (x *GetUsageLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUsageLogsRequest.ProtoReflect.Descriptor instead.
 func (*GetUsageLogsRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{35}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GetUsageLogsRequest) GetLimit() int32 {
@@ -2305,7 +2081,7 @@ type GetProviderLogsByKeyIDRequest struct {
 
 func (x *GetProviderLogsByKeyIDRequest) Reset() {
 	*x = GetProviderLogsByKeyIDRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[36]
+	mi := &file_docs_api_v1_types_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2317,7 +2093,7 @@ func (x *GetProviderLogsByKeyIDRequest) String() string {
 func (*GetProviderLogsByKeyIDRequest) ProtoMessage() {}
 
 func (x *GetProviderLogsByKeyIDRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[36]
+	mi := &file_docs_api_v1_types_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2330,7 +2106,7 @@ func (x *GetProviderLogsByKeyIDRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProviderLogsByKeyIDRequest.ProtoReflect.Descriptor instead.
 func (*GetProviderLogsByKeyIDRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{36}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetProviderLogsByKeyIDRequest) GetApiKeyId() string {
@@ -2350,7 +2126,7 @@ type GetProviderLogsByKeyIDResponse struct {
 
 func (x *GetProviderLogsByKeyIDResponse) Reset() {
 	*x = GetProviderLogsByKeyIDResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[37]
+	mi := &file_docs_api_v1_types_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2362,7 +2138,7 @@ func (x *GetProviderLogsByKeyIDResponse) String() string {
 func (*GetProviderLogsByKeyIDResponse) ProtoMessage() {}
 
 func (x *GetProviderLogsByKeyIDResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[37]
+	mi := &file_docs_api_v1_types_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2375,7 +2151,7 @@ func (x *GetProviderLogsByKeyIDResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProviderLogsByKeyIDResponse.ProtoReflect.Descriptor instead.
 func (*GetProviderLogsByKeyIDResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{37}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetProviderLogsByKeyIDResponse) GetLogs() []*LogEntry {
@@ -2401,7 +2177,7 @@ type GetUsageLogsResponse struct {
 
 func (x *GetUsageLogsResponse) Reset() {
 	*x = GetUsageLogsResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[38]
+	mi := &file_docs_api_v1_types_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2413,7 +2189,7 @@ func (x *GetUsageLogsResponse) String() string {
 func (*GetUsageLogsResponse) ProtoMessage() {}
 
 func (x *GetUsageLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[38]
+	mi := &file_docs_api_v1_types_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2426,7 +2202,7 @@ func (x *GetUsageLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUsageLogsResponse.ProtoReflect.Descriptor instead.
 func (*GetUsageLogsResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{38}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GetUsageLogsResponse) GetLogs() []*LogEntry {
@@ -2444,7 +2220,7 @@ type GetProxiesRequest struct {
 
 func (x *GetProxiesRequest) Reset() {
 	*x = GetProxiesRequest{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[39]
+	mi := &file_docs_api_v1_types_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2456,7 +2232,7 @@ func (x *GetProxiesRequest) String() string {
 func (*GetProxiesRequest) ProtoMessage() {}
 
 func (x *GetProxiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[39]
+	mi := &file_docs_api_v1_types_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2469,19 +2245,20 @@ func (x *GetProxiesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProxiesRequest.ProtoReflect.Descriptor instead.
 func (*GetProxiesRequest) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{39}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{35}
 }
 
 type GetProxiesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Proxies       []*ProxyProxy          `protobuf:"bytes,1,rep,name=proxies,proto3" json:"proxies,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Proxies            []*Proxy               `protobuf:"bytes,1,rep,name=proxies,proto3" json:"proxies,omitempty"`
+	AvailableEndpoints []*ProxyEndpoint       `protobuf:"bytes,2,rep,name=available_endpoints,json=availableEndpoints,proto3" json:"available_endpoints,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *GetProxiesResponse) Reset() {
 	*x = GetProxiesResponse{}
-	mi := &file_docs_api_v1_types_proto_msgTypes[40]
+	mi := &file_docs_api_v1_types_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2493,7 +2270,7 @@ func (x *GetProxiesResponse) String() string {
 func (*GetProxiesResponse) ProtoMessage() {}
 
 func (x *GetProxiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_docs_api_v1_types_proto_msgTypes[40]
+	mi := &file_docs_api_v1_types_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2506,40 +2283,288 @@ func (x *GetProxiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProxiesResponse.ProtoReflect.Descriptor instead.
 func (*GetProxiesResponse) Descriptor() ([]byte, []int) {
-	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{40}
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{36}
 }
 
-func (x *GetProxiesResponse) GetProxies() []*ProxyProxy {
+func (x *GetProxiesResponse) GetProxies() []*Proxy {
 	if x != nil {
 		return x.Proxies
 	}
 	return nil
 }
 
-type ProxyProxy struct {
+func (x *GetProxiesResponse) GetAvailableEndpoints() []*ProxyEndpoint {
+	if x != nil {
+		return x.AvailableEndpoints
+	}
+	return nil
+}
+
+type ProxyEndpoint struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Addr          string                 `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
+	Rtt           string                 `protobuf:"bytes,2,opt,name=rtt,proto3" json:"rtt,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProxyEndpoint) Reset() {
+	*x = ProxyEndpoint{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProxyEndpoint) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProxyEndpoint) ProtoMessage() {}
+
+func (x *ProxyEndpoint) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProxyEndpoint.ProtoReflect.Descriptor instead.
+func (*ProxyEndpoint) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *ProxyEndpoint) GetAddr() string {
+	if x != nil {
+		return x.Addr
+	}
+	return ""
+}
+
+func (x *ProxyEndpoint) GetRtt() string {
+	if x != nil {
+		return x.Rtt
+	}
+	return ""
+}
+
+type UpdateProxyRequest struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	ProxyId            string                 `protobuf:"bytes,1,opt,name=proxy_id,json=proxyId,proto3" json:"proxy_id,omitempty"`
+	CloudflareEndpoint string                 `protobuf:"bytes,3,opt,name=cloudflare_endpoint,json=cloudflareEndpoint,proto3" json:"cloudflare_endpoint,omitempty"`
+	NewEndpoint        string                 `protobuf:"bytes,4,opt,name=new_endpoint,json=newEndpoint,proto3" json:"new_endpoint,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *UpdateProxyRequest) Reset() {
+	*x = UpdateProxyRequest{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateProxyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateProxyRequest) ProtoMessage() {}
+
+func (x *UpdateProxyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateProxyRequest.ProtoReflect.Descriptor instead.
+func (*UpdateProxyRequest) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *UpdateProxyRequest) GetProxyId() string {
+	if x != nil {
+		return x.ProxyId
+	}
+	return ""
+}
+
+func (x *UpdateProxyRequest) GetCloudflareEndpoint() string {
+	if x != nil {
+		return x.CloudflareEndpoint
+	}
+	return ""
+}
+
+func (x *UpdateProxyRequest) GetNewEndpoint() string {
+	if x != nil {
+		return x.NewEndpoint
+	}
+	return ""
+}
+
+type UpdateProxyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Proxy         *Proxy                 `protobuf:"bytes,1,opt,name=proxy,proto3" json:"proxy,omitempty"`
+	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateProxyResponse) Reset() {
+	*x = UpdateProxyResponse{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateProxyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateProxyResponse) ProtoMessage() {}
+
+func (x *UpdateProxyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateProxyResponse.ProtoReflect.Descriptor instead.
+func (*UpdateProxyResponse) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *UpdateProxyResponse) GetProxy() *Proxy {
+	if x != nil {
+		return x.Proxy
+	}
+	return nil
+}
+
+func (x *UpdateProxyResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type Proxy struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name           string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Url            string                 `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
 	CloudflareAddr string                 `protobuf:"bytes,4,opt,name=cloudflare_addr,json=cloudflareAddr,proto3" json:"cloudflare_addr,omitempty"`
+	WarpInfo       *WARPInfo              `protobuf:"bytes,5,opt,name=warp_info,json=warpInfo,proto3" json:"warp_info,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *ProxyProxy) Reset() {
-	*x = ProxyProxy{}
+func (x *Proxy) Reset() {
+	*x = Proxy{}
+	mi := &file_docs_api_v1_types_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Proxy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Proxy) ProtoMessage() {}
+
+func (x *Proxy) ProtoReflect() protoreflect.Message {
+	mi := &file_docs_api_v1_types_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Proxy.ProtoReflect.Descriptor instead.
+func (*Proxy) Descriptor() ([]byte, []int) {
+	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *Proxy) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Proxy) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Proxy) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *Proxy) GetCloudflareAddr() string {
+	if x != nil {
+		return x.CloudflareAddr
+	}
+	return ""
+}
+
+func (x *Proxy) GetWarpInfo() *WARPInfo {
+	if x != nil {
+		return x.WarpInfo
+	}
+	return nil
+}
+
+type WARPInfo struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Ip             string                 `protobuf:"bytes,1,opt,name=ip,proto3" json:"ip,omitempty"`
+	HttpType       string                 `protobuf:"bytes,2,opt,name=http_type,json=httpType,proto3" json:"http_type,omitempty"`
+	ServerCity     string                 `protobuf:"bytes,3,opt,name=server_city,json=serverCity,proto3" json:"server_city,omitempty"`
+	ServerLocation string                 `protobuf:"bytes,4,opt,name=server_location,json=serverLocation,proto3" json:"server_location,omitempty"`
+	Tls            string                 `protobuf:"bytes,5,opt,name=tls,proto3" json:"tls,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *WARPInfo) Reset() {
+	*x = WARPInfo{}
 	mi := &file_docs_api_v1_types_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ProxyProxy) String() string {
+func (x *WARPInfo) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ProxyProxy) ProtoMessage() {}
+func (*WARPInfo) ProtoMessage() {}
 
-func (x *ProxyProxy) ProtoReflect() protoreflect.Message {
+func (x *WARPInfo) ProtoReflect() protoreflect.Message {
 	mi := &file_docs_api_v1_types_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2551,35 +2576,42 @@ func (x *ProxyProxy) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ProxyProxy.ProtoReflect.Descriptor instead.
-func (*ProxyProxy) Descriptor() ([]byte, []int) {
+// Deprecated: Use WARPInfo.ProtoReflect.Descriptor instead.
+func (*WARPInfo) Descriptor() ([]byte, []int) {
 	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{41}
 }
 
-func (x *ProxyProxy) GetId() string {
+func (x *WARPInfo) GetIp() string {
 	if x != nil {
-		return x.Id
+		return x.Ip
 	}
 	return ""
 }
 
-func (x *ProxyProxy) GetName() string {
+func (x *WARPInfo) GetHttpType() string {
 	if x != nil {
-		return x.Name
+		return x.HttpType
 	}
 	return ""
 }
 
-func (x *ProxyProxy) GetUrl() string {
+func (x *WARPInfo) GetServerCity() string {
 	if x != nil {
-		return x.Url
+		return x.ServerCity
 	}
 	return ""
 }
 
-func (x *ProxyProxy) GetCloudflareAddr() string {
+func (x *WARPInfo) GetServerLocation() string {
 	if x != nil {
-		return x.CloudflareAddr
+		return x.ServerLocation
+	}
+	return ""
+}
+
+func (x *WARPInfo) GetTls() string {
+	if x != nil {
+		return x.Tls
 	}
 	return ""
 }
@@ -2607,24 +2639,6 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x16CreateProviderResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1f\n" +
 	"\vprovider_id\x18\x02 \x01(\tR\n" +
-	"providerId\"\x87\x01\n" +
-	"\x1fCreateCodexAuthorizationRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1d\n" +
-	"\n" +
-	"custom_url\x18\x02 \x01(\tR\tcustomUrl\x12\x1b\n" +
-	"\tuse_proxy\x18\a \x01(\bR\buseProxy\x12\x14\n" +
-	"\x05proxy\x18\b \x01(\tR\x05proxy\"\x86\x01\n" +
-	" CreateCodexAuthorizationResponse\x12+\n" +
-	"\x11authorization_url\x18\x01 \x01(\tR\x10authorizationUrl\x12\x14\n" +
-	"\x05state\x18\x02 \x01(\tR\x05state\x12\x1f\n" +
-	"\vprovider_id\x18\x03 \x01(\tR\n" +
-	"providerId\"\\\n" +
-	"!CompleteCodexAuthorizationRequest\x12\x14\n" +
-	"\x05state\x18\x01 \x01(\tR\x05state\x12!\n" +
-	"\fcallback_url\x18\x02 \x01(\tR\vcallbackUrl\"]\n" +
-	"\"CompleteCodexAuthorizationResponse\x12\x16\n" +
-	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1f\n" +
-	"\vprovider_id\x18\x02 \x01(\tR\n" +
 	"providerId\"\xc4\x01\n" +
 	"\"CreateProviderAuthorizationRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x128\n" +
@@ -2641,12 +2655,13 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x04flow\x18\x04 \x01(\tR\x04flow\x12\x1b\n" +
 	"\tuser_code\x18\x05 \x01(\tR\buserCode\x12\x1d\n" +
 	"\n" +
-	"expires_in\x18\x06 \x01(\x05R\texpiresIn\"\x92\x01\n" +
+	"expires_in\x18\x06 \x01(\x05R\texpiresIn\"\xcc\x01\n" +
 	"$CompleteProviderAuthorizationRequest\x12\x14\n" +
 	"\x05state\x18\x01 \x01(\tR\x05state\x12!\n" +
-	"\fcallback_url\x18\x02 \x01(\tR\vcallbackUrl\x12\x1b\n" +
+	"\fcallback_url\x18\x02 \x01(\tR\vcallbackUrl\x128\n" +
+	"\x04type\x18\x04 \x01(\x0e2$.aoyorouter.docs.api.v1.ProviderTypeR\x04type\x12\x1b\n" +
 	"\tuse_proxy\x18\x03 \x01(\bR\buseProxy\x12\x14\n" +
-	"\x05proxy\x18\x04 \x01(\tR\x05proxy\"p\n" +
+	"\x05proxy\x18\x05 \x01(\tR\x05proxy\"p\n" +
 	"%GetProviderAuthorizationStatusRequest\x12\x14\n" +
 	"\x05state\x18\x01 \x01(\tR\x05state\x12\x1b\n" +
 	"\tuse_proxy\x18\x02 \x01(\bR\buseProxy\x12\x14\n" +
@@ -2759,15 +2774,33 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\ftotal_tokens\x18\x02 \x01(\x03R\vtotalTokens\"L\n" +
 	"\x14GetUsageLogsResponse\x124\n" +
 	"\x04logs\x18\x01 \x03(\v2 .aoyorouter.docs.api.v1.LogEntryR\x04logs\"\x13\n" +
-	"\x11GetProxiesRequest\"R\n" +
-	"\x12GetProxiesResponse\x12<\n" +
-	"\aproxies\x18\x01 \x03(\v2\".aoyorouter.docs.api.v1.ProxyProxyR\aproxies\"k\n" +
-	"\n" +
-	"ProxyProxy\x12\x0e\n" +
+	"\x11GetProxiesRequest\"\xa5\x01\n" +
+	"\x12GetProxiesResponse\x127\n" +
+	"\aproxies\x18\x01 \x03(\v2\x1d.aoyorouter.docs.api.v1.ProxyR\aproxies\x12V\n" +
+	"\x13available_endpoints\x18\x02 \x03(\v2%.aoyorouter.docs.api.v1.ProxyEndpointR\x12availableEndpoints\"5\n" +
+	"\rProxyEndpoint\x12\x12\n" +
+	"\x04addr\x18\x01 \x01(\tR\x04addr\x12\x10\n" +
+	"\x03rtt\x18\x02 \x01(\tR\x03rtt\"\x83\x01\n" +
+	"\x12UpdateProxyRequest\x12\x19\n" +
+	"\bproxy_id\x18\x01 \x01(\tR\aproxyId\x12/\n" +
+	"\x13cloudflare_endpoint\x18\x03 \x01(\tR\x12cloudflareEndpoint\x12!\n" +
+	"\fnew_endpoint\x18\x04 \x01(\tR\vnewEndpoint\"b\n" +
+	"\x13UpdateProxyResponse\x123\n" +
+	"\x05proxy\x18\x01 \x01(\v2\x1d.aoyorouter.docs.api.v1.ProxyR\x05proxy\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\"\xa5\x01\n" +
+	"\x05Proxy\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
 	"\x03url\x18\x03 \x01(\tR\x03url\x12'\n" +
-	"\x0fcloudflare_addr\x18\x04 \x01(\tR\x0ecloudflareAddr*\xcd\x01\n" +
+	"\x0fcloudflare_addr\x18\x04 \x01(\tR\x0ecloudflareAddr\x12=\n" +
+	"\twarp_info\x18\x05 \x01(\v2 .aoyorouter.docs.api.v1.WARPInfoR\bwarpInfo\"\x93\x01\n" +
+	"\bWARPInfo\x12\x0e\n" +
+	"\x02ip\x18\x01 \x01(\tR\x02ip\x12\x1b\n" +
+	"\thttp_type\x18\x02 \x01(\tR\bhttpType\x12\x1f\n" +
+	"\vserver_city\x18\x03 \x01(\tR\n" +
+	"serverCity\x12'\n" +
+	"\x0fserver_location\x18\x04 \x01(\tR\x0eserverLocation\x12\x10\n" +
+	"\x03tls\x18\x05 \x01(\tR\x03tls*\xcd\x01\n" +
 	"\fProviderType\x12\x1d\n" +
 	"\x19PROVIDER_TYPE_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14PROVIDER_TYPE_CUSTOM\x10\x01\x12\x18\n" +
@@ -2807,69 +2840,73 @@ var file_docs_api_v1_types_proto_goTypes = []any{
 	(*SignInResponse)(nil),                        // 4: aoyorouter.docs.api.v1.SignInResponse
 	(*CreateProviderRequest)(nil),                 // 5: aoyorouter.docs.api.v1.CreateProviderRequest
 	(*CreateProviderResponse)(nil),                // 6: aoyorouter.docs.api.v1.CreateProviderResponse
-	(*CreateCodexAuthorizationRequest)(nil),       // 7: aoyorouter.docs.api.v1.CreateCodexAuthorizationRequest
-	(*CreateCodexAuthorizationResponse)(nil),      // 8: aoyorouter.docs.api.v1.CreateCodexAuthorizationResponse
-	(*CompleteCodexAuthorizationRequest)(nil),     // 9: aoyorouter.docs.api.v1.CompleteCodexAuthorizationRequest
-	(*CompleteCodexAuthorizationResponse)(nil),    // 10: aoyorouter.docs.api.v1.CompleteCodexAuthorizationResponse
-	(*CreateProviderAuthorizationRequest)(nil),    // 11: aoyorouter.docs.api.v1.CreateProviderAuthorizationRequest
-	(*CreateProviderAuthorizationResponse)(nil),   // 12: aoyorouter.docs.api.v1.CreateProviderAuthorizationResponse
-	(*CompleteProviderAuthorizationRequest)(nil),  // 13: aoyorouter.docs.api.v1.CompleteProviderAuthorizationRequest
-	(*GetProviderAuthorizationStatusRequest)(nil), // 14: aoyorouter.docs.api.v1.GetProviderAuthorizationStatusRequest
-	(*ProviderAuthorizationStatusResponse)(nil),   // 15: aoyorouter.docs.api.v1.ProviderAuthorizationStatusResponse
-	(*ProviderQuotaWindow)(nil),                   // 16: aoyorouter.docs.api.v1.ProviderQuotaWindow
-	(*ProviderQuota)(nil),                         // 17: aoyorouter.docs.api.v1.ProviderQuota
-	(*Provider)(nil),                              // 18: aoyorouter.docs.api.v1.Provider
-	(*GetProviderRequest)(nil),                    // 19: aoyorouter.docs.api.v1.GetProviderRequest
-	(*GetProviderResponse)(nil),                   // 20: aoyorouter.docs.api.v1.GetProviderResponse
-	(*GetProvidersListRequest)(nil),               // 21: aoyorouter.docs.api.v1.GetProvidersListRequest
-	(*GetProvidersListResponse)(nil),              // 22: aoyorouter.docs.api.v1.GetProvidersListResponse
-	(*UpdateProviderRequest)(nil),                 // 23: aoyorouter.docs.api.v1.UpdateProviderRequest
-	(*UpdateProviderResponse)(nil),                // 24: aoyorouter.docs.api.v1.UpdateProviderResponse
-	(*DeleteProviderRequest)(nil),                 // 25: aoyorouter.docs.api.v1.DeleteProviderRequest
-	(*DeleteProviderResponse)(nil),                // 26: aoyorouter.docs.api.v1.DeleteProviderResponse
-	(*CreateApiKeyRequest)(nil),                   // 27: aoyorouter.docs.api.v1.CreateApiKeyRequest
-	(*CreateApiKeyResponse)(nil),                  // 28: aoyorouter.docs.api.v1.CreateApiKeyResponse
-	(*DeleteApiKeyRequest)(nil),                   // 29: aoyorouter.docs.api.v1.DeleteApiKeyRequest
-	(*DeleteApiKeyResponse)(nil),                  // 30: aoyorouter.docs.api.v1.DeleteApiKeyResponse
-	(*EditApiKeyRequest)(nil),                     // 31: aoyorouter.docs.api.v1.EditApiKeyRequest
-	(*EditApiKeyResponse)(nil),                    // 32: aoyorouter.docs.api.v1.EditApiKeyResponse
-	(*GetApiKeyListRequest)(nil),                  // 33: aoyorouter.docs.api.v1.GetApiKeyListRequest
-	(*GetApiKeyListResponse)(nil),                 // 34: aoyorouter.docs.api.v1.GetApiKeyListResponse
-	(*ApiKey)(nil),                                // 35: aoyorouter.docs.api.v1.ApiKey
-	(*LogEntry)(nil),                              // 36: aoyorouter.docs.api.v1.LogEntry
-	(*GetUsageLogsRequest)(nil),                   // 37: aoyorouter.docs.api.v1.GetUsageLogsRequest
-	(*GetProviderLogsByKeyIDRequest)(nil),         // 38: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDRequest
-	(*GetProviderLogsByKeyIDResponse)(nil),        // 39: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse
-	(*GetUsageLogsResponse)(nil),                  // 40: aoyorouter.docs.api.v1.GetUsageLogsResponse
-	(*GetProxiesRequest)(nil),                     // 41: aoyorouter.docs.api.v1.GetProxiesRequest
-	(*GetProxiesResponse)(nil),                    // 42: aoyorouter.docs.api.v1.GetProxiesResponse
-	(*ProxyProxy)(nil),                            // 43: aoyorouter.docs.api.v1.ProxyProxy
+	(*CreateProviderAuthorizationRequest)(nil),    // 7: aoyorouter.docs.api.v1.CreateProviderAuthorizationRequest
+	(*CreateProviderAuthorizationResponse)(nil),   // 8: aoyorouter.docs.api.v1.CreateProviderAuthorizationResponse
+	(*CompleteProviderAuthorizationRequest)(nil),  // 9: aoyorouter.docs.api.v1.CompleteProviderAuthorizationRequest
+	(*GetProviderAuthorizationStatusRequest)(nil), // 10: aoyorouter.docs.api.v1.GetProviderAuthorizationStatusRequest
+	(*ProviderAuthorizationStatusResponse)(nil),   // 11: aoyorouter.docs.api.v1.ProviderAuthorizationStatusResponse
+	(*ProviderQuotaWindow)(nil),                   // 12: aoyorouter.docs.api.v1.ProviderQuotaWindow
+	(*ProviderQuota)(nil),                         // 13: aoyorouter.docs.api.v1.ProviderQuota
+	(*Provider)(nil),                              // 14: aoyorouter.docs.api.v1.Provider
+	(*GetProviderRequest)(nil),                    // 15: aoyorouter.docs.api.v1.GetProviderRequest
+	(*GetProviderResponse)(nil),                   // 16: aoyorouter.docs.api.v1.GetProviderResponse
+	(*GetProvidersListRequest)(nil),               // 17: aoyorouter.docs.api.v1.GetProvidersListRequest
+	(*GetProvidersListResponse)(nil),              // 18: aoyorouter.docs.api.v1.GetProvidersListResponse
+	(*UpdateProviderRequest)(nil),                 // 19: aoyorouter.docs.api.v1.UpdateProviderRequest
+	(*UpdateProviderResponse)(nil),                // 20: aoyorouter.docs.api.v1.UpdateProviderResponse
+	(*DeleteProviderRequest)(nil),                 // 21: aoyorouter.docs.api.v1.DeleteProviderRequest
+	(*DeleteProviderResponse)(nil),                // 22: aoyorouter.docs.api.v1.DeleteProviderResponse
+	(*CreateApiKeyRequest)(nil),                   // 23: aoyorouter.docs.api.v1.CreateApiKeyRequest
+	(*CreateApiKeyResponse)(nil),                  // 24: aoyorouter.docs.api.v1.CreateApiKeyResponse
+	(*DeleteApiKeyRequest)(nil),                   // 25: aoyorouter.docs.api.v1.DeleteApiKeyRequest
+	(*DeleteApiKeyResponse)(nil),                  // 26: aoyorouter.docs.api.v1.DeleteApiKeyResponse
+	(*EditApiKeyRequest)(nil),                     // 27: aoyorouter.docs.api.v1.EditApiKeyRequest
+	(*EditApiKeyResponse)(nil),                    // 28: aoyorouter.docs.api.v1.EditApiKeyResponse
+	(*GetApiKeyListRequest)(nil),                  // 29: aoyorouter.docs.api.v1.GetApiKeyListRequest
+	(*GetApiKeyListResponse)(nil),                 // 30: aoyorouter.docs.api.v1.GetApiKeyListResponse
+	(*ApiKey)(nil),                                // 31: aoyorouter.docs.api.v1.ApiKey
+	(*LogEntry)(nil),                              // 32: aoyorouter.docs.api.v1.LogEntry
+	(*GetUsageLogsRequest)(nil),                   // 33: aoyorouter.docs.api.v1.GetUsageLogsRequest
+	(*GetProviderLogsByKeyIDRequest)(nil),         // 34: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDRequest
+	(*GetProviderLogsByKeyIDResponse)(nil),        // 35: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse
+	(*GetUsageLogsResponse)(nil),                  // 36: aoyorouter.docs.api.v1.GetUsageLogsResponse
+	(*GetProxiesRequest)(nil),                     // 37: aoyorouter.docs.api.v1.GetProxiesRequest
+	(*GetProxiesResponse)(nil),                    // 38: aoyorouter.docs.api.v1.GetProxiesResponse
+	(*ProxyEndpoint)(nil),                         // 39: aoyorouter.docs.api.v1.ProxyEndpoint
+	(*UpdateProxyRequest)(nil),                    // 40: aoyorouter.docs.api.v1.UpdateProxyRequest
+	(*UpdateProxyResponse)(nil),                   // 41: aoyorouter.docs.api.v1.UpdateProxyResponse
+	(*Proxy)(nil),                                 // 42: aoyorouter.docs.api.v1.Proxy
+	(*WARPInfo)(nil),                              // 43: aoyorouter.docs.api.v1.WARPInfo
 	(*timestamppb.Timestamp)(nil),                 // 44: google.protobuf.Timestamp
 }
 var file_docs_api_v1_types_proto_depIdxs = []int32{
 	0,  // 0: aoyorouter.docs.api.v1.CreateProviderRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
 	0,  // 1: aoyorouter.docs.api.v1.CreateProviderAuthorizationRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
-	16, // 2: aoyorouter.docs.api.v1.ProviderQuota.primary:type_name -> aoyorouter.docs.api.v1.ProviderQuotaWindow
-	16, // 3: aoyorouter.docs.api.v1.ProviderQuota.secondary:type_name -> aoyorouter.docs.api.v1.ProviderQuotaWindow
-	0,  // 4: aoyorouter.docs.api.v1.Provider.type:type_name -> aoyorouter.docs.api.v1.ProviderType
-	17, // 5: aoyorouter.docs.api.v1.Provider.quota:type_name -> aoyorouter.docs.api.v1.ProviderQuota
-	18, // 6: aoyorouter.docs.api.v1.GetProviderResponse.provider:type_name -> aoyorouter.docs.api.v1.Provider
-	18, // 7: aoyorouter.docs.api.v1.GetProvidersListResponse.providers:type_name -> aoyorouter.docs.api.v1.Provider
-	0,  // 8: aoyorouter.docs.api.v1.UpdateProviderRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
-	35, // 9: aoyorouter.docs.api.v1.EditApiKeyRequest.api_key:type_name -> aoyorouter.docs.api.v1.ApiKey
-	35, // 10: aoyorouter.docs.api.v1.GetApiKeyListResponse.api_keys:type_name -> aoyorouter.docs.api.v1.ApiKey
-	44, // 11: aoyorouter.docs.api.v1.ApiKey.quota_reset_at:type_name -> google.protobuf.Timestamp
-	1,  // 12: aoyorouter.docs.api.v1.ApiKey.quota_reset_strategy:type_name -> aoyorouter.docs.api.v1.QuotaResetStrategy
-	44, // 13: aoyorouter.docs.api.v1.LogEntry.request_time:type_name -> google.protobuf.Timestamp
-	44, // 14: aoyorouter.docs.api.v1.LogEntry.created_at:type_name -> google.protobuf.Timestamp
-	36, // 15: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
-	36, // 16: aoyorouter.docs.api.v1.GetUsageLogsResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
-	43, // 17: aoyorouter.docs.api.v1.GetProxiesResponse.proxies:type_name -> aoyorouter.docs.api.v1.ProxyProxy
-	18, // [18:18] is the sub-list for method output_type
-	18, // [18:18] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	0,  // 2: aoyorouter.docs.api.v1.CompleteProviderAuthorizationRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
+	12, // 3: aoyorouter.docs.api.v1.ProviderQuota.primary:type_name -> aoyorouter.docs.api.v1.ProviderQuotaWindow
+	12, // 4: aoyorouter.docs.api.v1.ProviderQuota.secondary:type_name -> aoyorouter.docs.api.v1.ProviderQuotaWindow
+	0,  // 5: aoyorouter.docs.api.v1.Provider.type:type_name -> aoyorouter.docs.api.v1.ProviderType
+	13, // 6: aoyorouter.docs.api.v1.Provider.quota:type_name -> aoyorouter.docs.api.v1.ProviderQuota
+	14, // 7: aoyorouter.docs.api.v1.GetProviderResponse.provider:type_name -> aoyorouter.docs.api.v1.Provider
+	14, // 8: aoyorouter.docs.api.v1.GetProvidersListResponse.providers:type_name -> aoyorouter.docs.api.v1.Provider
+	0,  // 9: aoyorouter.docs.api.v1.UpdateProviderRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
+	31, // 10: aoyorouter.docs.api.v1.EditApiKeyRequest.api_key:type_name -> aoyorouter.docs.api.v1.ApiKey
+	31, // 11: aoyorouter.docs.api.v1.GetApiKeyListResponse.api_keys:type_name -> aoyorouter.docs.api.v1.ApiKey
+	44, // 12: aoyorouter.docs.api.v1.ApiKey.quota_reset_at:type_name -> google.protobuf.Timestamp
+	1,  // 13: aoyorouter.docs.api.v1.ApiKey.quota_reset_strategy:type_name -> aoyorouter.docs.api.v1.QuotaResetStrategy
+	44, // 14: aoyorouter.docs.api.v1.LogEntry.request_time:type_name -> google.protobuf.Timestamp
+	44, // 15: aoyorouter.docs.api.v1.LogEntry.created_at:type_name -> google.protobuf.Timestamp
+	32, // 16: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
+	32, // 17: aoyorouter.docs.api.v1.GetUsageLogsResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
+	42, // 18: aoyorouter.docs.api.v1.GetProxiesResponse.proxies:type_name -> aoyorouter.docs.api.v1.Proxy
+	39, // 19: aoyorouter.docs.api.v1.GetProxiesResponse.available_endpoints:type_name -> aoyorouter.docs.api.v1.ProxyEndpoint
+	42, // 20: aoyorouter.docs.api.v1.UpdateProxyResponse.proxy:type_name -> aoyorouter.docs.api.v1.Proxy
+	43, // 21: aoyorouter.docs.api.v1.Proxy.warp_info:type_name -> aoyorouter.docs.api.v1.WARPInfo
+	22, // [22:22] is the sub-list for method output_type
+	22, // [22:22] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_docs_api_v1_types_proto_init() }

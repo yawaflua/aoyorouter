@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres"
 )
@@ -28,7 +30,10 @@ type HTTPConfig struct {
 
 func MustLoad() *C {
 	var cfg C
-
+	
+	if err := cleanenv.ReadConfig(".env", &cfg); err != nil && !os.IsNotExist(err) {
+		panic(err)
+	}
 	err := cleanenv.ReadEnv(&cfg)
 	if err != nil {
 		panic(err)

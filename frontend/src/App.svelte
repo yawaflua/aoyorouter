@@ -19,9 +19,10 @@
   import { ApiError } from './lib/models/apierror'
   import type { ApiKey, ApiKeyUsage, UpdateApiKeyInput } from './lib/models/apikey'
   import type { LogEntry } from './lib/models/logentry'
-  import type { LiveProxy } from './lib/models/liveproxy'
+  import type { Endpoint, LiveProxy } from './lib/models/liveproxy'
   import type { Provider, ProviderModel, UpdateProviderInput } from './lib/models/providers'
   import { validateProxy } from './lib/models/proxy'
+    import ProxyEditDialog from './lib/components/ProxyEditDialog.svelte';
 
   const PASSWORD_KEY = 'aoyo.password'
   const storedPassword = sessionStorage.getItem(PASSWORD_KEY) ?? ''
@@ -39,6 +40,7 @@
   let apiKeys = $state<ApiKey[]>([])
   let providers = $state<Provider[]>([])
   let proxies = $state<LiveProxy[]>([])
+  let endpoints = $state<Endpoint[]>([])
   let logs = $state<LogEntry[]>([])
   let keyUsage = $state<Record<string, ApiKeyUsage>>({})
   let keyUsageLoading = $state('')
@@ -47,6 +49,7 @@
   let createdKey = $state('')
   let targetKey = $state<ApiKey | null>(null)
   let targetProvider = $state<Provider | null>(null)
+  let targetProxy = $state<LiveProxy | null>(null)
 
   let models = $state<ProviderModel[]>([])
 
@@ -115,7 +118,9 @@
           models = await client.getModels()
           break
         case 'proxies':
-          proxies = await client.getProxies()
+          const { resp_proxies, availableEndpoints } = await client.getProxies()
+          proxies = resp_proxies
+          endpoints = availableEndpoints
           break
         case 'logs':
           logs = await client.getUsageLogs()
@@ -239,17 +244,11 @@
     return validateProxy(draft)
   }
 
-  async function generateCodexAuthorization(draft: ProviderDraft) {
-    return runDialogAction(async () => {
-      const proxy = validateProvider(draft)
-      return client.createCodexAuthorization({ name: draft.name.trim(), customUrl: draft.customUrl.trim(), ...proxy })
-    })
-  }
 
   async function generateProviderAuthorization(draft: ProviderDraft) {
     return runDialogAction(async () => {
       const proxy = validateProvider(draft)
-      if (draft.type === 'PROVIDER_TYPE_OPENAI' || draft.type === 'PROVIDER_TYPE_CUSTOM') {
+      if (draft.type === 'PROVIDER_TYPE_CUSTOM') {
         throw new Error('This provider does not use OAuth authorization.')
       }
       return client.createProviderAuthorization({ name: draft.name.trim(), type: draft.type, customUrl: draft.customUrl.trim(), ...proxy })
@@ -292,17 +291,15 @@
   async function createProvider(draft: ProviderDraft) {
     await runDialogAction(async () => {
       const proxy = validateProvider(draft)
-      if (draft.type === 'PROVIDER_TYPE_OPENAI') {
-        if (!draft.codexSession) throw new Error('Generate a new Codex authorization link.')
-        await client.completeCodexAuthorization({ state: draft.codexSession.state, callbackUrl: draft.authorizationData.trim() })
-      } else if (draft.type === 'PROVIDER_TYPE_CUSTOM') {
+      if (draft.type === 'PROVIDER_TYPE_CUSTOM') {
         if (!draft.authorizationData.trim()) throw new Error('Add authorization data before saving.')
         await client.createProvider({
           name: draft.name.trim(),
           type: draft.type,
           customUrl: draft.customUrl.trim(),
           authorizationData: draft.authorizationData.trim(),
-          ...proxy,
+          isCloudflare: draft.proxy === "",
+          ...proxy
         })
       } else {
         throw new Error('Complete provider authorization first.')
@@ -321,6 +318,11 @@
   function requestProviderEdit(provider: Provider) {
     targetProvider = provider
     openDialog('edit-provider')
+  }
+
+  function requestProxyEdit(proxy: LiveProxy) {
+    targetProxy = proxy
+    openDialog('edit-proxy')
   }
 
   async function updateProvider(input: UpdateProviderInput) {
@@ -344,6 +346,19 @@
       })
       await loadSection('providers')
       notice = `“${input.name.trim()}” updated.`
+      closeDialog()
+    }).catch(() => undefined)
+  }
+
+  async function updateProxy(input: { id: string, endpoint: string, newEndpoint: string }){
+    await runDialogAction(async () => {
+      await client.updateProxy({
+        id: input.id,
+        cloudflareEndpoint: input.endpoint,
+        newEndpoint: input.newEndpoint,
+      })
+      await loadSection('proxies')
+      notice = `“${input.id.trim()}” updated.`
       closeDialog()
     }).catch(() => undefined)
   }
@@ -424,7 +439,7 @@
             onDelete={requestProviderDelete}
           />
         {:else if section === 'proxies'}
-          <ProxyList proxies={filteredProxies} {search} onClearSearch={() => (search = '')} onCopy={copy} />
+          <ProxyList proxies={filteredProxies} {search} onEdit={requestProxyEdit} onClearSearch={() => (search = '')} onCopy={copy} />
         {:else}
           <LogList {logs} />
         {/if}
@@ -446,7 +461,6 @@
         <ProviderDialog
           pending={actionPending}
           error={dialogError}
-          onGenerateCodex={generateCodexAuthorization}
           onGenerateOAuth={generateProviderAuthorization}
           onCheckOAuth={checkProviderAuthorization}
           onSubmit={createProvider}
@@ -459,6 +473,8 @@
         <DeleteDialog entity="API key" name={targetKey.name} pending={actionPending} error={dialogError} onDelete={deleteKey} onClose={closeDialog} />
       {:else if dialog === 'delete-provider' && targetProvider}
         <DeleteDialog entity="provider" name={targetProvider.name} pending={actionPending} error={dialogError} onDelete={deleteProvider} onClose={closeDialog} />
+      {:else if dialog === 'edit-proxy' && targetProxy}
+        <ProxyEditDialog proxy={targetProxy} availableEndpoints={endpoints} pending={actionPending} error={dialogError} onSubmit={updateProxy} onClose={closeDialog} />
       {/if}
     </div>
   </div>

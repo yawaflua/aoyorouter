@@ -19,6 +19,7 @@ export interface Provider {
   clientSecret: string
   useProxy: boolean
   proxy: string
+  isCloudflare: boolean
   quota: ProviderQuota | null
 }
 
@@ -29,6 +30,7 @@ export interface ProviderConnectionInput {
   authorizationData: string
   useProxy: boolean
   proxy: string
+  isCloudflare: boolean
 }
 
 export interface UpdateProviderInput extends ProviderConnectionInput {
@@ -45,6 +47,7 @@ export function parseProvider(value: unknown): Provider {
     clientSecret: text(item.clientSecret ?? item.client_secret),
     useProxy: booleanValue(item.useProxy ?? item.use_proxy),
     proxy: text(item.proxy),
+    isCloudflare: booleanValue(item.isCloudflare ?? item.is_cloudflare),
     quota: parseQuota(item.quota),
   }
 }

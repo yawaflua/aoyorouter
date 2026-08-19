@@ -1,4 +1,4 @@
-package server
+package providers
 
 import (
 	"context"
@@ -7,14 +7,50 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
 
+	"github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
+	"github.com/yawaflua/aoyorouter/internal/models"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 )
 
 const antigravityQuotaURL = "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota"
 
-var antigravityQuotaHTTPClient = &http.Client{Timeout: 8 * time.Second}
+type AntigravityProvider struct {
+}
+
+// RemoveProviderConfig implements [ProviderConfig].
+func (a *AntigravityProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
+	for index, key := range cfg.GeminiKey {
+		if key.APIKey == provider.ClientSecret && key.BaseURL == provider.ClientID {
+			cfg.GeminiKey = append(cfg.GeminiKey[:index], cfg.GeminiKey[index+1:]...)
+			return
+		}
+	}
+}
+
+// AddProviderConfig implements [providers.ProviderConfig].
+func (a *AntigravityProvider) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
+	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
+		return
+	}
+	cfg.GeminiKey = append(cfg.GeminiKey, config.GeminiKey{APIKey: provider.ClientSecret, BaseURL: provider.ClientID, ProxyURL: provider.Proxy})
+}
+
+// GetOAuthDefinition implements [providers.ProviderConfig].
+func (a *AntigravityProvider) GetOAuthDefinition() *ProviderOAuthDefinition {
+	return &ProviderOAuthDefinition{
+		Provider:           "antigravity",
+		CredentialProvider: "antigravity",
+		Endpoint:           "/v0/management/antigravity-auth-url",
+		DefaultURL:         "https://daily-cloudcode-pa.googleapis.com",
+		Callback:           true,
+	}
+}
+
+// LoadQuota implements [providers.ProviderConfig].
+func (a *AntigravityProvider) LoadQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
+	return loadAntigravityQuota(ctx, credentials, useProxy, proxyURL)
+}
 
 type antigravityQuotaResponse struct {
 	Buckets []antigravityQuotaBucket `json:"buckets"`
@@ -26,17 +62,7 @@ type antigravityQuotaBucket struct {
 	ResetTime         string  `json:"resetTime"`
 }
 
-func antigravityOAuthDefinition() providerOAuthDefinition {
-	return providerOAuthDefinition{
-		Provider:           "antigravity",
-		CredentialProvider: "antigravity",
-		Endpoint:           "/v0/management/antigravity-auth-url",
-		DefaultURL:         "https://daily-cloudcode-pa.googleapis.com",
-		Callback:           true,
-	}
-}
-
-func loadAntigravityQuota(ctx context.Context, credentials map[string]any) *aoyorouter.ProviderQuota {
+func loadAntigravityQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
 	accessToken, _ := credentials["access_token"].(string)
 	if strings.TrimSpace(accessToken) == "" {
 		return &aoyorouter.ProviderQuota{Error: "Antigravity credentials are incomplete"}
@@ -51,7 +77,11 @@ func loadAntigravityQuota(ctx context.Context, credentials map[string]any) *aoyo
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("User-Agent", "antigravity")
 
-	response, err := antigravityQuotaHTTPClient.Do(request)
+	client, err := proxyHTTPClient(useProxy, proxyURL)
+	if err != nil {
+		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
+	}
+	response, err := client.Do(request)
 	if err != nil {
 		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
 	}

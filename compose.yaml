@@ -27,11 +27,12 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
-      - POSTGRES_HOST=psql
-      - POSTGRES_SSL=disable
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+      - POSTGRES_HOST=${POSTGRES_HOST:-psql}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_SSL=${POSTGRES_SSL:-disable}
       - INITIAL_PASSWORD=${INITIAL_PASSWORD:-}
     depends_on:
       psql:

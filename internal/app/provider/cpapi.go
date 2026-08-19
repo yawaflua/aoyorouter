@@ -2,10 +2,7 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -20,7 +17,8 @@ import (
 	coreauth "github.com/router-for-me/CLIProxyAPI/v7/sdk/cliproxy/auth"
 	config "github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
 	_ "github.com/router-for-me/CLIProxyAPI/v7/sdk/translator/builtin"
-	"github.com/yawaflua/aoyorouter/internal/app/provider/cliproxyapi"
+	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
+	providersconf "github.com/yawaflua/aoyorouter/internal/models/providers"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 )
 
@@ -178,124 +176,15 @@ func (p *P) registerAllProviders(ctx context.Context) error {
 	}
 
 	for _, provider := range providers {
-		if provider.UseProxy && provider.Proxy == "" {
+		if provider.UseProxy && provider.IsCloudflare {
 			proxy := p.Warp(ctx).CreateProxy(ctx, provider.ID)
 			if proxy != nil {
 				provider.Proxy = "http://" + proxy.Addr().String()
 			}
+			p.ProviderRepo(ctx).UpdateProxy(ctx, provider.ID, provider.Proxy, true, true)
 		}
-		switch aoyorouter.ProviderType(provider.Type) {
-
-		case aoyorouter.ProviderType_PROVIDER_TYPE_ANTIGRAVITY:
-			if strings.HasPrefix(provider.ClientSecret, "oauth:") {
-				continue
-			}
-			cfg.GeminiKey = append(cfg.GeminiKey, config.GeminiKey{
-				APIKey:   provider.ClientSecret,
-				BaseURL:  provider.ClientID,
-				ProxyURL: provider.Proxy,
-			})
-		case aoyorouter.ProviderType_PROVIDER_TYPE_OPENAI:
-			if strings.HasPrefix(provider.ClientSecret, "oauth:") {
-				continue
-			}
-			cfg.CodexKey = append(cfg.CodexKey, config.CodexKey{
-				APIKey:   provider.ClientSecret,
-				BaseURL:  provider.ClientID,
-				ProxyURL: provider.Proxy,
-			})
-		case aoyorouter.ProviderType_PROVIDER_TYPE_ANTHROPIC:
-			if strings.HasPrefix(provider.ClientSecret, "oauth:") {
-				continue
-			}
-			cfg.ClaudeKey = append(cfg.ClaudeKey, config.ClaudeKey{
-				APIKey:   provider.ClientSecret,
-				BaseURL:  provider.ClientID,
-				ProxyURL: provider.Proxy,
-			})
-		case aoyorouter.ProviderType_PROVIDER_TYPE_GROK:
-			if strings.HasPrefix(provider.ClientSecret, "oauth:") {
-				continue
-			}
-			cfg.XAIKey = append(cfg.XAIKey, config.XAIKey{
-				APIKey:   provider.ClientSecret,
-				BaseURL:  provider.ClientID,
-				ProxyURL: provider.Proxy,
-			})
-		case aoyorouter.ProviderType_PROVIDER_TYPE_KIMI:
-			if strings.HasPrefix(provider.ClientSecret, "oauth:") {
-				continue
-			}
-			cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{
-				Name:    "kimi",
-				BaseURL: provider.ClientID,
-				APIKeyEntries: []config.OpenAICompatibilityAPIKey{
-					{APIKey: provider.ClientSecret},
-				},
-			})
-
-		case aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM:
-			modelUrl, err := url.Parse(fmt.Sprintf("%s/v1/models", provider.ClientID))
-			if err != nil {
-				p.logger.Error("Error when parsing custom provider", slog.Any("err", err), slog.String("url", provider.ClientID))
-				break
-			}
-			request := &http.Request{
-				Method: "GET",
-				URL:    modelUrl,
-				Header: map[string][]string{
-					"Authorization": {"Bearer " + provider.ClientSecret},
-				},
-			}
-			resp, err := http.DefaultClient.Do(request)
-			if err != nil {
-				p.logger.Error("Error when fetching custom provider models", slog.Any("err", err), slog.String("url", modelUrl.String()))
-				break
-			}
-			var models []config.OpenAICompatibilityModel
-			if resp.StatusCode == http.StatusOK {
-				defer resp.Body.Close()
-				body, err := io.ReadAll(resp.Body)
-				if err != nil {
-					p.logger.Error("Error reading response", slog.Any("err", err))
-					break
-				}
-				var modelsCustom struct {
-					Data []struct {
-						ID               string   `json:"id"`
-						Root             string   `json:"root"`
-						Name             string   `json:"name"`
-						InputModalities  []string `json:"input_modalities"`
-						OutputModalities []string `json:"output_modalities"`
-					} `json:"data"`
-				}
-				if err := json.Unmarshal(body, &modelsCustom); err != nil {
-					p.logger.Error("Error when unmarshalling custom provider response", slog.Any("err", err), slog.String("url", modelUrl.String()))
-					break
-				}
-				
-				for _, customModel := range modelsCustom.Data {
-					models = append(models, config.OpenAICompatibilityModel{
-						Name:             customModel.ID,
-						Alias:            customModel.Root,
-						InputModalities:  customModel.InputModalities,
-						OutputModalities: customModel.OutputModalities,
-						DisplayName:      customModel.Name,
-					})
-				}
-			}
-
-			cfg.OpenAICompatibility = append(
-				cfg.OpenAICompatibility,
-				config.OpenAICompatibility{
-					Name:    provider.ID,
-					BaseURL: provider.ClientID,
-					APIKeyEntries: []config.OpenAICompatibilityAPIKey{
-						{APIKey: provider.ClientSecret},
-					},
-					Models: models,
-				},
-			)
+		if conf, err := providersconf.ProviderOAuthConfig(aoyorouter.ProviderType(provider.Type)); err == nil {
+			conf.AddProviderConfig(ctx, cfg, provider)
 		}
 	}
 	return nil
