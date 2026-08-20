@@ -778,9 +778,10 @@ func (x *ProviderAuthorizationStatusResponse) GetError() string {
 
 type ProviderQuotaWindow struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UsedPercent   float64                `protobuf:"fixed64,1,opt,name=used_percent,json=usedPercent,proto3" json:"used_percent,omitempty"`
-	ResetsAt      string                 `protobuf:"bytes,2,opt,name=resets_at,json=resetsAt,proto3" json:"resets_at,omitempty"`
-	WindowMinutes int32                  `protobuf:"varint,3,opt,name=window_minutes,json=windowMinutes,proto3" json:"window_minutes,omitempty"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	UsedPercent   float64                `protobuf:"fixed64,2,opt,name=used_percent,json=usedPercent,proto3" json:"used_percent,omitempty"`
+	ResetsAt      string                 `protobuf:"bytes,3,opt,name=resets_at,json=resetsAt,proto3" json:"resets_at,omitempty"`
+	WindowMinutes int32                  `protobuf:"varint,4,opt,name=window_minutes,json=windowMinutes,proto3" json:"window_minutes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -815,6 +816,13 @@ func (*ProviderQuotaWindow) Descriptor() ([]byte, []int) {
 	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{10}
 }
 
+func (x *ProviderQuotaWindow) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 func (x *ProviderQuotaWindow) GetUsedPercent() float64 {
 	if x != nil {
 		return x.UsedPercent
@@ -838,8 +846,7 @@ func (x *ProviderQuotaWindow) GetWindowMinutes() int32 {
 
 type ProviderQuota struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Primary       *ProviderQuotaWindow   `protobuf:"bytes,1,opt,name=primary,proto3" json:"primary,omitempty"`
-	Secondary     *ProviderQuotaWindow   `protobuf:"bytes,2,opt,name=secondary,proto3" json:"secondary,omitempty"`
+	Quotas        []*ProviderQuotaWindow `protobuf:"bytes,1,rep,name=quotas,proto3" json:"quotas,omitempty"`
 	PlanType      string                 `protobuf:"bytes,3,opt,name=plan_type,json=planType,proto3" json:"plan_type,omitempty"`
 	Error         string                 `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -876,16 +883,9 @@ func (*ProviderQuota) Descriptor() ([]byte, []int) {
 	return file_docs_api_v1_types_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *ProviderQuota) GetPrimary() *ProviderQuotaWindow {
+func (x *ProviderQuota) GetQuotas() []*ProviderQuotaWindow {
 	if x != nil {
-		return x.Primary
-	}
-	return nil
-}
-
-func (x *ProviderQuota) GetSecondary() *ProviderQuotaWindow {
-	if x != nil {
-		return x.Secondary
+		return x.Quotas
 	}
 	return nil
 }
@@ -914,6 +914,7 @@ type Provider struct {
 	Quota         *ProviderQuota         `protobuf:"bytes,6,opt,name=quota,proto3" json:"quota,omitempty"`
 	UseProxy      bool                   `protobuf:"varint,7,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
 	Proxy         string                 `protobuf:"bytes,8,opt,name=proxy,proto3" json:"proxy,omitempty"`
+	IsCloudflare  bool                   `protobuf:"varint,9,opt,name=is_cloudflare,json=isCloudflare,proto3" json:"is_cloudflare,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1002,6 +1003,13 @@ func (x *Provider) GetProxy() string {
 		return x.Proxy
 	}
 	return ""
+}
+
+func (x *Provider) GetIsCloudflare() bool {
+	if x != nil {
+		return x.IsCloudflare
+	}
+	return false
 }
 
 type GetProviderRequest struct {
@@ -2670,16 +2678,16 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1f\n" +
 	"\vprovider_id\x18\x02 \x01(\tR\n" +
 	"providerId\x12\x14\n" +
-	"\x05error\x18\x03 \x01(\tR\x05error\"|\n" +
-	"\x13ProviderQuotaWindow\x12!\n" +
-	"\fused_percent\x18\x01 \x01(\x01R\vusedPercent\x12\x1b\n" +
-	"\tresets_at\x18\x02 \x01(\tR\bresetsAt\x12%\n" +
-	"\x0ewindow_minutes\x18\x03 \x01(\x05R\rwindowMinutes\"\xd4\x01\n" +
-	"\rProviderQuota\x12E\n" +
-	"\aprimary\x18\x01 \x01(\v2+.aoyorouter.docs.api.v1.ProviderQuotaWindowR\aprimary\x12I\n" +
-	"\tsecondary\x18\x02 \x01(\v2+.aoyorouter.docs.api.v1.ProviderQuotaWindowR\tsecondary\x12\x1b\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\"\x90\x01\n" +
+	"\x13ProviderQuotaWindow\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
+	"\fused_percent\x18\x02 \x01(\x01R\vusedPercent\x12\x1b\n" +
+	"\tresets_at\x18\x03 \x01(\tR\bresetsAt\x12%\n" +
+	"\x0ewindow_minutes\x18\x04 \x01(\x05R\rwindowMinutes\"\x87\x01\n" +
+	"\rProviderQuota\x12C\n" +
+	"\x06quotas\x18\x01 \x03(\v2+.aoyorouter.docs.api.v1.ProviderQuotaWindowR\x06quotas\x12\x1b\n" +
 	"\tplan_type\x18\x03 \x01(\tR\bplanType\x12\x14\n" +
-	"\x05error\x18\x04 \x01(\tR\x05error\"\x9a\x02\n" +
+	"\x05error\x18\x04 \x01(\tR\x05error\"\xbf\x02\n" +
 	"\bProvider\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x128\n" +
@@ -2688,7 +2696,8 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\rclient_secret\x18\x05 \x01(\tR\fclientSecret\x12;\n" +
 	"\x05quota\x18\x06 \x01(\v2%.aoyorouter.docs.api.v1.ProviderQuotaR\x05quota\x12\x1b\n" +
 	"\tuse_proxy\x18\a \x01(\bR\buseProxy\x12\x14\n" +
-	"\x05proxy\x18\b \x01(\tR\x05proxy\"5\n" +
+	"\x05proxy\x18\b \x01(\tR\x05proxy\x12#\n" +
+	"\ris_cloudflare\x18\t \x01(\bR\fisCloudflare\"5\n" +
 	"\x12GetProviderRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\"S\n" +
@@ -2883,30 +2892,29 @@ var file_docs_api_v1_types_proto_depIdxs = []int32{
 	0,  // 0: aoyorouter.docs.api.v1.CreateProviderRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
 	0,  // 1: aoyorouter.docs.api.v1.CreateProviderAuthorizationRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
 	0,  // 2: aoyorouter.docs.api.v1.CompleteProviderAuthorizationRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
-	12, // 3: aoyorouter.docs.api.v1.ProviderQuota.primary:type_name -> aoyorouter.docs.api.v1.ProviderQuotaWindow
-	12, // 4: aoyorouter.docs.api.v1.ProviderQuota.secondary:type_name -> aoyorouter.docs.api.v1.ProviderQuotaWindow
-	0,  // 5: aoyorouter.docs.api.v1.Provider.type:type_name -> aoyorouter.docs.api.v1.ProviderType
-	13, // 6: aoyorouter.docs.api.v1.Provider.quota:type_name -> aoyorouter.docs.api.v1.ProviderQuota
-	14, // 7: aoyorouter.docs.api.v1.GetProviderResponse.provider:type_name -> aoyorouter.docs.api.v1.Provider
-	14, // 8: aoyorouter.docs.api.v1.GetProvidersListResponse.providers:type_name -> aoyorouter.docs.api.v1.Provider
-	0,  // 9: aoyorouter.docs.api.v1.UpdateProviderRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
-	31, // 10: aoyorouter.docs.api.v1.EditApiKeyRequest.api_key:type_name -> aoyorouter.docs.api.v1.ApiKey
-	31, // 11: aoyorouter.docs.api.v1.GetApiKeyListResponse.api_keys:type_name -> aoyorouter.docs.api.v1.ApiKey
-	44, // 12: aoyorouter.docs.api.v1.ApiKey.quota_reset_at:type_name -> google.protobuf.Timestamp
-	1,  // 13: aoyorouter.docs.api.v1.ApiKey.quota_reset_strategy:type_name -> aoyorouter.docs.api.v1.QuotaResetStrategy
-	44, // 14: aoyorouter.docs.api.v1.LogEntry.request_time:type_name -> google.protobuf.Timestamp
-	44, // 15: aoyorouter.docs.api.v1.LogEntry.created_at:type_name -> google.protobuf.Timestamp
-	32, // 16: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
-	32, // 17: aoyorouter.docs.api.v1.GetUsageLogsResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
-	42, // 18: aoyorouter.docs.api.v1.GetProxiesResponse.proxies:type_name -> aoyorouter.docs.api.v1.Proxy
-	39, // 19: aoyorouter.docs.api.v1.GetProxiesResponse.available_endpoints:type_name -> aoyorouter.docs.api.v1.ProxyEndpoint
-	42, // 20: aoyorouter.docs.api.v1.UpdateProxyResponse.proxy:type_name -> aoyorouter.docs.api.v1.Proxy
-	43, // 21: aoyorouter.docs.api.v1.Proxy.warp_info:type_name -> aoyorouter.docs.api.v1.WARPInfo
-	22, // [22:22] is the sub-list for method output_type
-	22, // [22:22] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	12, // 3: aoyorouter.docs.api.v1.ProviderQuota.quotas:type_name -> aoyorouter.docs.api.v1.ProviderQuotaWindow
+	0,  // 4: aoyorouter.docs.api.v1.Provider.type:type_name -> aoyorouter.docs.api.v1.ProviderType
+	13, // 5: aoyorouter.docs.api.v1.Provider.quota:type_name -> aoyorouter.docs.api.v1.ProviderQuota
+	14, // 6: aoyorouter.docs.api.v1.GetProviderResponse.provider:type_name -> aoyorouter.docs.api.v1.Provider
+	14, // 7: aoyorouter.docs.api.v1.GetProvidersListResponse.providers:type_name -> aoyorouter.docs.api.v1.Provider
+	0,  // 8: aoyorouter.docs.api.v1.UpdateProviderRequest.type:type_name -> aoyorouter.docs.api.v1.ProviderType
+	31, // 9: aoyorouter.docs.api.v1.EditApiKeyRequest.api_key:type_name -> aoyorouter.docs.api.v1.ApiKey
+	31, // 10: aoyorouter.docs.api.v1.GetApiKeyListResponse.api_keys:type_name -> aoyorouter.docs.api.v1.ApiKey
+	44, // 11: aoyorouter.docs.api.v1.ApiKey.quota_reset_at:type_name -> google.protobuf.Timestamp
+	1,  // 12: aoyorouter.docs.api.v1.ApiKey.quota_reset_strategy:type_name -> aoyorouter.docs.api.v1.QuotaResetStrategy
+	44, // 13: aoyorouter.docs.api.v1.LogEntry.request_time:type_name -> google.protobuf.Timestamp
+	44, // 14: aoyorouter.docs.api.v1.LogEntry.created_at:type_name -> google.protobuf.Timestamp
+	32, // 15: aoyorouter.docs.api.v1.GetProviderLogsByKeyIDResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
+	32, // 16: aoyorouter.docs.api.v1.GetUsageLogsResponse.logs:type_name -> aoyorouter.docs.api.v1.LogEntry
+	42, // 17: aoyorouter.docs.api.v1.GetProxiesResponse.proxies:type_name -> aoyorouter.docs.api.v1.Proxy
+	39, // 18: aoyorouter.docs.api.v1.GetProxiesResponse.available_endpoints:type_name -> aoyorouter.docs.api.v1.ProxyEndpoint
+	42, // 19: aoyorouter.docs.api.v1.UpdateProxyResponse.proxy:type_name -> aoyorouter.docs.api.v1.Proxy
+	43, // 20: aoyorouter.docs.api.v1.Proxy.warp_info:type_name -> aoyorouter.docs.api.v1.WARPInfo
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_docs_api_v1_types_proto_init() }

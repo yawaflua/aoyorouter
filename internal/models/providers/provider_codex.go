@@ -118,8 +118,7 @@ func loadCodexQuota(ctx context.Context, credentials map[string]any, useProxy bo
 		}
 	}
 	return &aoyorouter.ProviderQuota{
-		Primary:   quotaWindowToProto(primary),
-		Secondary: quotaWindowToProto(secondary),
+		Quotas:    []*aoyorouter.ProviderQuotaWindow{quotaWindowToProto(primary), quotaWindowToProto(secondary)},
 		PlanType:  usage.PlanType,
 	}
 }

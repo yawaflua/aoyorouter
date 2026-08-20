@@ -106,8 +106,7 @@ func (a *AnthropicProvider) LoadQuota(ctx context.Context, credentials map[strin
 		planType = anthropicPlanType(credentials)
 	}
 	return &aoyorouter.ProviderQuota{
-		Primary:   primary,
-		Secondary: secondary,
+		Quotas:    []*aoyorouter.ProviderQuotaWindow{primary, secondary},
 		PlanType:  planType,
 	}
 }

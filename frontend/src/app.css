@@ -499,6 +499,126 @@ h3 {
     padding: 0 18px 18px 76px;
     background: #f7f9fd;
 }
+.quota-details {
+  display: grid;
+  padding: 10px 76px 18px 76px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+
+  background: #f7f9fd;
+  border-top: 1px solid #e3e7ee;
+}
+
+.quota-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #eef2f6;
+}
+
+.quota-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.quota-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quota-header small {
+  font-size: 0.72rem;
+  color: var(--muted, #8a94a6);
+  flex-shrink: 0;
+}
+
+
+.quota-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--primary);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.quota-progress-fill {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.usage-summary {
+    display: flex;
+    gap: 10px;
+    padding: 10px 76px 18px 76px;
+    border-top: 1px solid #e3e7ee;
+}
+
+.summary-card {
+    min-width: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 15px;
+    background: #fff;
+}
+
+.summary-label {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+.summary-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a1b20;
+}
+
+.models-list {
+    overflow: hidden;
+    border: 1px solid #e0e3ea;
+    
+    background: #fff;
+    margin-top: 6px;
+}
+
+.model-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid #ebedf2;
+    transition: background 0.12s;
+}
+
+.model-row:last-child {
+    border-bottom: 0;
+}
+
+.model-row:hover {
+    background: #fafbff;
+}
+
+.model-row code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #2b3340;
+    letter-spacing: -0.01em;
+}
+
 .provider-details dl {
     flex: 1;
     display: grid;

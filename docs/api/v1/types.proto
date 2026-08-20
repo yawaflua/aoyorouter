@@ -78,14 +78,14 @@ enum ProviderType {
 }
 
 message ProviderQuotaWindow {
-    double used_percent = 1;
-    string resets_at = 2;
-    int32 window_minutes = 3;
+    string name = 1;
+    double used_percent = 2;
+    string resets_at = 3;
+    int32 window_minutes = 4;
 }
 
 message ProviderQuota {
-    ProviderQuotaWindow primary = 1;
-    ProviderQuotaWindow secondary = 2;
+    repeated ProviderQuotaWindow quotas = 1;
     string plan_type = 3;
     string error = 4;
 }

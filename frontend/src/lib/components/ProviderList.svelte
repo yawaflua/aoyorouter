@@ -30,6 +30,12 @@
     event.preventDefault()
     toggle(provider)
   }
+
+  function filteredModels(provider: Provider): ProviderModel[] {
+    return models.filter(
+      (model) => model.owned_by === providerTypeAsCLIPROXY(provider.type) || model.owned_by === provider.id
+    );
+  }
 </script>
 
 {#if providers.length}
@@ -42,7 +48,7 @@
           <span class="type-label">{providerLabels[provider.type]}</span>
           {#if provider.quota}
             <div class="quota" title={quotaReset(provider)}>
-              <div><span style={`width:${Math.max(0, 100 - (provider.quota.primary?.usedPercent ?? 100))}%`}></span></div>
+              <div><span style={`width:${Math.max(0, 100 - (provider.quota.quotas?.[0]?.usedPercent ?? 100))}%`}></span></div>
               <small>{quotaLabel(provider)}</small>
             </div>
           {/if}
@@ -62,19 +68,40 @@
             </dl>
             <button class="tonal" onclick={() => onEdit(provider)}>Edit</button>
           </section>
+          <section class="quota-details" aria-label={`${provider.name} quotas`}>
+            {#each provider.quota?.quotas as quota}
+              <div class="quota-card">
+                <div class="quota-header">
+                  <span class="quota-name" title={quota.name}>{quota.name}</span>
+                  <small>{quotaLabel(provider)}</small>
+                </div>
+
+                <div class="quota-progress-bar">
+                  <span
+                    class="quota-progress-fill"
+                    style={`width: ${Math.max(0, 100 - (quota.usedPercent ?? 100))}%`}
+                  ></span>
+                </div>
+              </div>
+            {/each}
+          </section>
           <div class="usage-summary">
-            <div><span>Available models</span><strong>{models.filter((model) => model.owned_by === providerTypeAsCLIPROXY(provider.type) || model.owned_by === provider.id).length}</strong></div>
+            <div class="summary-card">
+              <span class="summary-label">Available models</span>
+              <strong class="summary-value">{filteredModels(provider).length}</strong>
+            </div>
           </div>
-          {#if models.length}
+
+          {#if filteredModels(provider).length}
             <div class="models-list">
-              {#each models.filter((model) => model.owned_by === providerTypeAsCLIPROXY(provider.type) || model.owned_by === provider.id) as model}
+              {#each filteredModels(provider) as model}
                 <div class="model-row">
-                  <div><strong>{model.id}</strong></div>
+                  <code>{model.id}</code>
                 </div>
               {/each}
             </div>
           {:else}
-            <p class="details-empty">No requests recorded for this key.</p>
+            <p class="details-empty">No models available for this provider.</p>
           {/if}
         {/if}
       </article>

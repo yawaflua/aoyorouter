@@ -99,36 +99,24 @@ func loadAntigravityQuota(ctx context.Context, credentials map[string]any, usePr
 	if err := json.Unmarshal(data, &usage); err != nil {
 		return &aoyorouter.ProviderQuota{Error: "invalid quota response"}
 	}
-	primary, secondary := antigravityQuotaWindows(usage.Buckets)
-	if primary == nil {
+	result := antigravityQuotaWindows(usage.Buckets)
+	if len(result) == 0 {
 		return &aoyorouter.ProviderQuota{Error: "quota unavailable"}
 	}
 
 	return &aoyorouter.ProviderQuota{
-		Primary:   primary,
-		Secondary: secondary,
-		PlanType:  antigravityPlanType(credentials),
+		Quotas:   result,
+		PlanType: antigravityPlanType(credentials),
 	}
 }
 
-func antigravityQuotaWindows(buckets []antigravityQuotaBucket) (*aoyorouter.ProviderQuotaWindow, *aoyorouter.ProviderQuotaWindow) {
-	var primary *antigravityQuotaBucket
-	var secondary *antigravityQuotaBucket
+func antigravityQuotaWindows(buckets []antigravityQuotaBucket) []*aoyorouter.ProviderQuotaWindow {
+	var result []*aoyorouter.ProviderQuotaWindow
 	for index := range buckets {
 		bucket := &buckets[index]
-		if strings.TrimSpace(bucket.ResetTime) == "" {
-			continue
-		}
-		if primary == nil || bucket.RemainingFraction < primary.RemainingFraction {
-			secondary = primary
-			primary = bucket
-			continue
-		}
-		if secondary == nil || bucket.RemainingFraction < secondary.RemainingFraction {
-			secondary = bucket
-		}
+		result = append(result, antigravityQuotaWindow(bucket))
 	}
-	return antigravityQuotaWindow(primary), antigravityQuotaWindow(secondary)
+	return result
 }
 
 func antigravityQuotaWindow(bucket *antigravityQuotaBucket) *aoyorouter.ProviderQuotaWindow {
@@ -143,6 +131,7 @@ func antigravityQuotaWindow(bucket *antigravityQuotaBucket) *aoyorouter.Provider
 		remaining = 1
 	}
 	return &aoyorouter.ProviderQuotaWindow{
+		Name:        bucket.ModelID,
 		UsedPercent: 100 * (1 - remaining),
 		ResetsAt:    bucket.ResetTime,
 	}

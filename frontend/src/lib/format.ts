@@ -20,7 +20,7 @@ export function formatLogTime(entry: LogEntry): string {
 }
 
 export function quotaLabel(provider: Provider): string {
-  const quota = provider.quota?.primary
+  const quota = provider.quota?.quotas?.[0]
   const error = provider.quota?.error
 
   if (quota) return `${Math.max(0, Math.round(100 - quota.usedPercent))}% left`
@@ -31,7 +31,7 @@ export function quotaLabel(provider: Provider): string {
 export function quotaReset(provider: Provider): string {
   if (provider.quota?.error) return provider.quota.error
 
-  const reset = provider.quota?.primary?.resetsAt
+  const reset = provider.quota?.quotas?.[0]?.resetsAt
   if (!reset) return ''
 
   const date = new Date(reset)

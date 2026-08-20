@@ -986,6 +986,9 @@
         },
         "proxy": {
           "type": "string"
+        },
+        "isCloudflare": {
+          "type": "boolean"
         }
       }
     },
@@ -1006,11 +1009,12 @@
     "v1ProviderQuota": {
       "type": "object",
       "properties": {
-        "primary": {
-          "$ref": "#/definitions/v1ProviderQuotaWindow"
-        },
-        "secondary": {
-          "$ref": "#/definitions/v1ProviderQuotaWindow"
+        "quotas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ProviderQuotaWindow"
+          }
         },
         "planType": {
           "type": "string"
@@ -1023,6 +1027,9 @@
     "v1ProviderQuotaWindow": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string"
+        },
         "usedPercent": {
           "type": "number",
           "format": "double"

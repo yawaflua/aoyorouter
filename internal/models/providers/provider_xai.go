@@ -134,8 +134,7 @@ func (x *XAIProvider) LoadQuota(ctx context.Context, credentials map[string]any,
 		planType = xaiPlanType(credentials)
 	}
 	return &aoyorouter.ProviderQuota{
-		Primary:   primary,
-		Secondary: secondary,
+		Quotas:    []*aoyorouter.ProviderQuotaWindow{primary, secondary},
 		PlanType:  planType,
 	}
 }
@@ -211,6 +210,7 @@ func xaiWeeklyQuotaWindow(config *xaiBillingConfig) *aoyorouter.ProviderQuotaWin
 		windowMinutes = xaiQuotaWindowMinutes(config.CurrentPeriod.Start, config.CurrentPeriod.End, windowMinutes)
 	}
 	return &aoyorouter.ProviderQuotaWindow{
+		Name:          "Weekly",
 		UsedPercent:   xaiUsedPercent(*config.CreditUsagePercent),
 		ResetsAt:      resetAt,
 		WindowMinutes: windowMinutes,
@@ -227,6 +227,7 @@ func xaiMonthlyQuotaWindow(config *xaiBillingConfig) *aoyorouter.ProviderQuotaWi
 		return nil
 	}
 	return &aoyorouter.ProviderQuotaWindow{
+		Name: "Monthly",
 		UsedPercent:   xaiUsedPercent(used / limit * 100),
 		ResetsAt:      config.BillingPeriodEnd,
 		WindowMinutes: xaiQuotaWindowMinutes(config.BillingPeriodStart, config.BillingPeriodEnd, 30*24*60),

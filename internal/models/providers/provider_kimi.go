@@ -131,10 +131,7 @@ func loadKimiQuota(ctx context.Context, credentials map[string]any, useProxy boo
 		return &aoyorouter.ProviderQuota{Error: "quota unavailable"}
 	}
 
-	quota := &aoyorouter.ProviderQuota{Primary: windows[0], PlanType: kimiPlanType(credentials)}
-	if len(windows) > 1 {
-		quota.Secondary = windows[1]
-	}
+	quota := &aoyorouter.ProviderQuota{Quotas: windows, PlanType: kimiPlanType(credentials)}
 	return quota
 }
 
