@@ -24,7 +24,7 @@
 
   function submit(event: SubmitEvent) {
     event.preventDefault()
-    void onSubmit({ id: provider.id, name, type, customUrl, authorizationData, useProxy, proxy })
+    void onSubmit({ id: provider.id, name, type, customUrl, authorizationData, useProxy, proxy, isCloudflare: proxy === "" })
   }
 </script>
 
