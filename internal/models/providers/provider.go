@@ -18,6 +18,7 @@ type ProviderOAuthDefinition struct {
 	Callback           bool
 }
 
+
 type ProviderConfig interface {
 	LoadQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota
 	GetOAuthDefinition() *ProviderOAuthDefinition

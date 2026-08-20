@@ -15,8 +15,6 @@ import (
 
 type CodexProvider struct{}
 
-
-
 type codexUsageWindow struct {
 	UsedPercent   float64 `json:"used_percent"`
 	ResetAt       any     `json:"reset_at"`
@@ -38,7 +36,7 @@ type codexUsageResponse struct {
 
 func (c *CodexProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
 	for index, key := range cfg.CodexKey {
-		if key.APIKey == provider.ClientSecret && key.BaseURL == provider.ClientID {
+		if key.APIKey == provider.ClientSecret && key.BaseURL == provider.BaseUrl {
 			cfg.CodexKey = append(cfg.CodexKey[:index], cfg.CodexKey[index+1:]...)
 			return
 		}
@@ -47,10 +45,16 @@ func (c *CodexProvider) RemoveProviderConfig(cfg *config.Config, provider *model
 
 // AddProviderConfig implements [providers.ProviderConfig].
 func (c *CodexProvider) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
-	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
+	var apiKey string
+	if provider.ClientSecret != "oauth:database" && strings.HasPrefix(provider.ClientSecret, "oauth:") {
 		return
+	} else if !strings.HasPrefix(provider.ClientSecret, "oauth:") {
+		apiKey = provider.ClientSecret
+	} else {
+		apiKey = provider.Credentials["access_token"].(string)
 	}
-	cfg.CodexKey = append(cfg.CodexKey, config.CodexKey{APIKey: provider.ClientSecret, BaseURL: provider.ClientID, ProxyURL: provider.Proxy})
+
+	cfg.CodexKey = append(cfg.CodexKey, config.CodexKey{APIKey: apiKey, BaseURL: provider.BaseUrl, ProxyURL: provider.Proxy})
 }
 
 // GetOAuthDefinition implements [providers.ProviderConfig].
@@ -60,6 +64,7 @@ func (c *CodexProvider) GetOAuthDefinition() *ProviderOAuthDefinition {
 		Callback:           true,
 		Provider:           "codex",
 		CredentialProvider: "codex",
+		DefaultURL:         "https://api.openai.com",
 	}
 }
 
@@ -118,8 +123,8 @@ func loadCodexQuota(ctx context.Context, credentials map[string]any, useProxy bo
 		}
 	}
 	return &aoyorouter.ProviderQuota{
-		Quotas:    []*aoyorouter.ProviderQuotaWindow{quotaWindowToProto(primary), quotaWindowToProto(secondary)},
-		PlanType:  usage.PlanType,
+		Quotas:   []*aoyorouter.ProviderQuotaWindow{quotaWindowToProto(primary), quotaWindowToProto(secondary)},
+		PlanType: usage.PlanType,
 	}
 }
 

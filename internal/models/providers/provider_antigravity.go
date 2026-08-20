@@ -21,7 +21,7 @@ type AntigravityProvider struct {
 // RemoveProviderConfig implements [ProviderConfig].
 func (a *AntigravityProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
 	for index, key := range cfg.GeminiKey {
-		if key.APIKey == provider.ClientSecret && key.BaseURL == provider.ClientID {
+		if key.APIKey == provider.ClientSecret && key.BaseURL == provider.BaseUrl {
 			cfg.GeminiKey = append(cfg.GeminiKey[:index], cfg.GeminiKey[index+1:]...)
 			return
 		}
@@ -30,10 +30,15 @@ func (a *AntigravityProvider) RemoveProviderConfig(cfg *config.Config, provider 
 
 // AddProviderConfig implements [providers.ProviderConfig].
 func (a *AntigravityProvider) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
-	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
+	var apiKey string
+	if provider.ClientSecret != "oauth:database" && strings.HasPrefix(provider.ClientSecret, "oauth:") {
 		return
+	} else if !strings.HasPrefix(provider.ClientSecret, "oauth:") {
+		apiKey = provider.ClientSecret
+	} else {
+		apiKey = provider.Credentials["access_token"].(string)
 	}
-	cfg.GeminiKey = append(cfg.GeminiKey, config.GeminiKey{APIKey: provider.ClientSecret, BaseURL: provider.ClientID, ProxyURL: provider.Proxy})
+	cfg.GeminiKey = append(cfg.GeminiKey, config.GeminiKey{APIKey: apiKey, BaseURL: provider.BaseUrl, ProxyURL: provider.Proxy})
 }
 
 // GetOAuthDefinition implements [providers.ProviderConfig].

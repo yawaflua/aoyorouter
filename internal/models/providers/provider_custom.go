@@ -21,7 +21,7 @@ type CustomProvider struct {
 // RemoveProviderConfig implements [ProviderConfig].
 func (a *CustomProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
 	for index, configured := range cfg.XAIKey {
-		if configured.APIKey == provider.ClientSecret && configured.BaseURL == provider.ClientID {
+		if configured.APIKey == provider.ClientSecret && configured.BaseURL == provider.BaseUrl {
 			cfg.XAIKey = append(cfg.XAIKey[:index], cfg.XAIKey[index+1:]...)
 			return
 		}
@@ -30,9 +30,9 @@ func (a *CustomProvider) RemoveProviderConfig(cfg *config.Config, provider *mode
 
 // AddProviderConfig implements [ProviderConfig].
 func (a *CustomProvider) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
-	modelUrl, err := url.Parse(fmt.Sprintf("%s/v1/models", provider.ClientID))
+	modelUrl, err := url.Parse(fmt.Sprintf("%s/v1/models", provider.BaseUrl))
 	if err != nil {
-		a.logger.Error("Error when parsing custom provider", slog.Any("err", err), slog.String("url", provider.ClientID))
+		a.logger.Error("Error when parsing custom provider", slog.Any("err", err), slog.String("url", provider.BaseUrl))
 		return
 	}
 	request := &http.Request{
@@ -84,7 +84,7 @@ func (a *CustomProvider) AddProviderConfig(ctx context.Context, cfg *config.Conf
 		cfg.OpenAICompatibility,
 		config.OpenAICompatibility{
 			Name:    provider.ID,
-			BaseURL: provider.ClientID,
+			BaseURL: provider.BaseUrl,
 			APIKeyEntries: []config.OpenAICompatibilityAPIKey{
 				{APIKey: provider.ClientSecret},
 			},

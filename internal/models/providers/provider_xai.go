@@ -59,7 +59,7 @@ type xaiBillingResponse struct {
 // RemoveProviderConfig implements [ProviderConfig].
 func (x *XAIProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
 	for index, configured := range cfg.XAIKey {
-		if configured.APIKey == provider.ClientSecret && configured.BaseURL == provider.ClientID {
+		if configured.APIKey == provider.ClientSecret && configured.BaseURL == provider.BaseUrl {
 			cfg.XAIKey = append(cfg.XAIKey[:index], cfg.XAIKey[index+1:]...)
 			return
 		}
@@ -68,10 +68,15 @@ func (x *XAIProvider) RemoveProviderConfig(cfg *config.Config, provider *models.
 
 // AddProviderConfig implements [providers.ProviderConfig].
 func (x *XAIProvider) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
-	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
+	var apiKey string
+	if provider.ClientSecret != "oauth:database" && strings.HasPrefix(provider.ClientSecret, "oauth:") {
 		return
+	} else if !strings.HasPrefix(provider.ClientSecret, "oauth:") {
+		apiKey = provider.ClientSecret
+	} else {
+		apiKey = provider.Credentials["access_token"].(string)
 	}
-	cfg.XAIKey = append(cfg.XAIKey, config.XAIKey{APIKey: provider.ClientSecret, BaseURL: provider.ClientID, Prefix: "grok"})
+	cfg.XAIKey = append(cfg.XAIKey, config.XAIKey{APIKey: apiKey, BaseURL: provider.BaseUrl, Prefix: "grok"})
 
 }
 
@@ -81,7 +86,7 @@ func (x *XAIProvider) GetOAuthDefinition() *ProviderOAuthDefinition {
 		Provider:           "xai",
 		CredentialProvider: "xai",
 		Endpoint:           "/v0/management/xai-auth-url",
-		DefaultURL:         "https://api.x.ai/v1",
+		DefaultURL:         "https://api.x.ai",
 	}
 }
 
@@ -134,8 +139,8 @@ func (x *XAIProvider) LoadQuota(ctx context.Context, credentials map[string]any,
 		planType = xaiPlanType(credentials)
 	}
 	return &aoyorouter.ProviderQuota{
-		Quotas:    []*aoyorouter.ProviderQuotaWindow{primary, secondary},
-		PlanType:  planType,
+		Quotas:   []*aoyorouter.ProviderQuotaWindow{primary, secondary},
+		PlanType: planType,
 	}
 }
 
@@ -227,7 +232,7 @@ func xaiMonthlyQuotaWindow(config *xaiBillingConfig) *aoyorouter.ProviderQuotaWi
 		return nil
 	}
 	return &aoyorouter.ProviderQuotaWindow{
-		Name: "Monthly",
+		Name:          "Monthly",
 		UsedPercent:   xaiUsedPercent(used / limit * 100),
 		ResetsAt:      config.BillingPeriodEnd,
 		WindowMinutes: xaiQuotaWindowMinutes(config.BillingPeriodStart, config.BillingPeriodEnd, 30*24*60),

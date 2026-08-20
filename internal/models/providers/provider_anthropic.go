@@ -31,7 +31,7 @@ type anthropicUsageResponse struct {
 // RemoveProviderConfig implements [ProviderConfig].
 func (a *AnthropicProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
 	for index, key := range cfg.ClaudeKey {
-		if key.APIKey == provider.ClientSecret && key.BaseURL == provider.ClientID {
+		if key.APIKey == provider.ClientSecret && key.BaseURL == provider.BaseUrl {
 			cfg.ClaudeKey = append(cfg.ClaudeKey[:index], cfg.ClaudeKey[index+1:]...)
 			return
 		}
@@ -40,10 +40,15 @@ func (a *AnthropicProvider) RemoveProviderConfig(cfg *config.Config, provider *m
 
 // AddProviderConfig implements [providers.ProviderConfig].
 func (a *AnthropicProvider) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
-	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
+	var apiKey string
+	if provider.ClientSecret != "oauth:database" && strings.HasPrefix(provider.ClientSecret, "oauth:") {
 		return
+	} else if !strings.HasPrefix(provider.ClientSecret, "oauth:") {
+		apiKey = provider.ClientSecret
+	} else {
+		apiKey = provider.Credentials["access_token"].(string)
 	}
-	cfg.ClaudeKey = append(cfg.ClaudeKey, config.ClaudeKey{APIKey: provider.ClientSecret, BaseURL: provider.ClientID, ProxyURL: provider.Proxy})
+	cfg.ClaudeKey = append(cfg.ClaudeKey, config.ClaudeKey{APIKey: apiKey, BaseURL: provider.BaseUrl, ProxyURL: provider.Proxy})
 }
 
 // GetOAuthDefinition implements [providers.ProviderConfig].
@@ -53,6 +58,7 @@ func (a *AnthropicProvider) GetOAuthDefinition() *ProviderOAuthDefinition {
 		CredentialProvider: "claude",
 		Endpoint:           "/v0/management/anthropic-auth-url",
 		Callback:           true,
+		DefaultURL:         "https://anthropic.com",
 	}
 }
 
@@ -106,8 +112,8 @@ func (a *AnthropicProvider) LoadQuota(ctx context.Context, credentials map[strin
 		planType = anthropicPlanType(credentials)
 	}
 	return &aoyorouter.ProviderQuota{
-		Quotas:    []*aoyorouter.ProviderQuotaWindow{primary, secondary},
-		PlanType:  planType,
+		Quotas:   []*aoyorouter.ProviderQuotaWindow{primary, secondary},
+		PlanType: planType,
 	}
 }
 

@@ -6,7 +6,7 @@ type Provider struct {
 	ID           string         `json:"id"`
 	Name         string         `json:"name"`
 	Type         int32          `json:"type"`
-	ClientID     string         `json:"client_id"`
+	BaseUrl     string         `json:"client_id"`
 	ClientSecret string         `json:"client_secret"`
 	Credentials  map[string]any `json:"credentials"`
 	UseProxy     bool           `json:"use_proxy"`

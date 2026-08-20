@@ -20,7 +20,7 @@ type KimiProvider struct {
 // RemoveProviderConfig implements [ProviderConfig].
 func (k *KimiProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
 	for index, configured := range cfg.OpenAICompatibility {
-		if configured.Name == provider.Name && configured.BaseURL == provider.ClientID {
+		if configured.Name == provider.Name && configured.BaseURL == provider.BaseUrl {
 			cfg.OpenAICompatibility = append(cfg.OpenAICompatibility[:index], cfg.OpenAICompatibility[index+1:]...)
 			return
 		}
@@ -29,10 +29,15 @@ func (k *KimiProvider) RemoveProviderConfig(cfg *config.Config, provider *models
 
 // AddProviderConfig implements [providers.ProviderConfig].
 func (k *KimiProvider) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
-	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
+	var apiKey string
+	if provider.ClientSecret != "oauth:database" && strings.HasPrefix(provider.ClientSecret, "oauth:") {
 		return
+	} else if !strings.HasPrefix(provider.ClientSecret, "oauth:") {
+		apiKey = provider.ClientSecret
+	} else {
+		apiKey = provider.Credentials["access_token"].(string)
 	}
-	cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{Name: "kimi", BaseURL: provider.ClientID, APIKeyEntries: []config.OpenAICompatibilityAPIKey{{APIKey: provider.ClientSecret}}})
+	cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{Name: "kimi", BaseURL: provider.BaseUrl, APIKeyEntries: []config.OpenAICompatibilityAPIKey{{APIKey: apiKey}}})
 
 }
 
@@ -48,7 +53,7 @@ func (k *KimiProvider) GetOAuthDefinition() *ProviderOAuthDefinition {
 
 // LoadQuota implements [providers.ProviderConfig].
 func (k *KimiProvider) LoadQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
-	
+
 	return loadKimiQuota(ctx, credentials, useProxy, proxyURL)
 }
 

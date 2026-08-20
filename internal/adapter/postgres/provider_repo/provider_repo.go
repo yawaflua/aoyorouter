@@ -172,7 +172,7 @@ type rowScanner interface {
 }
 
 func scanProvider(row rowScanner, provider *models.Provider) error {
-	return row.Scan(&provider.ID, &provider.Name, &provider.Type, &provider.ClientID, &provider.ClientSecret, &provider.Credentials, &provider.UseProxy, &provider.Proxy, &provider.IsCloudflare, &provider.CreatedAt, &provider.UpdatedAt)
+	return row.Scan(&provider.ID, &provider.Name, &provider.Type, &provider.BaseUrl, &provider.ClientSecret, &provider.Credentials, &provider.UseProxy, &provider.Proxy, &provider.IsCloudflare, &provider.CreatedAt, &provider.UpdatedAt)
 }
 
 func (r *ProviderRepo) DeleteProvider(ctx context.Context, id string) error {

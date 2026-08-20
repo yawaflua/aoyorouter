@@ -45,7 +45,7 @@ func providerToProto(provider *models.Provider) *aoyorouter.Provider {
 		Id:           provider.ID,
 		Name:         provider.Name,
 		Type:         aoyorouter.ProviderType(provider.Type),
-		ClientId:     provider.ClientID,
+		ClientId:     provider.BaseUrl,
 		ClientSecret: provider.ClientSecret,
 		UseProxy:     provider.UseProxy,
 		Proxy:        provider.Proxy,
