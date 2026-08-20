@@ -3,6 +3,7 @@ package middlewares
 import (
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -11,6 +12,10 @@ import (
 
 func LoggerInterceptor(next runtime.HandlerFunc) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		if strings.Contains(r.URL.Path, "healthz") {
+			next(w, r, pathParams)
+			return
+		}
 		start := time.Now()
 
 		log := logger.GetLoggerFromCtx(r.Context())
