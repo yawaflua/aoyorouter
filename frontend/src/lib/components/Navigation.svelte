@@ -17,7 +17,6 @@
     {#each sections as item}
       <button class:active={current === item.id} onclick={() => onNavigate(item.id)} aria-current={current === item.id ? 'page' : undefined}>
         <Icon name={item.icon} /><span>{item.label}</span>
-        {#if item.id === 'logs'}<span class="beta">BETA</span>{/if}
       </button>
     {/each}
   </nav>

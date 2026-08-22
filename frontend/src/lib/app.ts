@@ -1,11 +1,11 @@
 import type { ProviderType } from './models/providers'
 
-export type Section = 'keys' | 'providers' | 'proxies' | 'logs'
+export type Section = 'keys' | 'providers' | 'proxies' | 'logs' | 'chat'
 export type Dialog = 'key' | 'edit-key' | 'provider' | 'edit-provider' | 'secret' | 'delete-key' | 'delete-provider' | 'edit-proxy' | null
 
 export interface SectionDefinition {
   id: Section
-  icon: 'key' | 'provider' | 'proxy' | 'logs'
+  icon: 'key' | 'provider' | 'proxy' | 'logs' | 'chat'
   label: string
   title: string
   description: string
@@ -39,6 +39,13 @@ export const sections: SectionDefinition[] = [
     label: 'Logs',
     title: 'Request logs',
     description: 'Inspect requests routed through each provider.',
+  },
+  {
+    id: 'chat',
+    icon: 'chat',
+    label: 'Chat',
+    title: 'Chat',
+    description: 'Talk to the models routed through your providers.',
   },
 ]
 

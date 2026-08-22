@@ -95,6 +95,7 @@ export interface ProviderModel {
   id: string
   object: string
   owned_by: string
+  displayName?: string
 }
 
 export function parseProviderModel(value: unknown): ProviderModel {
@@ -104,5 +105,6 @@ export function parseProviderModel(value: unknown): ProviderModel {
     id: text(item.id),
     object: text(item.object),
     owned_by: text(item.owned_by),
+    displayName: item.display_name ? text(item.display_name) : undefined,
   }
 }

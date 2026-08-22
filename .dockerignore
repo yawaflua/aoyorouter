@@ -10,3 +10,4 @@ frontend/*.log
 config.yaml
 auth
 proxy
+.direnv

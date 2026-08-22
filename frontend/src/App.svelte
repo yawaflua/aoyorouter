@@ -2,6 +2,7 @@
   import { ApiClient } from './lib/api'
   import { getSection, providerLabels, type Dialog, type Section } from './lib/app'
   import ApiKeyList from './lib/components/ApiKeyList.svelte'
+  import ChatPanel from './lib/components/ChatPanel.svelte'
   import ApiKeyEditDialog from './lib/components/ApiKeyEditDialog.svelte'
   import CollectionToolbar from './lib/components/CollectionToolbar.svelte'
   import DeleteDialog from './lib/components/DeleteDialog.svelte'
@@ -132,6 +133,9 @@
           break
         case 'logs':
           logs = await client.getUsageLogs()
+          break
+        case 'chat':
+          models = await client.getModels()
       }
     } catch (error) {
       pageError = errorMessage(error)
@@ -433,7 +437,7 @@
     <main class="workspace">
       <PageHeader section={sectionInfo} onAction={openSectionDialog} />
       <section class="content" aria-live="polite">
-        {#if section !== 'logs'}
+        {#if section !== 'logs' && section !== 'chat'}
           <CollectionToolbar
             bind:search
             entity={section === 'keys' ? 'API keys' : section === 'providers' ? 'providers' : 'live proxies'}
@@ -478,6 +482,8 @@
           />
         {:else if section === 'proxies'}
           <ProxyList proxies={filteredProxies} {search} onEdit={requestProxyEdit} onClearSearch={() => (search = '')} onCopy={copy} />
+        {:else if section === 'chat'}
+          <ChatPanel {password} models={models.map((item) => ({ id: item.id, displayName: item.displayName ?? '' }))} />
         {:else}
           <LogList {logs} />
         {/if}
