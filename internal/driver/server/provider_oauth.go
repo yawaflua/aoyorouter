@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/api"
 	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
@@ -18,19 +16,6 @@ import (
 )
 
 const providerOAuthPending = "pending"
-
-type providerOAuthSession struct {
-	ProviderID         string
-	Provider           string
-	CredentialProvider string
-	StartedAt          time.Time
-	ExpiresAt          time.Time
-	Completed          bool
-}
-
-type providerOAuthStore struct {
-	mu sync.Mutex
-}
 
 func (a *AoyoRouterService) CreateProviderAuthorization(ctx context.Context, req *aoyorouter.CreateProviderAuthorizationRequest) (*aoyorouter.CreateProviderAuthorizationResponse, error) {
 	name := strings.TrimSpace(req.GetName())
@@ -46,7 +31,7 @@ func (a *AoyoRouterService) CreateProviderAuthorization(ctx context.Context, req
 		customURL = definition.GetOAuthDefinition().DefaultURL
 	}
 
-	provider, err := a.ProviderRepo.CreateProvider(ctx, name, int32(req.GetType()), customURL, "oauth:pending", req.GetUseProxy(), req.GetProxy(), req.GetProxy() == "")
+	provider, err := a.ProviderRepo.CreateProvider(ctx, name, int32(req.GetType()), customURL, "oauth:pending", req.GetUseProxy(), req.GetProxy(), req.GetProxy() == "", req.GetPriority())
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +122,7 @@ func (a *AoyoRouterService) providerAuthorizationStatus(ctx context.Context, sta
 	case "wait", providerOAuthPending, "":
 		return &aoyorouter.ProviderAuthorizationStatusResponse{Status: providerOAuthPending, ProviderId: provider}, nil
 	case "error":
-		a.cleanupProviderOAuth(ctx, state, session, "")
+		a.cleanupProviderOAuth(ctx, session, "")
 		return &aoyorouter.ProviderAuthorizationStatusResponse{Status: "error", ProviderId: provider, Error: session}, nil
 	case "ok":
 		completed, err := a.completeStoredProviderAuthorization(ctx, state, provider)
@@ -188,6 +173,6 @@ func (a *AoyoRouterService) findProviderOAuthCredentials(ctx context.Context, id
 	return provider.Credentials, nil
 }
 
-func (a *AoyoRouterService) cleanupProviderOAuth(ctx context.Context, state string, provider string, _ string) {
+func (a *AoyoRouterService) cleanupProviderOAuth(ctx context.Context, provider string, _ string) {
 	_ = a.ProviderRepo.DeleteProvider(ctx, provider)
 }

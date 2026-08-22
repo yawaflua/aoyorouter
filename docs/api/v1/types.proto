@@ -7,6 +7,7 @@ option go_package = "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter;aoyoro
 
 message HealthCheckResponse {
     string status = 1;
+    repeated string issues = 2;
 }
 
 message SignInRequest {
@@ -24,6 +25,7 @@ message CreateProviderRequest {
     string client_secret = 4;
     bool use_proxy = 5;
     string proxy = 6;
+    int32 priority = 7;
 }
 message CreateProviderResponse {
     string status = 1;
@@ -36,6 +38,7 @@ message CreateProviderAuthorizationRequest {
     string custom_url = 3;
     bool use_proxy = 7;
     string proxy = 8;
+    int32 priority = 9;
 }
 
 message CreateProviderAuthorizationResponse {
@@ -75,6 +78,8 @@ enum ProviderType {
     PROVIDER_TYPE_KIMI = 4;
     PROVIDER_TYPE_GROK = 5;
     PROVIDER_TYPE_ANTIGRAVITY = 6;
+    PROVIDER_TYPE_OPENCODE_ZEN = 7;
+    PROVIDER_TYPE_OPENCODE_GO = 8;
 }
 
 message ProviderQuotaWindow {
@@ -100,6 +105,8 @@ message Provider {
     bool use_proxy = 7;
     string proxy = 8;
     bool is_cloudflare = 9;
+    int32 priority = 10;
+    bool disabled = 11;
 }
 
 message GetProviderRequest {
@@ -124,6 +131,9 @@ message UpdateProviderRequest {
     string client_secret = 5;
     bool use_proxy = 6;
     string proxy = 7;
+    int32 priority = 8;
+    bool disabled = 9;
+    bool is_cloudflare = 10;
 }
 message UpdateProviderResponse {
     string status = 1;
@@ -177,6 +187,8 @@ message ApiKey {
     google.protobuf.Timestamp quota_reset_at = 7;
     QuotaResetStrategy quota_reset_strategy = 8;
     int64 quota_used = 9;
+    repeated string restricted_providers = 10;
+    repeated string restricted_models = 11;
 }
 
 enum QuotaResetStrategy {

@@ -45,16 +45,15 @@ func (c *CodexProvider) RemoveProviderConfig(cfg *config.Config, provider *model
 
 // AddProviderConfig implements [providers.ProviderConfig].
 func (c *CodexProvider) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
-	var apiKey string
-	if provider.ClientSecret != "oauth:database" && strings.HasPrefix(provider.ClientSecret, "oauth:") {
+	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
 		return
-	} else if !strings.HasPrefix(provider.ClientSecret, "oauth:") {
-		apiKey = provider.ClientSecret
-	} else {
-		apiKey = provider.Credentials["access_token"].(string)
 	}
 
-	cfg.CodexKey = append(cfg.CodexKey, config.CodexKey{APIKey: apiKey, BaseURL: provider.BaseUrl, ProxyURL: provider.Proxy})
+	cfg.CodexKey = append(cfg.CodexKey, config.CodexKey{
+		APIKey:   provider.ClientSecret,
+		BaseURL:  provider.BaseUrl,
+		ProxyURL: provider.Proxy,
+	})
 }
 
 // GetOAuthDefinition implements [providers.ProviderConfig].
@@ -84,11 +83,11 @@ func loadCodexQuota(ctx context.Context, credentials map[string]any, useProxy bo
 	}
 	client, err := proxyHTTPClient(useProxy, proxyURL)
 	if err != nil {
-		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
+		return &aoyorouter.ProviderQuota{Error: fmt.Sprintf("quota request failed: %v", err)}
 	}
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://chatgpt.com/backend-api/wham/usage", nil)
 	if err != nil {
-		return &aoyorouter.ProviderQuota{Error: "quota unavailable"}
+		return &aoyorouter.ProviderQuota{Error: fmt.Sprintf("quota request failed: %v", err)}
 	}
 	request.Header.Set("Authorization", "Bearer "+accessToken)
 	request.Header.Set("Chatgpt-Account-Id", accountID)
@@ -96,7 +95,7 @@ func loadCodexQuota(ctx context.Context, credentials map[string]any, useProxy bo
 	request.Header.Set("Originator", "codex_cli_rs")
 	response, err := client.Do(request)
 	if err != nil {
-		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
+		return &aoyorouter.ProviderQuota{Error: fmt.Sprintf("quota request failed: %v", err)}
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {

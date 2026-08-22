@@ -19,6 +19,8 @@ export interface ApiKey {
   quotaUsed: number
   quotaResetAt: string
   quotaResetStrategy: QuotaResetStrategy
+  restrictedProviders: string[]
+  restrictedModels: string[]
 }
 
 export interface UpdateApiKeyInput {
@@ -30,6 +32,8 @@ export interface UpdateApiKeyInput {
   reservedTokens: number
   quotaResetAt: string
   quotaResetStrategy: QuotaResetStrategy
+  restrictedProviders: string[]
+  restrictedModels: string[]
 }
 
 export interface ApiKeyUsage {
@@ -68,7 +72,14 @@ export function parseApiKey(value: unknown): ApiKey {
     quotaUsed: Number(item.quotaUsed ?? item.quota_used ?? 0),
     quotaResetAt: text(item.quotaResetAt ?? item.quota_reset_at),
     quotaResetStrategy: quotaResetStrategy(item.quotaResetStrategy ?? item.quota_reset_strategy),
+    restrictedProviders: stringList(item.restrictedProviders ?? item.restricted_providers),
+    restrictedModels: stringList(item.restrictedModels ?? item.restricted_models),
   }
+}
+
+function stringList(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value.map(text).map((item) => item.trim()).filter(Boolean)
 }
 
 function booleanValue(value: unknown, fallback: boolean): boolean {

@@ -25,13 +25,15 @@ const (
 type ProviderType int32
 
 const (
-	ProviderType_PROVIDER_TYPE_UNSPECIFIED ProviderType = 0
-	ProviderType_PROVIDER_TYPE_CUSTOM      ProviderType = 1
-	ProviderType_PROVIDER_TYPE_OPENAI      ProviderType = 2
-	ProviderType_PROVIDER_TYPE_ANTHROPIC   ProviderType = 3
-	ProviderType_PROVIDER_TYPE_KIMI        ProviderType = 4
-	ProviderType_PROVIDER_TYPE_GROK        ProviderType = 5
-	ProviderType_PROVIDER_TYPE_ANTIGRAVITY ProviderType = 6
+	ProviderType_PROVIDER_TYPE_UNSPECIFIED  ProviderType = 0
+	ProviderType_PROVIDER_TYPE_CUSTOM       ProviderType = 1
+	ProviderType_PROVIDER_TYPE_OPENAI       ProviderType = 2
+	ProviderType_PROVIDER_TYPE_ANTHROPIC    ProviderType = 3
+	ProviderType_PROVIDER_TYPE_KIMI         ProviderType = 4
+	ProviderType_PROVIDER_TYPE_GROK         ProviderType = 5
+	ProviderType_PROVIDER_TYPE_ANTIGRAVITY  ProviderType = 6
+	ProviderType_PROVIDER_TYPE_OPENCODE_ZEN ProviderType = 7
+	ProviderType_PROVIDER_TYPE_OPENCODE_GO  ProviderType = 8
 )
 
 // Enum value maps for ProviderType.
@@ -44,15 +46,19 @@ var (
 		4: "PROVIDER_TYPE_KIMI",
 		5: "PROVIDER_TYPE_GROK",
 		6: "PROVIDER_TYPE_ANTIGRAVITY",
+		7: "PROVIDER_TYPE_OPENCODE_ZEN",
+		8: "PROVIDER_TYPE_OPENCODE_GO",
 	}
 	ProviderType_value = map[string]int32{
-		"PROVIDER_TYPE_UNSPECIFIED": 0,
-		"PROVIDER_TYPE_CUSTOM":      1,
-		"PROVIDER_TYPE_OPENAI":      2,
-		"PROVIDER_TYPE_ANTHROPIC":   3,
-		"PROVIDER_TYPE_KIMI":        4,
-		"PROVIDER_TYPE_GROK":        5,
-		"PROVIDER_TYPE_ANTIGRAVITY": 6,
+		"PROVIDER_TYPE_UNSPECIFIED":  0,
+		"PROVIDER_TYPE_CUSTOM":       1,
+		"PROVIDER_TYPE_OPENAI":       2,
+		"PROVIDER_TYPE_ANTHROPIC":    3,
+		"PROVIDER_TYPE_KIMI":         4,
+		"PROVIDER_TYPE_GROK":         5,
+		"PROVIDER_TYPE_ANTIGRAVITY":  6,
+		"PROVIDER_TYPE_OPENCODE_ZEN": 7,
+		"PROVIDER_TYPE_OPENCODE_GO":  8,
 	}
 )
 
@@ -147,6 +153,7 @@ func (QuotaResetStrategy) EnumDescriptor() ([]byte, []int) {
 type HealthCheckResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	Issues        []string               `protobuf:"bytes,2,rep,name=issues,proto3" json:"issues,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -186,6 +193,13 @@ func (x *HealthCheckResponse) GetStatus() string {
 		return x.Status
 	}
 	return ""
+}
+
+func (x *HealthCheckResponse) GetIssues() []string {
+	if x != nil {
+		return x.Issues
+	}
+	return nil
 }
 
 type SignInRequest struct {
@@ -292,6 +306,7 @@ type CreateProviderRequest struct {
 	ClientSecret  string                 `protobuf:"bytes,4,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
 	UseProxy      bool                   `protobuf:"varint,5,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
 	Proxy         string                 `protobuf:"bytes,6,opt,name=proxy,proto3" json:"proxy,omitempty"`
+	Priority      int32                  `protobuf:"varint,7,opt,name=priority,proto3" json:"priority,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -368,6 +383,13 @@ func (x *CreateProviderRequest) GetProxy() string {
 	return ""
 }
 
+func (x *CreateProviderRequest) GetPriority() int32 {
+	if x != nil {
+		return x.Priority
+	}
+	return 0
+}
+
 type CreateProviderResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
@@ -427,6 +449,7 @@ type CreateProviderAuthorizationRequest struct {
 	CustomUrl     string                 `protobuf:"bytes,3,opt,name=custom_url,json=customUrl,proto3" json:"custom_url,omitempty"`
 	UseProxy      bool                   `protobuf:"varint,7,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
 	Proxy         string                 `protobuf:"bytes,8,opt,name=proxy,proto3" json:"proxy,omitempty"`
+	Priority      int32                  `protobuf:"varint,9,opt,name=priority,proto3" json:"priority,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -494,6 +517,13 @@ func (x *CreateProviderAuthorizationRequest) GetProxy() string {
 		return x.Proxy
 	}
 	return ""
+}
+
+func (x *CreateProviderAuthorizationRequest) GetPriority() int32 {
+	if x != nil {
+		return x.Priority
+	}
+	return 0
 }
 
 type CreateProviderAuthorizationResponse struct {
@@ -915,6 +945,8 @@ type Provider struct {
 	UseProxy      bool                   `protobuf:"varint,7,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
 	Proxy         string                 `protobuf:"bytes,8,opt,name=proxy,proto3" json:"proxy,omitempty"`
 	IsCloudflare  bool                   `protobuf:"varint,9,opt,name=is_cloudflare,json=isCloudflare,proto3" json:"is_cloudflare,omitempty"`
+	Priority      int32                  `protobuf:"varint,10,opt,name=priority,proto3" json:"priority,omitempty"`
+	Disabled      bool                   `protobuf:"varint,11,opt,name=disabled,proto3" json:"disabled,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1008,6 +1040,20 @@ func (x *Provider) GetProxy() string {
 func (x *Provider) GetIsCloudflare() bool {
 	if x != nil {
 		return x.IsCloudflare
+	}
+	return false
+}
+
+func (x *Provider) GetPriority() int32 {
+	if x != nil {
+		return x.Priority
+	}
+	return 0
+}
+
+func (x *Provider) GetDisabled() bool {
+	if x != nil {
+		return x.Disabled
 	}
 	return false
 }
@@ -1189,6 +1235,9 @@ type UpdateProviderRequest struct {
 	ClientSecret  string                 `protobuf:"bytes,5,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
 	UseProxy      bool                   `protobuf:"varint,6,opt,name=use_proxy,json=useProxy,proto3" json:"use_proxy,omitempty"`
 	Proxy         string                 `protobuf:"bytes,7,opt,name=proxy,proto3" json:"proxy,omitempty"`
+	Priority      int32                  `protobuf:"varint,8,opt,name=priority,proto3" json:"priority,omitempty"`
+	Disabled      bool                   `protobuf:"varint,9,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	IsCloudflare  bool                   `protobuf:"varint,10,opt,name=is_cloudflare,json=isCloudflare,proto3" json:"is_cloudflare,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1270,6 +1319,27 @@ func (x *UpdateProviderRequest) GetProxy() string {
 		return x.Proxy
 	}
 	return ""
+}
+
+func (x *UpdateProviderRequest) GetPriority() int32 {
+	if x != nil {
+		return x.Priority
+	}
+	return 0
+}
+
+func (x *UpdateProviderRequest) GetDisabled() bool {
+	if x != nil {
+		return x.Disabled
+	}
+	return false
+}
+
+func (x *UpdateProviderRequest) GetIsCloudflare() bool {
+	if x != nil {
+		return x.IsCloudflare
+	}
+	return false
 }
 
 type UpdateProviderResponse struct {
@@ -1781,18 +1851,20 @@ func (x *GetApiKeyListResponse) GetApiKeys() []*ApiKey {
 }
 
 type ApiKey struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name               string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	IsAdmin            string                 `protobuf:"bytes,3,opt,name=is_admin,json=isAdmin,proto3" json:"is_admin,omitempty"`
-	IsActive           bool                   `protobuf:"varint,4,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
-	QuotaSetted        bool                   `protobuf:"varint,5,opt,name=quota_setted,json=quotaSetted,proto3" json:"quota_setted,omitempty"`
-	ReservedTokens     int64                  `protobuf:"varint,6,opt,name=reserved_tokens,json=reservedTokens,proto3" json:"reserved_tokens,omitempty"`
-	QuotaResetAt       *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=quota_reset_at,json=quotaResetAt,proto3" json:"quota_reset_at,omitempty"`
-	QuotaResetStrategy QuotaResetStrategy     `protobuf:"varint,8,opt,name=quota_reset_strategy,json=quotaResetStrategy,proto3,enum=aoyorouter.docs.api.v1.QuotaResetStrategy" json:"quota_reset_strategy,omitempty"`
-	QuotaUsed          int64                  `protobuf:"varint,9,opt,name=quota_used,json=quotaUsed,proto3" json:"quota_used,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name                string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	IsAdmin             string                 `protobuf:"bytes,3,opt,name=is_admin,json=isAdmin,proto3" json:"is_admin,omitempty"`
+	IsActive            bool                   `protobuf:"varint,4,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	QuotaSetted         bool                   `protobuf:"varint,5,opt,name=quota_setted,json=quotaSetted,proto3" json:"quota_setted,omitempty"`
+	ReservedTokens      int64                  `protobuf:"varint,6,opt,name=reserved_tokens,json=reservedTokens,proto3" json:"reserved_tokens,omitempty"`
+	QuotaResetAt        *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=quota_reset_at,json=quotaResetAt,proto3" json:"quota_reset_at,omitempty"`
+	QuotaResetStrategy  QuotaResetStrategy     `protobuf:"varint,8,opt,name=quota_reset_strategy,json=quotaResetStrategy,proto3,enum=aoyorouter.docs.api.v1.QuotaResetStrategy" json:"quota_reset_strategy,omitempty"`
+	QuotaUsed           int64                  `protobuf:"varint,9,opt,name=quota_used,json=quotaUsed,proto3" json:"quota_used,omitempty"`
+	RestrictedProviders []string               `protobuf:"bytes,10,rep,name=restricted_providers,json=restrictedProviders,proto3" json:"restricted_providers,omitempty"`
+	RestrictedModels    []string               `protobuf:"bytes,11,rep,name=restricted_models,json=restrictedModels,proto3" json:"restricted_models,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *ApiKey) Reset() {
@@ -1886,6 +1958,20 @@ func (x *ApiKey) GetQuotaUsed() int64 {
 		return x.QuotaUsed
 	}
 	return 0
+}
+
+func (x *ApiKey) GetRestrictedProviders() []string {
+	if x != nil {
+		return x.RestrictedProviders
+	}
+	return nil
+}
+
+func (x *ApiKey) GetRestrictedModels() []string {
+	if x != nil {
+		return x.RestrictedModels
+	}
+	return nil
 }
 
 type LogEntry struct {
@@ -2628,33 +2714,36 @@ var File_docs_api_v1_types_proto protoreflect.FileDescriptor
 
 const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\n" +
-	"\x17docs/api/v1/types.proto\x12\x16aoyorouter.docs.api.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"-\n" +
+	"\x17docs/api/v1/types.proto\x12\x16aoyorouter.docs.api.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"E\n" +
 	"\x13HealthCheckResponse\x12\x16\n" +
-	"\x06status\x18\x01 \x01(\tR\x06status\"+\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\x12\x16\n" +
+	"\x06issues\x18\x02 \x03(\tR\x06issues\"+\n" +
 	"\rSignInRequest\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"G\n" +
 	"\x0eSignInResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1d\n" +
 	"\n" +
-	"auth_token\x18\x02 \x01(\tR\tauthToken\"\xda\x01\n" +
+	"auth_token\x18\x02 \x01(\tR\tauthToken\"\xf6\x01\n" +
 	"\x15CreateProviderRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x128\n" +
 	"\x04type\x18\x02 \x01(\x0e2$.aoyorouter.docs.api.v1.ProviderTypeR\x04type\x12\x1b\n" +
 	"\tclient_id\x18\x03 \x01(\tR\bclientId\x12#\n" +
 	"\rclient_secret\x18\x04 \x01(\tR\fclientSecret\x12\x1b\n" +
 	"\tuse_proxy\x18\x05 \x01(\bR\buseProxy\x12\x14\n" +
-	"\x05proxy\x18\x06 \x01(\tR\x05proxy\"Q\n" +
+	"\x05proxy\x18\x06 \x01(\tR\x05proxy\x12\x1a\n" +
+	"\bpriority\x18\a \x01(\x05R\bpriority\"Q\n" +
 	"\x16CreateProviderResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1f\n" +
 	"\vprovider_id\x18\x02 \x01(\tR\n" +
-	"providerId\"\xc4\x01\n" +
+	"providerId\"\xe0\x01\n" +
 	"\"CreateProviderAuthorizationRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x128\n" +
 	"\x04type\x18\x02 \x01(\x0e2$.aoyorouter.docs.api.v1.ProviderTypeR\x04type\x12\x1d\n" +
 	"\n" +
 	"custom_url\x18\x03 \x01(\tR\tcustomUrl\x12\x1b\n" +
 	"\tuse_proxy\x18\a \x01(\bR\buseProxy\x12\x14\n" +
-	"\x05proxy\x18\b \x01(\tR\x05proxy\"\xd9\x01\n" +
+	"\x05proxy\x18\b \x01(\tR\x05proxy\x12\x1a\n" +
+	"\bpriority\x18\t \x01(\x05R\bpriority\"\xd9\x01\n" +
 	"#CreateProviderAuthorizationResponse\x12+\n" +
 	"\x11authorization_url\x18\x01 \x01(\tR\x10authorizationUrl\x12\x14\n" +
 	"\x05state\x18\x02 \x01(\tR\x05state\x12\x1f\n" +
@@ -2687,7 +2776,7 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\rProviderQuota\x12C\n" +
 	"\x06quotas\x18\x01 \x03(\v2+.aoyorouter.docs.api.v1.ProviderQuotaWindowR\x06quotas\x12\x1b\n" +
 	"\tplan_type\x18\x03 \x01(\tR\bplanType\x12\x14\n" +
-	"\x05error\x18\x04 \x01(\tR\x05error\"\xbf\x02\n" +
+	"\x05error\x18\x04 \x01(\tR\x05error\"\xf7\x02\n" +
 	"\bProvider\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x128\n" +
@@ -2697,7 +2786,10 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x05quota\x18\x06 \x01(\v2%.aoyorouter.docs.api.v1.ProviderQuotaR\x05quota\x12\x1b\n" +
 	"\tuse_proxy\x18\a \x01(\bR\buseProxy\x12\x14\n" +
 	"\x05proxy\x18\b \x01(\tR\x05proxy\x12#\n" +
-	"\ris_cloudflare\x18\t \x01(\bR\fisCloudflare\"5\n" +
+	"\ris_cloudflare\x18\t \x01(\bR\fisCloudflare\x12\x1a\n" +
+	"\bpriority\x18\n" +
+	" \x01(\x05R\bpriority\x12\x1a\n" +
+	"\bdisabled\x18\v \x01(\bR\bdisabled\"5\n" +
 	"\x12GetProviderRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\"S\n" +
@@ -2705,7 +2797,7 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\bprovider\x18\x01 \x01(\v2 .aoyorouter.docs.api.v1.ProviderR\bprovider\"\x19\n" +
 	"\x17GetProvidersListRequest\"Z\n" +
 	"\x18GetProvidersListResponse\x12>\n" +
-	"\tproviders\x18\x01 \x03(\v2 .aoyorouter.docs.api.v1.ProviderR\tproviders\"\xfb\x01\n" +
+	"\tproviders\x18\x01 \x03(\v2 .aoyorouter.docs.api.v1.ProviderR\tproviders\"\xd8\x02\n" +
 	"\x15UpdateProviderRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x12\n" +
@@ -2714,7 +2806,11 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\tclient_id\x18\x04 \x01(\tR\bclientId\x12#\n" +
 	"\rclient_secret\x18\x05 \x01(\tR\fclientSecret\x12\x1b\n" +
 	"\tuse_proxy\x18\x06 \x01(\bR\buseProxy\x12\x14\n" +
-	"\x05proxy\x18\a \x01(\tR\x05proxy\"0\n" +
+	"\x05proxy\x18\a \x01(\tR\x05proxy\x12\x1a\n" +
+	"\bpriority\x18\b \x01(\x05R\bpriority\x12\x1a\n" +
+	"\bdisabled\x18\t \x01(\bR\bdisabled\x12#\n" +
+	"\ris_cloudflare\x18\n" +
+	" \x01(\bR\fisCloudflare\"0\n" +
 	"\x16UpdateProviderResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\"8\n" +
 	"\x15DeleteProviderRequest\x12\x1f\n" +
@@ -2743,7 +2839,7 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x06status\x18\x01 \x01(\tR\x06status\"\x16\n" +
 	"\x14GetApiKeyListRequest\"R\n" +
 	"\x15GetApiKeyListResponse\x129\n" +
-	"\bapi_keys\x18\x01 \x03(\v2\x1e.aoyorouter.docs.api.v1.ApiKeyR\aapiKeys\"\xef\x02\n" +
+	"\bapi_keys\x18\x01 \x03(\v2\x1e.aoyorouter.docs.api.v1.ApiKeyR\aapiKeys\"\xcf\x03\n" +
 	"\x06ApiKey\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x19\n" +
@@ -2754,7 +2850,10 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x0equota_reset_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\fquotaResetAt\x12\\\n" +
 	"\x14quota_reset_strategy\x18\b \x01(\x0e2*.aoyorouter.docs.api.v1.QuotaResetStrategyR\x12quotaResetStrategy\x12\x1d\n" +
 	"\n" +
-	"quota_used\x18\t \x01(\x03R\tquotaUsed\"\xd7\x03\n" +
+	"quota_used\x18\t \x01(\x03R\tquotaUsed\x121\n" +
+	"\x14restricted_providers\x18\n" +
+	" \x03(\tR\x13restrictedProviders\x12+\n" +
+	"\x11restricted_models\x18\v \x03(\tR\x10restrictedModels\"\xd7\x03\n" +
 	"\bLogEntry\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x12\x1c\n" +
 	"\n" +
@@ -2809,7 +2908,7 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\vserver_city\x18\x03 \x01(\tR\n" +
 	"serverCity\x12'\n" +
 	"\x0fserver_location\x18\x04 \x01(\tR\x0eserverLocation\x12\x10\n" +
-	"\x03tls\x18\x05 \x01(\tR\x03tls*\xcd\x01\n" +
+	"\x03tls\x18\x05 \x01(\tR\x03tls*\x8c\x02\n" +
 	"\fProviderType\x12\x1d\n" +
 	"\x19PROVIDER_TYPE_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14PROVIDER_TYPE_CUSTOM\x10\x01\x12\x18\n" +
@@ -2817,7 +2916,9 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x17PROVIDER_TYPE_ANTHROPIC\x10\x03\x12\x16\n" +
 	"\x12PROVIDER_TYPE_KIMI\x10\x04\x12\x16\n" +
 	"\x12PROVIDER_TYPE_GROK\x10\x05\x12\x1d\n" +
-	"\x19PROVIDER_TYPE_ANTIGRAVITY\x10\x06*\x82\x02\n" +
+	"\x19PROVIDER_TYPE_ANTIGRAVITY\x10\x06\x12\x1e\n" +
+	"\x1aPROVIDER_TYPE_OPENCODE_ZEN\x10\a\x12\x1d\n" +
+	"\x19PROVIDER_TYPE_OPENCODE_GO\x10\b*\x82\x02\n" +
 	"\x12QuotaResetStrategy\x12$\n" +
 	" QUOTA_RESET_STRATEGY_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cQUOTA_RESET_STRATEGY_MINUTES\x10\x01\x12\x1f\n" +

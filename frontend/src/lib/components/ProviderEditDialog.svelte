@@ -21,10 +21,23 @@
   let authorizationData = $state(initial.clientSecret)
   let useProxy = $state(initial.useProxy)
   let proxy = $state(initial.proxy)
+  let priority = $state(initial.priority)
+  let disabled = $state(initial.disabled)
 
   function submit(event: SubmitEvent) {
     event.preventDefault()
-    void onSubmit({ id: provider.id, name, type, customUrl, authorizationData, useProxy, proxy, isCloudflare: proxy === "" })
+    void onSubmit({
+      id: provider.id,
+      name,
+      type,
+      customUrl,
+      authorizationData,
+      useProxy,
+      proxy,
+      isCloudflare: proxy === '' || (initial.isCloudflare && proxy === initial.proxy),
+      priority,
+      disabled,
+    })
   }
 </script>
 
@@ -48,6 +61,13 @@
       <p class="supporting">Current backend value. Required by update API.</p>
     </div>
     <ProxySettings bind:useProxy bind:proxy idPrefix="edit-provider" disabled={pending} />
+    <div class="form-grid">
+      <div class="field-group"><label for="edit-provider-priority">Priority</label><div class="text-field"><input id="edit-provider-priority" type="number" bind:value={priority} disabled={pending} /></div></div>
+      <label class="switch-row" for="edit-provider-disabled">
+        <span><strong>Disabled</strong><small>Exclude this provider from request routing.</small></span>
+        <input id="edit-provider-disabled" type="checkbox" bind:checked={disabled} disabled={pending} /><i></i>
+      </label>
+    </div>
     {#if error}<p class="form-error" role="alert"><Icon name="warning" size={18} />{error}</p>{/if}
   </div>
   <div class="dialog-actions"><button type="button" class="text-button" onclick={onClose}>Cancel</button><button class="filled" disabled={pending}>{pending ? 'Saving…' : 'Save changes'}</button></div>

@@ -20,7 +20,7 @@
   import type { ApiKey, ApiKeyUsage, UpdateApiKeyInput } from './lib/models/apikey'
   import type { LogEntry } from './lib/models/logentry'
   import type { Endpoint, LiveProxy } from './lib/models/liveproxy'
-  import type { Provider, ProviderModel, UpdateProviderInput } from './lib/models/providers'
+  import { providerUsesApiKey, type Provider, type ProviderModel, type ProviderType, type UpdateProviderInput } from './lib/models/providers'
   import { validateProxy } from './lib/models/proxy'
     import ProxyEditDialog from './lib/components/ProxyEditDialog.svelte';
 
@@ -50,6 +50,7 @@
   let targetKey = $state<ApiKey | null>(null)
   let targetProvider = $state<Provider | null>(null)
   let targetProxy = $state<LiveProxy | null>(null)
+  let providerTogglePending = $state('')
 
   let models = $state<ProviderModel[]>([])
 
@@ -111,7 +112,14 @@
     try {
       switch (nextSection) {
         case 'keys':
-          apiKeys = await client.getApiKeys()
+          const [loadedKeys, loadedProviders, loadedModels] = await Promise.all([
+            client.getApiKeys(),
+            client.getProviders().catch(() => []),
+            client.getModels().catch(() => []),
+          ])
+          apiKeys = loadedKeys
+          providers = loadedProviders
+          models = loadedModels
           break
         case 'providers':
           providers = await client.getProviders()
@@ -248,10 +256,10 @@
   async function generateProviderAuthorization(draft: ProviderDraft) {
     return runDialogAction(async () => {
       const proxy = validateProvider(draft)
-      if (draft.type === 'PROVIDER_TYPE_CUSTOM') {
+      if (providerUsesApiKey(draft.type)) {
         throw new Error('This provider does not use OAuth authorization.')
       }
-      return client.createProviderAuthorization({ name: draft.name.trim(), type: draft.type, customUrl: draft.customUrl.trim(), ...proxy })
+      return client.createProviderAuthorization({ name: draft.name.trim(), type: draft.type as Exclude<ProviderType, 'PROVIDER_TYPE_CUSTOM' | 'PROVIDER_TYPE_OPENCODE_ZEN' | 'PROVIDER_TYPE_OPENCODE_GO'>, customUrl: draft.customUrl.trim(), ...proxy })
     })
   }
 
@@ -291,7 +299,7 @@
   async function createProvider(draft: ProviderDraft) {
     await runDialogAction(async () => {
       const proxy = validateProvider(draft)
-      if (draft.type === 'PROVIDER_TYPE_CUSTOM') {
+      if (providerUsesApiKey(draft.type)) {
         if (!draft.authorizationData.trim()) throw new Error('Add authorization data before saving.')
         await client.createProvider({
           name: draft.name.trim(),
@@ -299,6 +307,8 @@
           customUrl: draft.customUrl.trim(),
           authorizationData: draft.authorizationData.trim(),
           isCloudflare: draft.proxy === "",
+          priority: 0,
+          disabled: false,
           ...proxy
         })
       } else {
@@ -348,6 +358,32 @@
       notice = `“${input.name.trim()}” updated.`
       closeDialog()
     }).catch(() => undefined)
+  }
+
+  async function toggleProviderDisabled(provider: Provider) {
+    if (providerTogglePending) return
+    providerTogglePending = provider.id
+    const disabled = !provider.disabled
+    try {
+      await client.updateProvider({
+        id: provider.id,
+        name: provider.name,
+        type: provider.type,
+        customUrl: provider.customUrl,
+        authorizationData: provider.clientSecret,
+        useProxy: provider.useProxy,
+        proxy: provider.proxy,
+        isCloudflare: provider.isCloudflare,
+        priority: provider.priority,
+        disabled,
+      })
+      providers = providers.map((item) => item.id === provider.id ? { ...item, disabled } : item)
+      notice = `“${provider.name}” ${disabled ? 'disabled' : 'enabled'}.`
+    } catch (error) {
+      pageError = errorMessage(error)
+    } finally {
+      providerTogglePending = ''
+    }
   }
 
   async function updateProxy(input: { id: string, endpoint: string, newEndpoint: string }){
@@ -437,6 +473,8 @@
             onCreate={() => openDialog('provider')}
             onEdit={requestProviderEdit}
             onDelete={requestProviderDelete}
+            onToggleDisabled={toggleProviderDisabled}
+            togglePendingId={providerTogglePending}
           />
         {:else if section === 'proxies'}
           <ProxyList proxies={filteredProxies} {search} onEdit={requestProxyEdit} onClearSearch={() => (search = '')} onCopy={copy} />
@@ -454,7 +492,7 @@
       {#if dialog === 'key'}
         <KeyDialog pending={actionPending} error={dialogError} onSubmit={createKey} onClose={closeDialog} />
       {:else if dialog === 'edit-key' && targetKey}
-        <ApiKeyEditDialog apiKey={targetKey} pending={actionPending} error={dialogError} onSubmit={updateKey} onClose={closeDialog} />
+        <ApiKeyEditDialog apiKey={targetKey} models={models} providers={providers} pending={actionPending} error={dialogError} onSubmit={updateKey} onClose={closeDialog} />
       {:else if dialog === 'secret'}
         <SecretDialog value={createdKey} onCopy={() => copy(createdKey, 'API key copied.')} onClose={closeDialog} />
       {:else if dialog === 'provider'}

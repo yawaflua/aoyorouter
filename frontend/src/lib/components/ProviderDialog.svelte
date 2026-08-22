@@ -3,7 +3,7 @@
   import Icon from '../Icon.svelte'
   import ProxySettings from './ProxySettings.svelte'
   import type { ProviderAuthorization } from '../models/authorization'
-  import type { ProviderType } from '../models/providers'
+  import { providerUsesApiKey, type ProviderType } from '../models/providers'
 
   export interface ProviderDraft {
     name: string
@@ -39,7 +39,7 @@
 
   const draft = $derived<ProviderDraft>({ name, type, customUrl, authorizationData, useProxy, proxy, providerSession })
   const canSubmit = $derived(
-    !pending && (type === 'PROVIDER_TYPE_CUSTOM' && Boolean(authorizationData.trim())),
+    !pending && (providerUsesApiKey(type) && Boolean(authorizationData.trim())),
   )
 
   function resetAuthorization() {
@@ -95,7 +95,7 @@
     </div>
     <ProxySettings bind:useProxy bind:proxy idPrefix="new-provider" disabled={pending} />
 
-    {#if type === 'PROVIDER_TYPE_CUSTOM'}
+    {#if providerUsesApiKey(type)}
       <div class="field-group"><label for="auth-data">Authorization data</label><textarea id="auth-data" bind:value={authorizationData} placeholder="Paste API key or authorization token"></textarea><p class="supporting">Stored by the router and never displayed in the provider list.</p></div>
     {:else}
       <div class="oauth-panel">

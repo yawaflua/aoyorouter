@@ -4,18 +4,26 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	coreauth "github.com/router-for-me/CLIProxyAPI/v7/sdk/cliproxy/auth"
-	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/provider_repo"
+	"github.com/yawaflua/aoyorouter/internal/models"
+	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 )
 
 type ProviderCredentialStore struct {
-	repo *provider_repo.ProviderRepo
+	repo providerCredentialRepository
 }
 
-func NewProviderCredentialStore(repo *provider_repo.ProviderRepo) *ProviderCredentialStore {
+type providerCredentialRepository interface {
+	GetProviders(context.Context) ([]*models.Provider, error)
+	GetProvider(context.Context, string) (*models.Provider, error)
+	UpdateProviderCredentials(context.Context, string, string, map[string]any) (*models.Provider, error)
+}
+
+func NewProviderCredentialStore(repo providerCredentialRepository) *ProviderCredentialStore {
 	return &ProviderCredentialStore{repo: repo}
 }
 
@@ -29,11 +37,21 @@ func (s *ProviderCredentialStore) List(ctx context.Context) ([]*coreauth.Auth, e
 		if provider == nil || len(provider.Credentials) == 0 {
 			continue
 		}
-		credentialType, _ := provider.Credentials["type"].(string)
-		credentialType = strings.TrimSpace(credentialType)
+		if provider.Disabled {
+			continue
+		}
+		credentialType := providerCredentialType(provider)
 		if credentialType == "" {
 			continue
 		}
+		var proxyUrl string
+		if provider.UseProxy && provider.Proxy != "" {
+			proxyUrl = provider.Proxy
+		}
+		credentials := cloneCredentials(provider.Credentials)
+		credentials["type"] = credentialType
+		credentials["provider_id"] = provider.ID
+		credentials["label"] = provider.Name
 		auths = append(auths, &coreauth.Auth{
 			ID:       provider.ID,
 			Provider: credentialType,
@@ -41,13 +59,40 @@ func (s *ProviderCredentialStore) List(ctx context.Context) ([]*coreauth.Auth, e
 			Status:   coreauth.StatusActive,
 			Attributes: map[string]string{
 				coreauth.AttributeSourceBackend: coreauth.AuthSourcePostgres,
+				"priority":                      strconv.Itoa(provider.Priority),
 			},
-			Metadata:  cloneCredentials(provider.Credentials),
+			Metadata:  credentials,
 			CreatedAt: provider.CreatedAt,
 			UpdatedAt: provider.UpdatedAt,
+			ProxyURL:  proxyUrl,
+			Disabled:  provider.Disabled,
 		})
 	}
 	return auths, nil
+}
+
+func providerCredentialType(provider *models.Provider) string {
+	if provider == nil {
+		return ""
+	}
+	if credentialType, _ := provider.Credentials["type"].(string); strings.TrimSpace(credentialType) != "" {
+		return strings.ToLower(strings.TrimSpace(credentialType))
+	}
+
+	switch provider.Type {
+	case aoyorouter.ProviderType_PROVIDER_TYPE_OPENAI:
+		return "codex"
+	case aoyorouter.ProviderType_PROVIDER_TYPE_ANTHROPIC:
+		return "claude"
+	case aoyorouter.ProviderType_PROVIDER_TYPE_KIMI:
+		return "kimi"
+	case aoyorouter.ProviderType_PROVIDER_TYPE_GROK:
+		return "xai"
+	case aoyorouter.ProviderType_PROVIDER_TYPE_ANTIGRAVITY:
+		return "antigravity"
+	default:
+		return ""
+	}
 }
 
 func (s *ProviderCredentialStore) Save(ctx context.Context, auth *coreauth.Auth) (string, error) {

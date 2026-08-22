@@ -67,6 +67,8 @@
               <div><span>Used</span><strong>{formatTokens(key.quotaUsed)}</strong></div>
               <div><span>Resets</span><strong>{key.quotaSet && key.quotaResetStrategy !== 'QUOTA_RESET_STRATEGY_FOREVER' ? formatDateTime(key.quotaResetAt) : 'Never'}</strong></div>
               <div><span>Frequency</span><strong>{key.quotaSet ? quotaResetLabels[key.quotaResetStrategy] : 'No limit'}</strong></div>
+              <div><span>Blocked providers</span><strong>{key.restrictedProviders.length}</strong></div>
+              <div><span>Blocked models</span><strong>{key.restrictedModels.length}</strong></div>
               <button class="tonal" onclick={() => onEdit(key)}>Edit</button>
             </div>
             {#if usageLoading === key.id}

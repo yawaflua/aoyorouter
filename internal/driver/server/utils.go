@@ -68,7 +68,7 @@ func validateProvider(name string, providerType aoyorouter.ProviderType, secret 
 	case aoyorouter.ProviderType_PROVIDER_TYPE_UNSPECIFIED:
 		return status.Error(codes.InvalidArgument, "unsupported provider type")
 
-	case aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM, aoyorouter.ProviderType_PROVIDER_TYPE_OPENAI, aoyorouter.ProviderType_PROVIDER_TYPE_ANTHROPIC, aoyorouter.ProviderType_PROVIDER_TYPE_KIMI, aoyorouter.ProviderType_PROVIDER_TYPE_GROK, aoyorouter.ProviderType_PROVIDER_TYPE_ANTIGRAVITY:
+	case aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM, aoyorouter.ProviderType_PROVIDER_TYPE_OPENAI, aoyorouter.ProviderType_PROVIDER_TYPE_ANTHROPIC, aoyorouter.ProviderType_PROVIDER_TYPE_KIMI, aoyorouter.ProviderType_PROVIDER_TYPE_GROK, aoyorouter.ProviderType_PROVIDER_TYPE_ANTIGRAVITY, aoyorouter.ProviderType_PROVIDER_TYPE_OPENCODE_ZEN, aoyorouter.ProviderType_PROVIDER_TYPE_OPENCODE_GO:
 		return nil
 
 	default:
@@ -82,6 +82,24 @@ func removeString(values []string, target string) []string {
 		if value != target {
 			result = append(result, value)
 		}
+	}
+	return result
+}
+
+func normalizedUniqueStrings(values []string) []string {
+	result := make([]string, 0, len(values))
+	seen := make(map[string]struct{}, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			continue
+		}
+		key := strings.ToLower(value)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		result = append(result, value)
 	}
 	return result
 }

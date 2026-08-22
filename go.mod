@@ -75,6 +75,7 @@ require (
 	github.com/pion/webrtc/v4 v4.2.17 // indirect
 	github.com/redis/go-redis/v9 v9.19.0 // indirect
 	github.com/refraction-networking/utls v1.8.2 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/shahradelahi/wiresocks v0.0.0-20250819105937-eada7aea2058 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect

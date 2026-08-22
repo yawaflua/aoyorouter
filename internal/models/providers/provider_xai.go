@@ -68,15 +68,11 @@ func (x *XAIProvider) RemoveProviderConfig(cfg *config.Config, provider *models.
 
 // AddProviderConfig implements [providers.ProviderConfig].
 func (x *XAIProvider) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
-	var apiKey string
-	if provider.ClientSecret != "oauth:database" && strings.HasPrefix(provider.ClientSecret, "oauth:") {
+	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
 		return
-	} else if !strings.HasPrefix(provider.ClientSecret, "oauth:") {
-		apiKey = provider.ClientSecret
-	} else {
-		apiKey = provider.Credentials["access_token"].(string)
 	}
-	cfg.XAIKey = append(cfg.XAIKey, config.XAIKey{APIKey: apiKey, BaseURL: provider.BaseUrl, Prefix: "grok"})
+
+	cfg.XAIKey = append(cfg.XAIKey, config.XAIKey{APIKey: provider.ClientSecret, BaseURL: provider.BaseUrl, Prefix: "grok"})
 
 }
 

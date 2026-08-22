@@ -598,6 +598,16 @@
         },
         "proxy": {
           "type": "string"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "isCloudflare": {
+          "type": "boolean"
         }
       }
     },
@@ -672,6 +682,18 @@
         "quotaUsed": {
           "type": "string",
           "format": "int64"
+        },
+        "restrictedProviders": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "restrictedModels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -737,6 +759,10 @@
         },
         "proxy": {
           "type": "string"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -784,6 +810,10 @@
         },
         "proxy": {
           "type": "string"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -906,6 +936,12 @@
       "properties": {
         "status": {
           "type": "string"
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -989,6 +1025,13 @@
         },
         "isCloudflare": {
           "type": "boolean"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "disabled": {
+          "type": "boolean"
         }
       }
     },
@@ -1052,7 +1095,9 @@
         "PROVIDER_TYPE_ANTHROPIC",
         "PROVIDER_TYPE_KIMI",
         "PROVIDER_TYPE_GROK",
-        "PROVIDER_TYPE_ANTIGRAVITY"
+        "PROVIDER_TYPE_ANTIGRAVITY",
+        "PROVIDER_TYPE_OPENCODE_ZEN",
+        "PROVIDER_TYPE_OPENCODE_GO"
       ],
       "default": "PROVIDER_TYPE_UNSPECIFIED"
     },

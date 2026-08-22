@@ -16,18 +16,23 @@ import (
 type AccessProvider struct {
 	apikey_repo *apikey_repo.ApiKeyRepo
 	logger      *slog.Logger
+	policies    *AccessPolicyStore
 	userRepo    *user_repo.UserRepo
 }
 
-func NewAccessProvider(apikey_repo *apikey_repo.ApiKeyRepo, logger *slog.Logger, userRepo *user_repo.UserRepo) *AccessProvider {
-	return &AccessProvider{apikey_repo: apikey_repo, logger: logger, userRepo: userRepo}
+func NewAccessProvider(apikey_repo *apikey_repo.ApiKeyRepo, logger *slog.Logger, userRepo *user_repo.UserRepo, policies ...*AccessPolicyStore) *AccessProvider {
+	provider := &AccessProvider{apikey_repo: apikey_repo, logger: logger, userRepo: userRepo}
+	if len(policies) > 0 {
+		provider.policies = policies[0]
+	}
+	return provider
 }
 
 // Authenticate implements [access.Provider].
 func (a AccessProvider) Authenticate(ctx context.Context, r *http.Request) (*access.Result, *access.AuthError) {
 
 	token := strings.TrimSpace(r.Header.Get("x-api-key"))
-
+	
 	if token == "" {
 		authorization := strings.TrimSpace(r.Header.Get("Authorization"))
 		if strings.Contains(authorization, "Password") {
@@ -36,7 +41,6 @@ func (a AccessProvider) Authenticate(ctx context.Context, r *http.Request) (*acc
 				return nil, &access.AuthError{Message: err.Error()}
 			} else {
 				return &access.Result{
-					Provider:  "aoyorouter.AccessProvider.AdminPassword",
 					Principal: "admin",
 				}, nil
 			}
@@ -72,9 +76,13 @@ func (a AccessProvider) Authenticate(ctx context.Context, r *http.Request) (*acc
 		}
 	}
 
+	if a.policies != nil {
+		a.policies.Set(ctx, key.ID, key.RestrictedProviders, key.RestrictedModels)
+	}
+	
+
 	return &access.Result{
 		Principal: key.ID,
-		Provider:  "aoyorouter.AccessProvider",
 	}, nil
 }
 

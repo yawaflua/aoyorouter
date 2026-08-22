@@ -93,6 +93,8 @@ export class ApiClient {
           reservedTokens: String(input.reservedTokens),
           quotaResetAt: input.quotaResetAt || undefined,
           quotaResetStrategy: input.quotaResetStrategy,
+          restrictedProviders: input.restrictedProviders,
+          restrictedModels: input.restrictedModels,
         },
       }),
     })
@@ -126,6 +128,7 @@ export class ApiClient {
         clientSecret: input.authorizationData,
         useProxy: input.useProxy,
         proxy: input.proxy,
+        priority: input.priority,
       }),
     })
     return text(response.providerId ?? response.provider_id)
@@ -141,7 +144,7 @@ export class ApiClient {
 
   async createProviderAuthorization(input: {
     name: string
-    type: Exclude<ProviderType, 'PROVIDER_TYPE_CUSTOM'>
+    type: Exclude<ProviderType, 'PROVIDER_TYPE_CUSTOM' | 'PROVIDER_TYPE_OPENCODE_ZEN' | 'PROVIDER_TYPE_OPENCODE_GO'>
     customUrl: string
     useProxy: boolean
     proxy: string
@@ -189,6 +192,9 @@ export class ApiClient {
         clientSecret: input.authorizationData,
         useProxy: input.useProxy,
         proxy: input.proxy,
+        isCloudflare: input.isCloudflare,
+        priority: input.priority,
+        disabled: input.disabled,
       }),
     })
   }

@@ -9,11 +9,14 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/yawaflua/aoyorouter/frontend"
 	"github.com/yawaflua/aoyorouter/internal/app/provider"
+	"github.com/yawaflua/aoyorouter/internal/crons"
 	"github.com/yawaflua/aoyorouter/internal/driver/middlewares"
+	"github.com/yawaflua/aoyorouter/internal/models/providers"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 	"golang.org/x/sync/errgroup"
 )
@@ -74,6 +77,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initProvider,
 		a.initHttpServer,
 		a.initCPAPI,
+		a.initCrons,
 	}
 
 	for _, dep := range deps {
@@ -85,10 +89,76 @@ func (a *App) initDeps(ctx context.Context) error {
 	return nil
 }
 
+func (a *App) initCrons(ctx context.Context) error {
+	crons := []*crons.Crons{
+		{
+			Name:     "quota_resetter",
+			Interval: "*/5 * * * *",
+			Closer:   a.provider.Closer(),
+			Logger:   a.provider.Logger(),
+			Handler: func() error {
+				apiKeys, err := a.provider.ApiKeyRepo(ctx).GetApiKeys(ctx)
+				if err != nil {
+					a.provider.Logger().Error("Failed to get api keys", "error", err)
+					return err
+				}
+				for _, key := range apiKeys {
+					a.provider.Logger().Debug("Working on api key", "id", key.ID)
+					if key.QuotaResetAt.Before(time.Now()) {
+						if err := a.provider.ApiKeyRepo(ctx).UpdateApiKeyQuota(ctx, key); err != nil {
+							a.provider.Logger().Error("Failed to update api key quota", "id", key.ID, "error", err)
+							return err
+						}
+					}
+				}
+				return nil
+			},
+		},
+		{
+			Name:     "quota_loader",
+			Interval: "*/5 * * * *",
+			Closer:   a.provider.Closer(),
+			Logger:   a.provider.Logger(),
+			Handler: func() error {
+				providers_db, err := a.provider.ProviderRepo(ctx).GetProviders(ctx)
+				if err != nil {
+					a.provider.Logger().Error("Failed to get providers", "error", err)
+					return err
+				}
+				for _, provider := range providers_db {
+					a.provider.Logger().Debug("Working on provider", "id", provider.ID)
+					if provider.Type != aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM {
+						if cfg, err := providers.ProviderOAuthConfig(provider.Type); err != nil {
+							a.provider.Logger().Error("Failed to get provider oauth config", "id", provider.ID, "error", err)
+							return err
+						} else {
+							a.provider.Logger().Debug("Provider oauth config", "id", provider.ID, "config", cfg)
+							quota := cfg.LoadQuota(ctx, provider.Credentials, provider.UseProxy, provider.Proxy)
+							if quota != nil {
+								a.provider.Logger().Debug("Provider quota", "id", provider.ID, "quota", quota)
+								a.provider.Cache().SaveQuota(provider.ID, quota)
+							}
+						}
+					}
+				}
+				return nil
+			},
+		},
+	}
+
+	for _, cron := range crons {
+		if err := cron.Run(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (a *App) initCPAPI(ctx context.Context) error {
 	err := a.provider.InitCPAPI(ctx, a.httpServer.Handler)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	if a.provider.CLIProxyAPI(ctx) == nil {

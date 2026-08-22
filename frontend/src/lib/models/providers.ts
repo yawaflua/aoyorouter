@@ -8,6 +8,8 @@ export type ProviderType =
   | 'PROVIDER_TYPE_KIMI'
   | 'PROVIDER_TYPE_GROK'
   | 'PROVIDER_TYPE_ANTIGRAVITY'
+  | 'PROVIDER_TYPE_OPENCODE_ZEN'
+  | 'PROVIDER_TYPE_OPENCODE_GO'
 
 
 
@@ -21,6 +23,8 @@ export interface Provider {
   proxy: string
   isCloudflare: boolean
   quota: ProviderQuota | null
+  disabled: boolean
+  priority: number
 }
 
 export interface ProviderConnectionInput {
@@ -31,6 +35,8 @@ export interface ProviderConnectionInput {
   useProxy: boolean
   proxy: string
   isCloudflare: boolean
+  priority: number
+  disabled: boolean
 }
 
 export interface UpdateProviderInput extends ProviderConnectionInput {
@@ -49,6 +55,8 @@ export function parseProvider(value: unknown): Provider {
     proxy: text(item.proxy),
     isCloudflare: booleanValue(item.isCloudflare ?? item.is_cloudflare),
     quota: parseQuota(item.quota),
+    priority: Number(item.priority),
+    disabled: booleanValue(item.disabled),
   }
 }
 
@@ -62,7 +70,13 @@ export function providerType(value: unknown): ProviderType {
   if (value === 4 || value === 'PROVIDER_TYPE_KIMI') return 'PROVIDER_TYPE_KIMI'
   if (value === 5 || value === 'PROVIDER_TYPE_GROK') return 'PROVIDER_TYPE_GROK'
   if (value === 6 || value === 'PROVIDER_TYPE_ANTIGRAVITY') return 'PROVIDER_TYPE_ANTIGRAVITY'
+  if (value === 7 || value === 'PROVIDER_TYPE_OPENCODE_ZEN') return 'PROVIDER_TYPE_OPENCODE_ZEN'
+  if (value === 8 || value === 'PROVIDER_TYPE_OPENCODE_GO') return 'PROVIDER_TYPE_OPENCODE_GO'
   return 'PROVIDER_TYPE_CUSTOM'
+}
+
+export function providerUsesApiKey(type: ProviderType): boolean {
+  return type === 'PROVIDER_TYPE_CUSTOM' || type === 'PROVIDER_TYPE_OPENCODE_ZEN' || type === 'PROVIDER_TYPE_OPENCODE_GO'
 }
 
 export function providerTypeAsCLIPROXY(value: ProviderType): string {
@@ -71,6 +85,8 @@ export function providerTypeAsCLIPROXY(value: ProviderType): string {
   if (value === 'PROVIDER_TYPE_KIMI') return 'moonshot'
   if (value === 'PROVIDER_TYPE_GROK') return 'grok'
   if (value === 'PROVIDER_TYPE_ANTIGRAVITY') return 'antigravity'
+  if (value === 'PROVIDER_TYPE_OPENCODE_ZEN') return 'opencode-zen'
+  if (value === 'PROVIDER_TYPE_OPENCODE_GO') return 'opencode-go'
   return 'custom'
 }
 

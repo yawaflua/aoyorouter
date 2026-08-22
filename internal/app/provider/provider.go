@@ -12,6 +12,7 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/user_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/warp"
 	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
+	"github.com/yawaflua/aoyorouter/internal/cache"
 	"github.com/yawaflua/aoyorouter/internal/closer"
 	"github.com/yawaflua/aoyorouter/internal/config"
 	"github.com/yawaflua/aoyorouter/internal/driver/server"
@@ -36,12 +37,21 @@ type P struct {
 	cliproxy_config *cpapi_config.Config
 	usagePlugin     *cliproxyapi.UsagePlugin
 	management      *cliproxyapi.Management
+	cache           *cache.Cache
 
 	warp *warp.Warp
 }
 
 func New() *P {
 	return &P{}
+}
+
+func (p *P) Cache() *cache.Cache {
+	if p.cache == nil {
+		p.cache = cache.NewCache(p.Logger())
+	}
+
+	return p.cache
 }
 
 func (p *P) Config() *config.C {

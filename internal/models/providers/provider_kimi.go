@@ -29,16 +29,11 @@ func (k *KimiProvider) RemoveProviderConfig(cfg *config.Config, provider *models
 
 // AddProviderConfig implements [providers.ProviderConfig].
 func (k *KimiProvider) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
-	var apiKey string
-	if provider.ClientSecret != "oauth:database" && strings.HasPrefix(provider.ClientSecret, "oauth:") {
+	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
 		return
-	} else if !strings.HasPrefix(provider.ClientSecret, "oauth:") {
-		apiKey = provider.ClientSecret
-	} else {
-		apiKey = provider.Credentials["access_token"].(string)
 	}
-	cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{Name: "kimi", BaseURL: provider.BaseUrl, APIKeyEntries: []config.OpenAICompatibilityAPIKey{{APIKey: apiKey}}})
 
+	cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{Name: "kimi", BaseURL: provider.BaseUrl, APIKeyEntries: []config.OpenAICompatibilityAPIKey{{APIKey: provider.ClientSecret}}})
 }
 
 // GetOAuthDefinition implements [providers.ProviderConfig].

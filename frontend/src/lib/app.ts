@@ -49,6 +49,8 @@ export const providerLabels: Record<ProviderType, string> = {
   PROVIDER_TYPE_KIMI: 'Kimi',
   PROVIDER_TYPE_GROK: 'xAI Grok',
   PROVIDER_TYPE_ANTIGRAVITY: 'Google Antigravity',
+  PROVIDER_TYPE_OPENCODE_ZEN: 'OpenCode Zen',
+  PROVIDER_TYPE_OPENCODE_GO: 'OpenCode Go',
 }
 
 export const providerOptions = Object.entries(providerLabels).map(([value, label]) => ({

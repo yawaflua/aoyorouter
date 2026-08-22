@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -16,8 +18,8 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/user_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/warp"
 	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
+	"github.com/yawaflua/aoyorouter/internal/cache"
 	"github.com/yawaflua/aoyorouter/internal/models"
-	provider_conf "github.com/yawaflua/aoyorouter/internal/models/providers"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -36,6 +38,7 @@ type Dependencies struct {
 	Warp           *warp.Warp
 	Management     *cliproxyapi.Management
 	Logger         *slog.Logger
+	Cache          *cache.Cache
 }
 
 type AoyoRouterService struct {
@@ -48,6 +51,7 @@ type AoyoRouterService struct {
 	configMu       sync.Mutex
 	warp           *warp.Warp
 	logger         *slog.Logger
+	cache          *cache.Cache
 	aoyorouter.UnimplementedAoyoRouterServiceServer
 }
 
@@ -79,6 +83,8 @@ func (a *AoyoRouterService) EditApiKey(ctx context.Context, req *aoyorouter.Edit
 	key.IsActive = input.GetIsActive()
 	key.QuotaSetted = input.GetQuotaSetted()
 	key.ReservedTokens = input.GetReservedTokens()
+	key.RestrictedProviders = normalizedUniqueStrings(input.GetRestrictedProviders())
+	key.RestrictedModels = normalizedUniqueStrings(input.GetRestrictedModels())
 	key.QuotaPeriod = period
 	if !key.QuotaSetted {
 		key.ReservedTokens = 0
@@ -229,7 +235,7 @@ func (a *AoyoRouterService) CreateProvider(ctx context.Context, req *aoyorouter.
 		req.ClientId = "https://api.openai.com/v1"
 	}
 
-	provider, err := a.ProviderRepo.CreateProvider(ctx, req.GetName(), int32(req.GetType()), req.GetClientId(), req.GetClientSecret(), req.GetUseProxy(), req.GetProxy(), req.GetProxy() == "")
+	provider, err := a.ProviderRepo.CreateProvider(ctx, req.GetName(), int32(req.GetType()), req.GetClientId(), req.GetClientSecret(), req.GetUseProxy(), req.GetProxy(), req.GetProxy() == "", req.GetPriority())
 
 	if err != nil {
 		return nil, err
@@ -279,11 +285,6 @@ func (a *AoyoRouterService) DeleteProvider(ctx context.Context, req *aoyorouter.
 	if err != nil {
 		return nil, err
 	}
-
-	if err := a.ProviderRepo.DeleteProvider(ctx, req.GetProviderId()); err != nil {
-		return nil, err
-	}
-
 	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
 		return &aoyorouter.DeleteProviderResponse{Status: "ok"}, nil
 	}
@@ -291,6 +292,11 @@ func (a *AoyoRouterService) DeleteProvider(ctx context.Context, req *aoyorouter.
 	if err := a.removeProvider(provider); err != nil {
 		return nil, err
 	}
+
+	if err := a.ProviderRepo.DeleteProvider(ctx, req.GetProviderId()); err != nil {
+		return nil, err
+	}
+
 	return &aoyorouter.DeleteProviderResponse{Status: "ok"}, nil
 }
 
@@ -306,6 +312,8 @@ func (a *AoyoRouterService) GetApiKeyList(ctx context.Context, _ *aoyorouter.Get
 			Id: key.ID, Name: key.Name, IsActive: key.IsActive, QuotaSetted: key.QuotaSetted,
 			ReservedTokens: key.ReservedTokens, QuotaUsed: key.QuotaTokens,
 			QuotaResetAt: timestamppb.New(key.QuotaResetAt), QuotaResetStrategy: quotaResetStrategy(key.QuotaPeriod),
+			RestrictedProviders: append([]string(nil), key.RestrictedProviders...),
+			RestrictedModels:    append([]string(nil), key.RestrictedModels...),
 		})
 	}
 
@@ -332,11 +340,7 @@ func (a *AoyoRouterService) GetProvidersList(ctx context.Context, _ *aoyorouter.
 	for _, provider := range providers {
 		item := providerToProto(provider)
 		if providerOAuthReady(provider.ClientSecret, provider.Credentials) {
-			conf, err := provider_conf.ProviderOAuthConfig(aoyorouter.ProviderType(provider.Type))
-			if err != nil {
-				continue
-			}
-			if quota := conf.LoadQuota(ctx, provider.Credentials, provider.UseProxy, provider.Proxy); quota != nil {
+			if quota, err := a.loadQuota(provider, ctx); err == nil {
 				item.Quota = quota
 			}
 		}
@@ -346,8 +350,50 @@ func (a *AoyoRouterService) GetProvidersList(ctx context.Context, _ *aoyorouter.
 	return &aoyorouter.GetProvidersListResponse{Providers: result}, nil
 }
 
-func (a *AoyoRouterService) HealthCheck(context.Context, *emptypb.Empty) (*aoyorouter.HealthCheckResponse, error) {
-	return &aoyorouter.HealthCheckResponse{Status: "ok"}, nil
+func (a *AoyoRouterService) HealthCheck(ctx context.Context, _ *emptypb.Empty) (*aoyorouter.HealthCheckResponse, error) {
+	issues := make([]string, 0)
+
+	if _, err := a.ProviderRepo.GetProviders(ctx); err != nil {
+		issues = append(issues, "database unreachable: "+err.Error())
+	}
+
+	for _, names := range a.warp.Proxies() {
+		for name, proxy := range names {
+			if _, err := proxy.GetWARPInfo(); err != nil {
+				issues = append(issues, fmt.Sprintf("proxy %s unhealthy: %v", name, err))
+			}
+		}
+	}
+
+	if err := a.checkCPAPIAlive(); err != nil {
+		issues = append(issues, "cliproxyapi unreachable: "+err.Error())
+	} else if providers, err := a.ProviderRepo.GetProviders(ctx); err == nil {
+		for _, provider := range providers {
+			if provider.Disabled || provider.ClientSecret == "" {
+				continue
+			}
+			if provider.ClientSecret == "oauth:pending" {
+				issues = append(issues, fmt.Sprintf("provider %s (%s) authorization is not completed", provider.Name, provider.ID))
+			}
+		}
+	}
+
+	statusText := "ok"
+	if len(issues) > 0 {
+		statusText = "unhealthy"
+	}
+	return &aoyorouter.HealthCheckResponse{Status: statusText, Issues: issues}, nil
+}
+
+func (a *AoyoRouterService) checkCPAPIAlive() error {
+	client := &http.Client{Timeout: 3 * time.Second}
+	url := fmt.Sprintf("http://%s:%d/", a.CPAPIConfig.Host, a.CPAPIConfig.Port+1)
+	response, err := client.Get(url)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+	return nil
 }
 
 func (a *AoyoRouterService) UpdateProvider(ctx context.Context, req *aoyorouter.UpdateProviderRequest) (*aoyorouter.UpdateProviderResponse, error) {
@@ -360,9 +406,17 @@ func (a *AoyoRouterService) UpdateProvider(ctx context.Context, req *aoyorouter.
 		return nil, err
 	}
 
-	provider, err := a.ProviderRepo.UpdateProvider(ctx, req.GetProviderId(), req.GetName(), int32(req.GetType()), req.GetClientId(), req.GetClientSecret(), req.GetUseProxy(), req.GetProxy(), req.GetProxy() == "")
+	provider, err := a.ProviderRepo.UpdateProvider(ctx, req.GetProviderId(), req.GetName(), int32(req.GetType()), req.GetClientId(), req.GetClientSecret(), req.GetUseProxy(), req.GetProxy(), req.GetIsCloudflare(), req.GetPriority(), req.GetDisabled())
 	if err != nil {
 		return nil, err
+	}
+	if len(provider.Credentials) > 0 && a.Management != nil {
+		if err := a.Management.ManagementJSON(ctx, "PATCH", "/v0/management/auth-files/status", nil, map[string]any{
+			"name":     provider.ID,
+			"disabled": provider.Disabled,
+		}, nil); err != nil {
+			return nil, err
+		}
 	}
 
 	a.configMu.Lock()
@@ -385,6 +439,6 @@ func NewAoyoRouterService(deps Dependencies) *AoyoRouterService {
 
 	return &AoyoRouterService{
 		UserRepo: deps.UserRepo, ProviderRepo: deps.ProviderRepo, ApiKeyRepo: deps.ApiKeyRepo, UsageEntryRepo: deps.UsageEntryRepo,
-		CPAPIConfig: deps.CPAPIConfig, Management: deps.Management, warp: deps.Warp, logger: deps.Logger,
+		CPAPIConfig: deps.CPAPIConfig, Management: deps.Management, warp: deps.Warp, logger: deps.Logger, cache: deps.Cache,
 	}
 }

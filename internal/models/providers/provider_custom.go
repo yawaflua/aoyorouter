@@ -20,9 +20,9 @@ type CustomProvider struct {
 
 // RemoveProviderConfig implements [ProviderConfig].
 func (a *CustomProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
-	for index, configured := range cfg.XAIKey {
-		if configured.APIKey == provider.ClientSecret && configured.BaseURL == provider.BaseUrl {
-			cfg.XAIKey = append(cfg.XAIKey[:index], cfg.XAIKey[index+1:]...)
+	for index, configured := range cfg.OpenAICompatibility {
+		if configured.Name == provider.ID && configured.BaseURL == provider.BaseUrl {
+			cfg.OpenAICompatibility = append(cfg.OpenAICompatibility[:index], cfg.OpenAICompatibility[index+1:]...)
 			return
 		}
 	}

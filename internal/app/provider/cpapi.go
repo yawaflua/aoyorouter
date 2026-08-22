@@ -31,7 +31,8 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 		panic("pbHandler is nil")
 	}
 
-	access.RegisterProvider("psql", cliproxyapi.NewAccessProvider(p.ApiKeyRepo(ctx), p.logger, p.UserRepo(ctx)))
+	accessPolicies := cliproxyapi.NewAccessPolicyStore(p.ProviderRepo(ctx))
+	access.RegisterProvider("psql", cliproxyapi.NewAccessProvider(p.ApiKeyRepo(ctx), p.logger, p.UserRepo(ctx), accessPolicies))
 	err := p.registerAllProviders(ctx)
 	if err != nil {
 		return fmt.Errorf("registerAllProviders error: %w", err)
@@ -56,11 +57,17 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 	auth.RegisterTokenStore(credentialStore)
 
 	coreAuthManager := coreauth.NewManager(credentialStore, nil, nil)
+	restrictedSelector := cliproxyapi.NewRestrictedSelector(accessPolicies, nil)
+	coreAuthManager.SetSelector(restrictedSelector)
+	// CLIProxyAPI replaces the selector on every config commit (watcher reload,
+	// management dashboard edits), so we have to re-assert ours.
+	p.startSelectorKeeper(coreAuthManager, restrictedSelector)
 	if err := os.Setenv("MANAGEMENT_PASSWORD", p.Config().InitialPassword); err != nil {
 		return fmt.Errorf("set CLIProxyAPI management password: %w", err)
 	}
 	cliproxy, err := cliproxy.NewBuilder().
 		WithConfig(p.CLIProxyAPIConfig()).
+		WithCoreAuthManager(coreAuthManager).
 		WithAuthManager(auth.NewManager(credentialStore, auth.NewAntigravityAuthenticator(), auth.NewClaudeAuthenticator(), auth.NewCodexAuthenticator(), auth.NewKimiAuthenticator(), auth.NewXAIAuthenticator())).
 		WithPostAuthHook(func(ctx context.Context, record *coreauth.Auth) error {
 			info := coreauth.GetRequestInfo(ctx)
@@ -79,7 +86,6 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 			record.Attributes[coreauth.AttributeSourceBackend] = coreauth.AuthSourcePostgres
 			return nil
 		}).
-		WithCoreAuthManager(coreAuthManager).
 		WithAPIKeyClientProvider(cliproxy.NewAPIKeyClientProvider()).
 		WithLocalManagementPassword(p.Config().InitialPassword).
 		WithServerOptions(api.WithEngineConfigurator(func(e *gin.Engine) {
@@ -176,6 +182,9 @@ func (p *P) registerAllProviders(ctx context.Context) error {
 	}
 
 	for _, provider := range providers {
+		if provider.Disabled {
+			continue
+		}
 		if provider.UseProxy && provider.IsCloudflare {
 			proxy := p.Warp(ctx).CreateProxy(ctx, provider.ID)
 			if proxy != nil {

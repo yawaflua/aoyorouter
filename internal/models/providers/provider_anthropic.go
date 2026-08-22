@@ -40,16 +40,15 @@ func (a *AnthropicProvider) RemoveProviderConfig(cfg *config.Config, provider *m
 
 // AddProviderConfig implements [providers.ProviderConfig].
 func (a *AnthropicProvider) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
-	var apiKey string
-	if provider.ClientSecret != "oauth:database" && strings.HasPrefix(provider.ClientSecret, "oauth:") {
+	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
 		return
-	} else if !strings.HasPrefix(provider.ClientSecret, "oauth:") {
-		apiKey = provider.ClientSecret
-	} else {
-		apiKey = provider.Credentials["access_token"].(string)
 	}
-	cfg.ClaudeKey = append(cfg.ClaudeKey, config.ClaudeKey{APIKey: apiKey, BaseURL: provider.BaseUrl, ProxyURL: provider.Proxy})
-}
+
+	cfg.ClaudeKey = append(cfg.ClaudeKey, config.ClaudeKey{
+		APIKey:   provider.ClientSecret,
+		BaseURL:  provider.BaseUrl,
+		ProxyURL: provider.Proxy,
+	})}
 
 // GetOAuthDefinition implements [providers.ProviderConfig].
 func (a *AnthropicProvider) GetOAuthDefinition() *ProviderOAuthDefinition {
