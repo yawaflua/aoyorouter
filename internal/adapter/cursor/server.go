@@ -42,7 +42,7 @@ func (s *CursorServer) CreateServer(ctx context.Context, cfg cursor.Config, useP
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			s.logger.Error("cursor server error", err)
+			s.logger.Error("cursor server error", slog.Any("error", err))
 		}
 	}()
 	s.closer.Add(func() error {
