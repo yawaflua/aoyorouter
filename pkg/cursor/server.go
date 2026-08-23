@@ -3,6 +3,7 @@ package cursor
 import (
 	"bufio"
 	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -47,7 +48,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	mux.HandleFunc("POST /v1/chat/completions", s.handleChatCompletions)
 
 	s.http = &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.Port),
+		Addr:    fmt.Sprintf("0.0.0.0:%d", cfg.Port),
 		Handler: mux,
 	}
 	return s, nil
@@ -92,8 +93,7 @@ func extractToken(r *http.Request) string {
 	return strings.TrimSpace(token)
 }
 
-func (s *Server) cursorHeaders(r *http.Request, token string, streaming bool) http.Header {
-	checksum := r.Header.Get("x-cursor-checksum")
+func (s *Server) cursorHeaders(checksum, token string, streaming bool) http.Header {
 	if checksum == "" {
 		checksum = Checksum(token)
 	}
@@ -122,54 +122,66 @@ func (s *Server) cursorHeaders(r *http.Request, token string, streaming bool) ht
 	return h
 }
 
-// ---------- /v1/models ----------
+type ModelResponse struct {
+	Id      string
+	Created string
+	Object  string
+	OwnedBy string
+}
 
+func (s *Server) HandleModels(ctx context.Context, token string, checksum string) ([]ModelResponse, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		cursorAPIHost+"/aiserver.v1.AiService/AvailableModels", nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header = s.cursorHeaders(checksum, token, false)
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		s.logger.Error("cursor: AvailableModels request failed", slog.Any("err", err))
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := decodeMaybeGzip(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	names, err := DecodeAvailableModels(body)
+	if err != nil {
+		s.logger.Error("cursor: decode AvailableModels failed", slog.Any("err", err), slog.String("raw", string(body)))
+		return nil, err
+	}
+
+	now := time.Now().UTC().String()
+	var data []ModelResponse
+	for _, name := range names {
+		data = append(data, ModelResponse{
+			Id:      name,
+			Created: now,
+			Object:  "model",
+			OwnedBy: "cursor",
+		})
+	}
+	return data, nil
+}
+
+// ---------- /v1/models ----------
 func (s *Server) handleModels(w http.ResponseWriter, r *http.Request) {
 	token := extractToken(r)
 
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
-		cursorAPIHost+"/aiserver.v1.AiService/AvailableModels", nil)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "internal server error")
-		return
-	}
-	req.Header = s.cursorHeaders(r, token, false)
-
-	resp, err := s.client.Do(req)
-	if err != nil {
-		s.logger.Error("cursor: AvailableModels request failed", slog.Any("err", err))
-		writeError(w, http.StatusInternalServerError, "internal server error")
-		return
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
+	names, err := s.HandleModels(ctx, token, r.Header.Get("x-cursor-checksum"))
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
-	names, err := DecodeAvailableModels(body)
-	if err != nil {
-		s.logger.Error("cursor: decode AvailableModels failed", slog.Any("err", err), slog.String("raw", string(body)))
-		writeError(w, http.StatusInternalServerError, "internal server error")
-		return
-	}
-
-	now := time.Now().Unix()
 	out := map[string]any{"object": "list"}
-	data := make([]map[string]any, 0, len(names))
-	for _, name := range names {
-		data = append(data, map[string]any{
-			"id":       name,
-			"created":  now,
-			"object":   "model",
-			"owned_by": "cursor",
-		})
-	}
-	out["data"] = data
+	out["data"] = names
 	writeJSON(w, http.StatusOK, out)
 }
 
@@ -210,7 +222,7 @@ func (s *Server) handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
-	req.Header = s.cursorHeaders(r, token, true)
+	req.Header = s.cursorHeaders(r.Header.Get("x-cursor-checksum"), token, true)
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -352,6 +364,25 @@ func readFrames(body io.Reader, fn func(thinking, text string)) error {
 		_ = magic
 		fn(thinking, text)
 	}
+}
+
+// decodeMaybeGzip reads the full response body, transparently decompressing
+// gzip. Needed because we set accept-encoding: gzip ourselves in
+// cursorHeaders, so net/http does not auto-decompress.
+func decodeMaybeGzip(resp *http.Response) ([]byte, error) {
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if len(body) > 2 && body[0] == 0x1f && body[1] == 0x8b {
+		zr, err := gzip.NewReader(bytes.NewReader(body))
+		if err != nil {
+			return nil, err
+		}
+		defer zr.Close()
+		return io.ReadAll(zr)
+	}
+	return body, nil
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

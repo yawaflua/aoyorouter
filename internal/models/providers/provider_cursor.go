@@ -2,12 +2,7 @@ package providers
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
 	"log/slog"
-	"net/http"
-	"net/url"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
 	cursor_adapter "github.com/yawaflua/aoyorouter/internal/adapter/cursor"
@@ -45,66 +40,31 @@ func (p *ProviderCursor) AddProviderConfig(ctx context.Context, cfg *config.Conf
 			return
 		}
 	}
+	provider.BaseUrl = server.BaseURL()
 
-	modelUrl, err := url.Parse(fmt.Sprintf("%s/v1/models", provider.BaseUrl))
+	models, err := server.HandleModels(ctx, provider.Credentials["access_token"].(string), "")
 	if err != nil {
-		p.logger.Error("Error when parsing custom provider", slog.Any("err", err), slog.String("url", provider.BaseUrl))
+		p.logger.Error("Error when fetching custom provider models", slog.Any("err", err))
 		return
 	}
-	request := &http.Request{
-		Method: "GET",
-		URL:    modelUrl,
-		Header: map[string][]string{
-			"Authorization": {"Bearer " + provider.Credentials["access_token"].(string)},
-		},
-	}
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil {
-		p.logger.Error("Error when fetching custom provider models", slog.Any("err", err), slog.String("url", modelUrl.String()))
+	if len(models) == 0 {
 		return
 	}
-
-	var models []config.OpenAICompatibilityModel
-	if resp.StatusCode == http.StatusOK {
-		defer resp.Body.Close()
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			p.logger.Error("Error reading response", slog.Any("err", err))
-			return
-		}
-		var modelsCustom struct {
-			Data []struct {
-				ID               string   `json:"id"`
-				Root             string   `json:"root"`
-				Name             string   `json:"name"`
-				InputModalities  []string `json:"input_modalities"`
-				OutputModalities []string `json:"output_modalities"`
-			} `json:"data"`
-		}
-		if err := json.Unmarshal(body, &modelsCustom); err != nil {
-			p.logger.Error("Error when unmarshalling custom provider response", slog.Any("err", err), slog.String("url", modelUrl.String()))
-			return
-		}
-
-		for _, customModel := range modelsCustom.Data {
-			models = append(models, config.OpenAICompatibilityModel{
-				Name:             customModel.ID,
-				Alias:            customModel.Root,
-				InputModalities:  customModel.InputModalities,
-				OutputModalities: customModel.OutputModalities,
-				DisplayName:      customModel.Name,
-			})
-		}
+	var customModels []config.OpenAICompatibilityModel
+	for _, model := range models {
+		customModels = append(customModels, config.OpenAICompatibilityModel{
+			Name: model.Id,
+		})
 	}
 
 	cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{
-		Name:    provider.Name,
+		Name:    provider.ID,
 		BaseURL: server.BaseURL() + "/v1",
 		Prefix:  "cursor",
 		APIKeyEntries: []config.OpenAICompatibilityAPIKey{
 			{APIKey: provider.ClientSecret},
 		},
-		Models: models,
+		Models: customModels,
 	})
 }
 
@@ -113,7 +73,7 @@ func (p *ProviderCursor) GetOAuthDefinition() *ProviderOAuthDefinition {
 	return &ProviderOAuthDefinition{
 		Provider:           "cursor",
 		CredentialProvider: "cursor",
-		DefaultURL:         "https://api2.cursor.sh/",
+		DefaultURL:         "https://api2.cursor.sh",
 		Callback:           false,
 	}
 }

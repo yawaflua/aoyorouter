@@ -96,6 +96,19 @@ export function providerTypeAsCLIPROXY(value: ProviderType): string {
   return 'custom'
 }
 
+export function providerTypeAsPrefix(value: ProviderType): string {
+  if (value === 'PROVIDER_TYPE_OPENAI') return 'openai'
+  if (value === 'PROVIDER_TYPE_ANTHROPIC') return 'claude'
+  if (value === 'PROVIDER_TYPE_KIMI') return 'moonshot'
+  if (value === 'PROVIDER_TYPE_GROK') return 'grok'
+  if (value === 'PROVIDER_TYPE_ANTIGRAVITY') return 'antigravity'
+  if (value === 'PROVIDER_TYPE_OPENCODE_ZEN') return 'opencode'
+  if (value === 'PROVIDER_TYPE_OPENCODE_GO') return 'opencode'
+  if (value === 'PROVIDER_TYPE_CLINE') return 'cline-pass'
+  if (value === 'PROVIDER_TYPE_CURSOR') return 'cursor'
+  return 'custom'
+}
+
 export interface ProviderModel {
   created: number | null
   id: string

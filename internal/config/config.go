@@ -12,6 +12,8 @@ type C struct {
 
 	InitialPassword string `env:"INITIAL_PASSWORD" env-default:""`
 	WarpLimit       int    `env:"WARP_LIMIT" env-default:"10"`
+	NotUseCloudflare bool   `env:"ILL_NOT_USE_CLOUDFLARE_REALLY_NOT_NEEDED" env-default:"false"`
+	
 
 	GRPC     GRPCConfig
 	HTTP     HTTPConfig

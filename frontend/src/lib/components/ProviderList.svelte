@@ -2,7 +2,7 @@
   import { providerLabels } from '../app'
   import { quotaLabel, quotaReset } from '../format'
   import Icon from '../Icon.svelte'
-  import { providerTypeAsCLIPROXY, type Provider, type ProviderModel } from '../models/providers'
+  import { providerTypeAsCLIPROXY, providerTypeAsPrefix, type Provider, type ProviderModel } from '../models/providers'
 
   interface Props {
     providers: Provider[]
@@ -30,7 +30,7 @@
 
   function filteredModels(provider: Provider): ProviderModel[] {
     return models.filter(
-      (model) => (model.owned_by === providerTypeAsCLIPROXY(provider.type) || model.owned_by === provider.id) && model.id.startsWith(providerTypeAsCLIPROXY(provider.type))
+      (model) => (model.owned_by === providerTypeAsCLIPROXY(provider.type) || model.owned_by === provider.id) && model.id.startsWith(providerTypeAsPrefix(provider.type) + '/')
     ).sort((a, b) => a.id.localeCompare(b.id, undefined, { sensitivity: 'base' }));
   }
 </script>

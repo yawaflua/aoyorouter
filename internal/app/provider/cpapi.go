@@ -116,6 +116,7 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 		WithConfigPath("config.yaml").
 		Build()
 	p.cliproxy.RegisterUsagePlugin(p.UsagePlugin(ctx))
+	
 	if err != nil {
 		p.logger.Error("failed to create CLIProxyAPI", "error", err)
 		panic("failed to create CLIProxyAPI")
@@ -135,6 +136,17 @@ func (p *P) CLIProxyAPI(ctx context.Context) *cliproxy.Service {
 		panic("provider.CLIProxyAPI method was called before provider.InitCPAPI")
 	}
 	return p.cliproxy
+}
+
+func (p *P) RestartCPAPI(ctx context.Context) error {
+	if p.cliproxy == nil {
+		return nil
+	}
+	if err := p.cliproxy.Shutdown(ctx); err != nil {
+		return err
+	}
+	err := p.cliproxy.Run(ctx)
+	return err
 }
 
 func (p *P) CLIProxyAPIConfig() *config.Config {

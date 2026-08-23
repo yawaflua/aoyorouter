@@ -276,7 +276,7 @@
       let submitted = callbackSubmitted
       let result
       if (auth.flow === 'callback' && !submitted) {
-        result = await client.completeProviderAuthorization(auth.state, draft.authorizationData.trim(), proxy.useProxy, proxy.proxy)
+        result = await client.completeProviderAuthorization(auth.state, draft.authorizationData.trim(), proxy.useProxy, proxy.proxy, draft.type)
         submitted = true
       } else {
         result = await client.getProviderAuthorizationStatus(auth.state, proxy.useProxy, proxy.proxy)

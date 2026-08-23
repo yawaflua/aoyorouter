@@ -41,6 +41,7 @@ type Dependencies struct {
 	Logger         *slog.Logger
 	Cache          *cache.Cache
 	ProviderVendor *providers.ProviderVendor
+	CpapiRestarter func(ctx context.Context) error
 }
 
 type AoyoRouterService struct {
@@ -55,6 +56,7 @@ type AoyoRouterService struct {
 	logger         *slog.Logger
 	cache          *cache.Cache
 	providerVendor *providers.ProviderVendor
+	cpapiRestarter func(ctx context.Context) error
 	aoyorouter.UnimplementedAoyoRouterServiceServer
 }
 
@@ -287,9 +289,6 @@ func (a *AoyoRouterService) DeleteProvider(ctx context.Context, req *aoyorouter.
 	if err != nil {
 		return nil, err
 	}
-	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
-		return &aoyorouter.DeleteProviderResponse{Status: "ok"}, nil
-	}
 
 	if err := a.removeProvider(provider); err != nil {
 		return nil, err
@@ -447,6 +446,6 @@ func NewAoyoRouterService(deps Dependencies) *AoyoRouterService {
 	return &AoyoRouterService{
 		UserRepo: deps.UserRepo, ProviderRepo: deps.ProviderRepo, ApiKeyRepo: deps.ApiKeyRepo, UsageEntryRepo: deps.UsageEntryRepo,
 		CPAPIConfig: deps.CPAPIConfig, Management: deps.Management, warp: deps.Warp, logger: deps.Logger, cache: deps.Cache,
-		providerVendor: deps.ProviderVendor,
+		providerVendor: deps.ProviderVendor, cpapiRestarter: deps.CpapiRestarter,
 	}
 }

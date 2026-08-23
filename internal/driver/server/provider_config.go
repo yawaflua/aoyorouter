@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
 	"github.com/yawaflua/aoyorouter/internal/models"
@@ -35,10 +36,17 @@ func (a *AoyoRouterService) addProvider(provider *models.Provider, ctx context.C
 	a.configMu.Lock()
 	defer a.configMu.Unlock()
 	a.addProviderConfig(ctx, a.CPAPIConfig, provider)
-	return config.SaveConfigPreserveComments(cpapiConfigPath, a.CPAPIConfig)
+	err := config.SaveConfigPreserveComments(cpapiConfigPath, a.CPAPIConfig)
+	if err != nil {
+		return err
+	}
+	return a.cpapiRestarter(ctx)
 }
 
 func (a *AoyoRouterService) removeProvider(provider *models.Provider) error {
+	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
+		return nil
+	}
 	a.configMu.Lock()
 	defer a.configMu.Unlock()
 	a.removeProviderConfig(a.CPAPIConfig, provider)

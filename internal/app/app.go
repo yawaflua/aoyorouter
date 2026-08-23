@@ -106,7 +106,6 @@ func (a *App) initCrons(ctx context.Context) error {
 					if key.QuotaResetAt.Before(time.Now()) {
 						if err := a.provider.ApiKeyRepo(ctx).UpdateApiKeyQuota(ctx, key); err != nil {
 							a.provider.Logger().Error("Failed to update api key quota", "id", key.ID, "error", err)
-							return err
 						}
 					}
 				}
@@ -129,7 +128,6 @@ func (a *App) initCrons(ctx context.Context) error {
 					if provider.Type != aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM && !provider.Disabled {
 						if cfg, err := a.provider.ProviderVendor(ctx).ProviderOAuthConfig(provider.Type); err != nil {
 							a.provider.Logger().Error("Failed to get provider oauth config", "id", provider.ID, "error", err)
-							return err
 						} else {
 							a.provider.Logger().Debug("Provider oauth config", "id", provider.ID, "config", cfg)
 							quota := cfg.LoadQuota(ctx, provider.Credentials, provider.UseProxy, provider.Proxy)

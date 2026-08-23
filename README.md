@@ -172,6 +172,7 @@ Common environment variables:
 | `POSTGRES_SSL` | `disable` | PostgreSQL SSL mode |
 | `WARP_LIMIT` | `10` | Maximum managed WARP proxy count |
 | `RUN_MIGRATIONS` | `true` in container | Run Goose migrations before container startup |
+| `ILL_NOT_USE_CLOUDFLARE_REALLY_NOT_NEEDED` | `false` | Skips getting cf endpoints, improves startup speed, but proxies will not work |
 
 Do not expose dashboard or gateway publicly with default database credentials or weak `INITIAL_PASSWORD`. Put TLS-enabled reverse proxy in front for internet-facing deployments.
 

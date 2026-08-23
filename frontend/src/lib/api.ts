@@ -168,10 +168,11 @@ export class ApiClient {
     callbackUrl: string,
     useProxy: boolean,
     proxy: string,
+    type: ProviderType,
   ): Promise<ProviderAuthorizationStatus> {
     const response = await this.request('/api/aoyo/v1/providers/authorize/complete', {
       method: 'POST',
-      body: JSON.stringify({ state, callbackUrl, useProxy, proxy }),
+      body: JSON.stringify({ state, callbackUrl, useProxy, proxy, type }),
     })
     return parseAuthorizationStatus(response)
   }

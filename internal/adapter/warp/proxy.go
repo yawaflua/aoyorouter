@@ -23,23 +23,27 @@ type Warp struct {
 }
 
 func New(ctx context.Context, logger *slog.Logger, closer *closer.C, config *config.C) *Warp {
-	identity, err := clwarp.GenerateIdentity("proxy/startup")
-	if err != nil {
-		panic(err)
-	}
-	endpoints, err := identity.Scan(ctx, clwarp.ScanOptions{
-		IPv4:    true,
-		IPv6:    true,
-		Limit:   config.WarpLimit,
-		Timeout: time.Second * 10,
-		MaxRTT:  time.Second * 10,
-	})
-	if err != nil {
-		panic(err)
-	}
 	endpointList := make(map[clwarp.Endpoint]bool)
-	for _, endpoint := range endpoints {
-		endpointList[endpoint] = false
+	if config.NotUseCloudflare {
+		logger.Warn("aoyorouter will not use cloudflare. endpoints will not be scanned.")
+	} else {
+		identity, err := clwarp.GenerateIdentity("proxy/startup")
+		if err != nil {
+			panic(err)
+		}
+		endpoints, err := identity.Scan(ctx, clwarp.ScanOptions{
+			IPv4:    true,
+			IPv6:    true,
+			Limit:   config.WarpLimit,
+			Timeout: time.Second * 10,
+			MaxRTT:  time.Second * 10,
+		})
+		if err != nil {
+			panic(err)
+		}
+		for _, endpoint := range endpoints {
+			endpointList[endpoint] = false
+		}
 	}
 
 	return &Warp{

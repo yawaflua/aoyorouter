@@ -87,6 +87,7 @@ func (p *P) Server(ctx context.Context) *server.AoyoRouterService {
 			Logger:         p.Logger(),
 			Cache:          p.Cache(),
 			ProviderVendor: p.ProviderVendor(ctx),
+			CpapiRestarter: p.RestartCPAPI,
 		})
 	}
 

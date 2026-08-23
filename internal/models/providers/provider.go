@@ -51,7 +51,7 @@ func (p *ProviderVendor) ProviderOAuthConfig(providerType aoyorouter.ProviderTyp
 	case aoyorouter.ProviderType_PROVIDER_TYPE_GROK:
 		return NewXAIProvider(p.logger), nil
 	case aoyorouter.ProviderType_PROVIDER_TYPE_ANTIGRAVITY:
-		return NewAnthropicProvider(p.logger), nil
+		return NewAntigravityProvider(p.logger), nil
 	case aoyorouter.ProviderType_PROVIDER_TYPE_OPENAI:
 		return NewCodexProvider(p.logger), nil
 	case aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM:

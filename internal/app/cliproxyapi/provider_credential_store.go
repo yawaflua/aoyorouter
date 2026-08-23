@@ -14,7 +14,7 @@ import (
 )
 
 type ProviderCredentialStore struct {
-	repo providerCredentialRepository
+	repo   providerCredentialRepository
 	vendor *providers.ProviderVendor
 }
 
@@ -77,15 +77,12 @@ func (s *ProviderCredentialStore) providerCredentialType(provider *models.Provid
 	if provider == nil {
 		return ""
 	}
-	if credentialType, _ := provider.Credentials["type"].(string); strings.TrimSpace(credentialType) != "" {
-		return strings.ToLower(strings.TrimSpace(credentialType))
-	}
 
 	cfg, err := s.vendor.ProviderOAuthConfig(provider.Type)
 	if err != nil {
 		return ""
 	}
-	return cfg.GetOAuthDefinition().Provider
+	return cfg.GetOAuthDefinition().CredentialProvider
 }
 
 func (s *ProviderCredentialStore) Save(ctx context.Context, auth *coreauth.Auth) (string, error) {

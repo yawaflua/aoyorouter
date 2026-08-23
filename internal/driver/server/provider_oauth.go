@@ -41,9 +41,6 @@ func (a *AoyoRouterService) CreateProviderAuthorization(ctx context.Context, req
 
 	query := url.Values{}
 	query.Set("provider_id", provider.ID)
-	if definition.GetOAuthDefinition().Callback {
-		query.Set("is_webui", "true")
-	}
 	var response cliproxyapi.ManagementAuthorization
 	if err := a.Management.ManagementJSON(ctx, http.MethodGet, definition.GetOAuthDefinition().Endpoint, query, nil, &response); err != nil {
 		_ = a.ProviderRepo.DeleteProvider(ctx, provider.ID)
@@ -65,10 +62,7 @@ func (a *AoyoRouterService) CompleteProviderAuthorization(ctx context.Context, r
 
 	provider, _, ok := a.providerOAuthSession(state)
 	if !ok {
-		return nil, status.Error(codes.NotFound, "authorization session was not found or expired")
-	}
-	if ok {
-		return &aoyorouter.ProviderAuthorizationStatusResponse{Status: "ok", ProviderId: provider}, nil
+		return &aoyorouter.ProviderAuthorizationStatusResponse{Status: "error", Error: "authorization session was not found or expired. Check provider list or recreate"}, nil
 	}
 
 	if completed, err := a.completeStoredProviderAuthorization(ctx, state, provider); err != nil {
@@ -76,6 +70,7 @@ func (a *AoyoRouterService) CompleteProviderAuthorization(ctx context.Context, r
 	} else if completed {
 		return &aoyorouter.ProviderAuthorizationStatusResponse{Status: "ok", ProviderId: provider}, nil
 	}
+
 	if conf, err := a.providerVendor.ProviderOAuthConfig(req.Type); err != nil {
 		return nil, err
 	} else if !conf.GetOAuthDefinition().Callback {
@@ -143,6 +138,7 @@ func (a *AoyoRouterService) providerAuthorizationStatus(ctx context.Context, sta
 		if !completed {
 			return nil, status.Error(codes.Internal, "authorization completed but credentials could not be found")
 		}
+
 		return &aoyorouter.ProviderAuthorizationStatusResponse{Status: "ok", ProviderId: provider}, nil
 	default:
 		return nil, status.Errorf(codes.Internal, "unexpected authorization status %q", session)
