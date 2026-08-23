@@ -10,6 +10,7 @@ export type ProviderType =
   | 'PROVIDER_TYPE_ANTIGRAVITY'
   | 'PROVIDER_TYPE_OPENCODE_ZEN'
   | 'PROVIDER_TYPE_OPENCODE_GO'
+  | 'PROVIDER_TYPE_CLINE'
 
 
 
@@ -72,11 +73,12 @@ export function providerType(value: unknown): ProviderType {
   if (value === 6 || value === 'PROVIDER_TYPE_ANTIGRAVITY') return 'PROVIDER_TYPE_ANTIGRAVITY'
   if (value === 7 || value === 'PROVIDER_TYPE_OPENCODE_ZEN') return 'PROVIDER_TYPE_OPENCODE_ZEN'
   if (value === 8 || value === 'PROVIDER_TYPE_OPENCODE_GO') return 'PROVIDER_TYPE_OPENCODE_GO'
+  if (value === 9 || value === 'PROVIDER_TYPE_CLINE') return 'PROVIDER_TYPE_CLINE'
   return 'PROVIDER_TYPE_CUSTOM'
 }
 
 export function providerUsesApiKey(type: ProviderType): boolean {
-  return type === 'PROVIDER_TYPE_CUSTOM' || type === 'PROVIDER_TYPE_OPENCODE_ZEN' || type === 'PROVIDER_TYPE_OPENCODE_GO'
+  return type === 'PROVIDER_TYPE_CUSTOM' || type === 'PROVIDER_TYPE_OPENCODE_ZEN' || type === 'PROVIDER_TYPE_OPENCODE_GO' || type === 'PROVIDER_TYPE_CLINE'
 }
 
 export function providerTypeAsCLIPROXY(value: ProviderType): string {
@@ -85,8 +87,9 @@ export function providerTypeAsCLIPROXY(value: ProviderType): string {
   if (value === 'PROVIDER_TYPE_KIMI') return 'moonshot'
   if (value === 'PROVIDER_TYPE_GROK') return 'grok'
   if (value === 'PROVIDER_TYPE_ANTIGRAVITY') return 'antigravity'
-  if (value === 'PROVIDER_TYPE_OPENCODE_ZEN') return 'opencode-zen'
-  if (value === 'PROVIDER_TYPE_OPENCODE_GO') return 'opencode-go'
+  if (value === 'PROVIDER_TYPE_OPENCODE_ZEN') return 'opencode'
+  if (value === 'PROVIDER_TYPE_OPENCODE_GO') return 'opencode'
+  if (value === 'PROVIDER_TYPE_CLINE') return 'cline'
   return 'custom'
 }
 

@@ -80,6 +80,7 @@ enum ProviderType {
     PROVIDER_TYPE_ANTIGRAVITY = 6;
     PROVIDER_TYPE_OPENCODE_ZEN = 7;
     PROVIDER_TYPE_OPENCODE_GO = 8;
+    PROVIDER_TYPE_CLINE = 9;
 }
 
 message ProviderQuotaWindow {

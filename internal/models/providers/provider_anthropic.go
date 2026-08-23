@@ -30,8 +30,12 @@ type anthropicUsageResponse struct {
 
 // RemoveProviderConfig implements [ProviderConfig].
 func (a *AnthropicProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
+	apiKey := provider.ClientSecret
+	if strings.HasPrefix(apiKey, "oauth:") {
+		apiKey = provider.Credentials["access_token"].(string)
+	}
 	for index, key := range cfg.ClaudeKey {
-		if key.APIKey == provider.ClientSecret && key.BaseURL == provider.BaseUrl {
+		if key.APIKey == apiKey && key.BaseURL == provider.BaseUrl {
 			cfg.ClaudeKey = append(cfg.ClaudeKey[:index], cfg.ClaudeKey[index+1:]...)
 			return
 		}
@@ -48,7 +52,9 @@ func (a *AnthropicProvider) AddProviderConfig(ctx context.Context, cfg *config.C
 		APIKey:   provider.ClientSecret,
 		BaseURL:  provider.BaseUrl,
 		ProxyURL: provider.Proxy,
-	})}
+		Prefix:   "anthropic",
+	})
+}
 
 // GetOAuthDefinition implements [providers.ProviderConfig].
 func (a *AnthropicProvider) GetOAuthDefinition() *ProviderOAuthDefinition {

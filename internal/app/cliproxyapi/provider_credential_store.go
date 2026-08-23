@@ -10,7 +10,7 @@ import (
 
 	coreauth "github.com/router-for-me/CLIProxyAPI/v7/sdk/cliproxy/auth"
 	"github.com/yawaflua/aoyorouter/internal/models"
-	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
+	"github.com/yawaflua/aoyorouter/internal/models/providers"
 )
 
 type ProviderCredentialStore struct {
@@ -66,6 +66,7 @@ func (s *ProviderCredentialStore) List(ctx context.Context) ([]*coreauth.Auth, e
 			UpdatedAt: provider.UpdatedAt,
 			ProxyURL:  proxyUrl,
 			Disabled:  provider.Disabled,
+			Prefix:    credentialType,
 		})
 	}
 	return auths, nil
@@ -79,20 +80,11 @@ func providerCredentialType(provider *models.Provider) string {
 		return strings.ToLower(strings.TrimSpace(credentialType))
 	}
 
-	switch provider.Type {
-	case aoyorouter.ProviderType_PROVIDER_TYPE_OPENAI:
-		return "codex"
-	case aoyorouter.ProviderType_PROVIDER_TYPE_ANTHROPIC:
-		return "claude"
-	case aoyorouter.ProviderType_PROVIDER_TYPE_KIMI:
-		return "kimi"
-	case aoyorouter.ProviderType_PROVIDER_TYPE_GROK:
-		return "xai"
-	case aoyorouter.ProviderType_PROVIDER_TYPE_ANTIGRAVITY:
-		return "antigravity"
-	default:
+	cfg, err := providers.ProviderOAuthConfig(provider.Type)
+	if err != nil {
 		return ""
 	}
+	return cfg.GetOAuthDefinition().Provider
 }
 
 func (s *ProviderCredentialStore) Save(ctx context.Context, auth *coreauth.Auth) (string, error) {

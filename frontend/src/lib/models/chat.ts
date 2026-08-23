@@ -1,9 +1,16 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 
+export interface ContentBlock {
+  type: 'text' | 'image'
+  text?: string
+  source?: { type: 'base64'; media_type: string; data: string }
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   thinking?: string
+  attachments?: string[]
 }
 
 export interface ChatStreamHandlers {
@@ -12,15 +19,51 @@ export interface ChatStreamHandlers {
   onDone: () => void
 }
 
+export const MAX_TOKENS = 65536
+
+export async function readFile(file: File): Promise<ContentBlock & { name: string }> {
+  if (file.type.startsWith('image/')) {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result))
+      reader.onerror = () => reject(new ChatError(`Could not read ${file.name}.`))
+      reader.readAsDataURL(file)
+    })
+    const base64 = dataUrl.slice(dataUrl.indexOf(',') + 1)
+    return {
+      name: file.name,
+      type: 'image',
+      source: { type: 'base64', media_type: file.type || 'image/png', data: base64 },
+    }
+  }
+  const text = await file.text()
+  return {
+    name: file.name,
+    type: 'text',
+    text: `<file name="${file.name}">\n${text}\n</file>`,
+  }
+}
+
 export class ChatError extends Error {}
 
 export async function streamChat(
   password: string,
   model: string,
   messages: ChatMessage[],
+  attachments: (ContentBlock & { name: string })[] | undefined,
   handlers: ChatStreamHandlers,
   signal: AbortSignal,
 ): Promise<void> {
+  const lastUser = messages[messages.length - 1]?.content || ''
+  const userContent: string | ContentBlock[] =
+    attachments && attachments.length > 0
+      ? [{ type: 'text', text: lastUser }, ...attachments.map(({ name, ...block }) => block)]
+      : lastUser
+  const apiMessages = [
+    ...messages.slice(0, -1).map(({ role, content }) => ({ role, content })),
+    { role: 'user' as const, content: userContent },
+  ]
+
   let response: Response
   try {
     response = await fetch(`${API_BASE_URL}/v1/messages`, {
@@ -30,7 +73,7 @@ export async function streamChat(
         Accept: 'text/event-stream',
         Authorization: `Password ${password}`,
       },
-      body: JSON.stringify({ model, max_tokens: 8192, stream: true, messages }),
+      body: JSON.stringify({ model, max_tokens: MAX_TOKENS, stream: true, messages: apiMessages }),
       signal,
     })
   } catch (error) {

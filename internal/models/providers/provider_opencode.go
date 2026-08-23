@@ -39,7 +39,7 @@ func (p *OpencodeGoProvider) RemoveProviderConfig(cfg *config.Config, provider *
 
 func removeOpenAICompatibilityConfig(cfg *config.Config, provider *models.Provider) {
 	for index, configured := range cfg.OpenAICompatibility {
-		if configured.Name == provider.ID && configured.BaseURL == provider.BaseUrl {
+		if configured.Name == provider.ID && configured.BaseURL == provider.BaseUrl && configured.APIKeyEntries[0].APIKey == provider.ClientSecret {
 			cfg.OpenAICompatibility = append(cfg.OpenAICompatibility[:index], cfg.OpenAICompatibility[index+1:]...)
 			return
 		}
@@ -117,6 +117,7 @@ func addOpencodeProviderConfig(logger *slog.Logger, cfg *config.Config, provider
 		config.OpenAICompatibility{
 			Name:    provider.ID,
 			BaseURL: baseURL,
+			Prefix:  "opencode",
 			APIKeyEntries: []config.OpenAICompatibilityAPIKey{
 				{APIKey: provider.ClientSecret},
 			},

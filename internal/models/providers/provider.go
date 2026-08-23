@@ -44,8 +44,10 @@ func ProviderOAuthConfig(providerType aoyorouter.ProviderType) (ProviderConfig, 
 		return &OpencodeZenProvider{}, nil
 	case aoyorouter.ProviderType_PROVIDER_TYPE_OPENCODE_GO:
 		return &OpencodeGoProvider{}, nil
+	case aoyorouter.ProviderType_PROVIDER_TYPE_CLINE:
+		return &ProviderCline{}, nil
 	default:
-		return nil, status.Error(codes.InvalidArgument, "provider does not support this authorization flow")
+		return nil, status.Error(codes.InvalidArgument, "provider is not supported")
 	}
 }
 

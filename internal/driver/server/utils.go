@@ -59,23 +59,6 @@ func providerOAuthReady(clientSecret string, credentials map[string]any) bool {
 	return providerCredentialsCompleted(credentials)
 }
 
-func validateProvider(name string, providerType aoyorouter.ProviderType, secret string) error {
-	if name == "" || secret == "" {
-		return status.Error(codes.InvalidArgument, "name and client_secret are required")
-	}
-
-	switch providerType {
-	case aoyorouter.ProviderType_PROVIDER_TYPE_UNSPECIFIED:
-		return status.Error(codes.InvalidArgument, "unsupported provider type")
-
-	case aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM, aoyorouter.ProviderType_PROVIDER_TYPE_OPENAI, aoyorouter.ProviderType_PROVIDER_TYPE_ANTHROPIC, aoyorouter.ProviderType_PROVIDER_TYPE_KIMI, aoyorouter.ProviderType_PROVIDER_TYPE_GROK, aoyorouter.ProviderType_PROVIDER_TYPE_ANTIGRAVITY, aoyorouter.ProviderType_PROVIDER_TYPE_OPENCODE_ZEN, aoyorouter.ProviderType_PROVIDER_TYPE_OPENCODE_GO:
-		return nil
-
-	default:
-		return status.Error(codes.InvalidArgument, "unsupported provider type")
-	}
-}
-
 func removeString(values []string, target string) []string {
 	result := values[:0]
 	for _, value := range values {

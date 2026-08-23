@@ -58,6 +58,7 @@ export const providerLabels: Record<ProviderType, string> = {
   PROVIDER_TYPE_ANTIGRAVITY: 'Google Antigravity',
   PROVIDER_TYPE_OPENCODE_ZEN: 'OpenCode Zen',
   PROVIDER_TYPE_OPENCODE_GO: 'OpenCode Go',
+  PROVIDER_TYPE_CLINE: 'CLine',
 }
 
 export const providerOptions = Object.entries(providerLabels).map(([value, label]) => ({

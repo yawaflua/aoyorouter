@@ -34,6 +34,7 @@ const (
 	ProviderType_PROVIDER_TYPE_ANTIGRAVITY  ProviderType = 6
 	ProviderType_PROVIDER_TYPE_OPENCODE_ZEN ProviderType = 7
 	ProviderType_PROVIDER_TYPE_OPENCODE_GO  ProviderType = 8
+	ProviderType_PROVIDER_TYPE_CLINE        ProviderType = 9
 )
 
 // Enum value maps for ProviderType.
@@ -48,6 +49,7 @@ var (
 		6: "PROVIDER_TYPE_ANTIGRAVITY",
 		7: "PROVIDER_TYPE_OPENCODE_ZEN",
 		8: "PROVIDER_TYPE_OPENCODE_GO",
+		9: "PROVIDER_TYPE_CLINE",
 	}
 	ProviderType_value = map[string]int32{
 		"PROVIDER_TYPE_UNSPECIFIED":  0,
@@ -59,6 +61,7 @@ var (
 		"PROVIDER_TYPE_ANTIGRAVITY":  6,
 		"PROVIDER_TYPE_OPENCODE_ZEN": 7,
 		"PROVIDER_TYPE_OPENCODE_GO":  8,
+		"PROVIDER_TYPE_CLINE":        9,
 	}
 )
 
@@ -2908,7 +2911,7 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\vserver_city\x18\x03 \x01(\tR\n" +
 	"serverCity\x12'\n" +
 	"\x0fserver_location\x18\x04 \x01(\tR\x0eserverLocation\x12\x10\n" +
-	"\x03tls\x18\x05 \x01(\tR\x03tls*\x8c\x02\n" +
+	"\x03tls\x18\x05 \x01(\tR\x03tls*\xa5\x02\n" +
 	"\fProviderType\x12\x1d\n" +
 	"\x19PROVIDER_TYPE_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14PROVIDER_TYPE_CUSTOM\x10\x01\x12\x18\n" +
@@ -2918,7 +2921,8 @@ const file_docs_api_v1_types_proto_rawDesc = "" +
 	"\x12PROVIDER_TYPE_GROK\x10\x05\x12\x1d\n" +
 	"\x19PROVIDER_TYPE_ANTIGRAVITY\x10\x06\x12\x1e\n" +
 	"\x1aPROVIDER_TYPE_OPENCODE_ZEN\x10\a\x12\x1d\n" +
-	"\x19PROVIDER_TYPE_OPENCODE_GO\x10\b*\x82\x02\n" +
+	"\x19PROVIDER_TYPE_OPENCODE_GO\x10\b\x12\x17\n" +
+	"\x13PROVIDER_TYPE_CLINE\x10\t*\x82\x02\n" +
 	"\x12QuotaResetStrategy\x12$\n" +
 	" QUOTA_RESET_STRATEGY_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cQUOTA_RESET_STRATEGY_MINUTES\x10\x01\x12\x1f\n" +

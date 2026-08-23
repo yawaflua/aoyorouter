@@ -35,8 +35,12 @@ type codexUsageResponse struct {
 }
 
 func (c *CodexProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
+	apiKey := provider.ClientSecret
+	if strings.HasPrefix(apiKey, "oauth:") {
+		apiKey = provider.Credentials["access_token"].(string)
+	}
 	for index, key := range cfg.CodexKey {
-		if key.APIKey == provider.ClientSecret && key.BaseURL == provider.BaseUrl {
+		if key.APIKey == apiKey && key.BaseURL == provider.BaseUrl {
 			cfg.CodexKey = append(cfg.CodexKey[:index], cfg.CodexKey[index+1:]...)
 			return
 		}
@@ -53,6 +57,7 @@ func (c *CodexProvider) AddProviderConfig(ctx context.Context, cfg *config.Confi
 		APIKey:   provider.ClientSecret,
 		BaseURL:  provider.BaseUrl,
 		ProxyURL: provider.Proxy,
+		Prefix:   "codex",
 	})
 }
 

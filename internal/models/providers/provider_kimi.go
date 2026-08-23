@@ -20,7 +20,7 @@ type KimiProvider struct {
 // RemoveProviderConfig implements [ProviderConfig].
 func (k *KimiProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
 	for index, configured := range cfg.OpenAICompatibility {
-		if configured.Name == provider.Name && configured.BaseURL == provider.BaseUrl {
+		if configured.Name == provider.Name && configured.BaseURL == provider.BaseUrl && configured.APIKeyEntries[0].APIKey == provider.ClientSecret {
 			cfg.OpenAICompatibility = append(cfg.OpenAICompatibility[:index], cfg.OpenAICompatibility[index+1:]...)
 			return
 		}
@@ -33,7 +33,7 @@ func (k *KimiProvider) AddProviderConfig(ctx context.Context, cfg *config.Config
 		return
 	}
 
-	cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{Name: "kimi", BaseURL: provider.BaseUrl, APIKeyEntries: []config.OpenAICompatibilityAPIKey{{APIKey: provider.ClientSecret}}})
+	cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{Name: "kimi", BaseURL: provider.BaseUrl, Prefix: "kimi", APIKeyEntries: []config.OpenAICompatibilityAPIKey{{APIKey: provider.ClientSecret}}})
 }
 
 // GetOAuthDefinition implements [providers.ProviderConfig].

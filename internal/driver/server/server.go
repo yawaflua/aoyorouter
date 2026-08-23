@@ -20,6 +20,7 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
 	"github.com/yawaflua/aoyorouter/internal/cache"
 	"github.com/yawaflua/aoyorouter/internal/models"
+	"github.com/yawaflua/aoyorouter/internal/models/providers"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -222,17 +223,16 @@ func (a *AoyoRouterService) CreateApiKey(ctx context.Context, req *aoyorouter.Cr
 }
 
 func (a *AoyoRouterService) CreateProvider(ctx context.Context, req *aoyorouter.CreateProviderRequest) (*aoyorouter.CreateProviderResponse, error) {
-	switch req.GetType() {
-	case aoyorouter.ProviderType_PROVIDER_TYPE_OPENAI, aoyorouter.ProviderType_PROVIDER_TYPE_ANTHROPIC, aoyorouter.ProviderType_PROVIDER_TYPE_KIMI, aoyorouter.ProviderType_PROVIDER_TYPE_GROK, aoyorouter.ProviderType_PROVIDER_TYPE_ANTIGRAVITY:
+	cfg, err := providers.ProviderOAuthConfig(req.GetType())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "provider not supported")
+	}
+	if cfg.GetOAuthDefinition().Callback {
 		return nil, status.Error(codes.InvalidArgument, "use the provider authorization endpoint")
 	}
 
-	if err := validateProvider(req.GetName(), req.GetType(), req.GetClientSecret()); err != nil {
-		return nil, err
-	}
-
 	if req.GetClientId() == "" {
-		req.ClientId = "https://api.openai.com/v1"
+		req.ClientId = cfg.GetOAuthDefinition().DefaultURL
 	}
 
 	provider, err := a.ProviderRepo.CreateProvider(ctx, req.GetName(), int32(req.GetType()), req.GetClientId(), req.GetClientSecret(), req.GetUseProxy(), req.GetProxy(), req.GetProxy() == "", req.GetPriority())
@@ -397,8 +397,13 @@ func (a *AoyoRouterService) checkCPAPIAlive() error {
 }
 
 func (a *AoyoRouterService) UpdateProvider(ctx context.Context, req *aoyorouter.UpdateProviderRequest) (*aoyorouter.UpdateProviderResponse, error) {
-	if err := validateProvider(req.GetName(), req.GetType(), req.GetClientSecret()); err != nil {
+	cfg, err := providers.ProviderOAuthConfig(req.GetType())
+	if err != nil {
 		return nil, err
+	}
+
+	if req.GetClientId() == "" && req.GetType() != aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM {
+		req.ClientId = cfg.GetOAuthDefinition().DefaultURL
 	}
 
 	oldProvider, err := a.ProviderRepo.GetProvider(ctx, req.GetProviderId())

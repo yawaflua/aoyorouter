@@ -20,8 +20,12 @@ type AntigravityProvider struct {
 
 // RemoveProviderConfig implements [ProviderConfig].
 func (a *AntigravityProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
+	apiKey := provider.ClientSecret
+	if strings.HasPrefix(apiKey, "oauth:") {
+		apiKey = provider.Credentials["access_token"].(string)
+	}
 	for index, key := range cfg.GeminiKey {
-		if key.APIKey == provider.ClientSecret && key.BaseURL == provider.BaseUrl {
+		if key.APIKey == apiKey && key.BaseURL == provider.BaseUrl {
 			cfg.GeminiKey = append(cfg.GeminiKey[:index], cfg.GeminiKey[index+1:]...)
 			return
 		}
@@ -38,6 +42,7 @@ func (a *AntigravityProvider) AddProviderConfig(ctx context.Context, cfg *config
 		APIKey:   provider.ClientSecret,
 		BaseURL:  provider.BaseUrl,
 		ProxyURL: provider.Proxy,
+		Prefix: "antigravity",
 	})}
 
 // GetOAuthDefinition implements [providers.ProviderConfig].

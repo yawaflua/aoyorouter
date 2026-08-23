@@ -30,8 +30,8 @@
 
   function filteredModels(provider: Provider): ProviderModel[] {
     return models.filter(
-      (model) => model.owned_by === providerTypeAsCLIPROXY(provider.type) || model.owned_by === provider.id
-    );
+      (model) => (model.owned_by === providerTypeAsCLIPROXY(provider.type) || model.owned_by === provider.id) && model.id.startsWith(providerTypeAsCLIPROXY(provider.type))
+    ).sort((a, b) => a.id.localeCompare(b.id, undefined, { sensitivity: 'base' }));
   }
 </script>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { streamChat, type ChatMessage } from "../models/chat";
+    import { readFile, streamChat, type ChatMessage, type ContentBlock } from "../models/chat";
     import Icon from "../Icon.svelte";
 
     interface Props {
@@ -9,29 +9,60 @@
 
     let { password, models }: Props = $props();
 
+    type Attachment = ContentBlock & { name: string };
+
     let model = $state("");
     let draft = $state("");
     let messages = $state<ChatMessage[]>([]);
+    let attachments = $state<Attachment[]>([]);
     let streaming = $state(false);
     let error = $state("");
+    let fileInput: HTMLInputElement | null = null;
     let controller: AbortController | null = null;
 
     const canSend = $derived(
-        !streaming && draft.trim().length > 0 && Boolean(model),
+        !streaming && (draft.trim().length > 0 || attachments.length > 0) && Boolean(model),
     );
 
     $effect(() => {
         if (!model && models.length > 0) model = models[0].id;
     });
 
+    async function pickFiles(event: Event) {
+        const input = event.currentTarget as HTMLInputElement;
+        const picked = Array.from(input.files ?? []);
+        input.value = "";
+        for (const file of picked) {
+            if (file.size > 20 * 1024 * 1024) {
+                error = `${file.name} is too large (max 20 MB).`;
+                continue;
+            }
+            try {
+                attachments = [...attachments, await readFile(file)];
+            } catch (caught) {
+                error = caught instanceof Error ? caught.message : `Could not read ${file.name}.`;
+            }
+        }
+    }
+
+    function removeAttachment(index: number) {
+        attachments = attachments.filter((_, i) => i !== index);
+    }
+
     async function send() {
         const prompt = draft.trim();
-        if (!prompt || !model || streaming) return;
+        if ((!prompt && attachments.length === 0) || !model || streaming) return;
+        const sentAttachments = attachments;
         error = "";
         draft = "";
+        attachments = [];
         messages = [
             ...messages,
-            { role: "user", content: prompt },
+            {
+                role: "user",
+                content: prompt,
+                attachments: sentAttachments.length > 0 ? sentAttachments.map((item) => item.name) : undefined,
+            },
             { role: "assistant", content: "" },
         ];
         const assistantIndex = messages.length - 1;
@@ -43,6 +74,7 @@
                 password,
                 model,
                 messages.slice(0, -1),
+                sentAttachments,
                 {
                     onDelta: (text) => {
                         messages[assistantIndex] = {
@@ -66,9 +98,10 @@
                 caught instanceof Error
                     ? caught.message
                     : "The request failed.";
-            if (!messages[assistantIndex].content) {
+            if (!messages[assistantIndex].content && !messages[assistantIndex].thinking) {
                 messages = messages.slice(0, -2);
                 draft = prompt;
+                attachments = sentAttachments;
             }
         } finally {
             streaming = false;
@@ -92,26 +125,23 @@
             void send();
         }
     }
+
+    function sortedModels() {
+        return models.sort((a, b) => a.id.localeCompare(b.id, undefined, { sensitivity: 'base' }));
+    }
 </script>
 
 <div class="chat">
     <div class="chat-toolbar">
         <div class="select-field chat-model-select">
             <select bind:value={model} disabled={streaming} aria-label="Model">
-                {#each models as item (item.id)}
-                    <option value={item.id}
-                        >{item.displayName || item.id}</option
-                    >
+                {#each sortedModels() as item (item.id)}
+                    <option value={item.id}>{item.displayName || item.id}</option>
                 {/each}
             </select>
         </div>
         {#if messages.length > 0}
-            <button
-                type="button"
-                class="text-button"
-                onclick={clear}
-                disabled={streaming}
-            >
+            <button type="button" class="text-button" onclick={clear} disabled={streaming}>
                 <Icon name="trash" size={17} /> Clear
             </button>
         {/if}
@@ -133,22 +163,20 @@
                     <header>
                         {message.role === "user" ? "You" : "Assistant"}
                     </header>
+                    {#if message.attachments?.length}
+                        <div class="chat-attachments">
+                            {#each message.attachments as name (name)}
+                                <span class="attachment-chip"><Icon name="logs" size={14} />{name}</span>
+                            {/each}
+                        </div>
+                    {/if}
                     {#if message.thinking}
-                        <details
-                            class="chat-thinking"
-                            open={streaming &&
-                                index === messages.length - 1 &&
-                                !message.content}
-                        >
+                        <details class="chat-thinking" open={streaming && index === messages.length - 1 && !message.content}>
                             <summary>Thinking</summary>
                             <p>{message.thinking}</p>
                         </details>
                     {/if}
-                    <p
-                        class:pending={streaming &&
-                            index === messages.length - 1 &&
-                            !message.content}
-                    >
+                    <p class:pending={streaming && index === messages.length - 1 && !message.content}>
                         {message.content || "…"}
                     </p>
                 </article>
@@ -167,21 +195,44 @@
             void send();
         }}
     >
-        <textarea
-            rows="3"
-            bind:value={draft}
-            onkeydown={onKeydown}
-            placeholder="Send a message… (Enter to send, Shift+Enter for a new line)"
-            disabled={!model}></textarea>
-        {#if streaming}
-            <button type="button" class="tonal chat-send" onclick={stop}
-                ><Icon name="power" size={19} /> Stop</button
-            >
-        {:else}
-            <button type="submit" class="filled chat-send" disabled={!canSend}
-                ><Icon name="chevron" size={19} /> Send</button
-            >
+        <input
+            type="file"
+            multiple
+            hidden
+            accept="image/*,text/*,.json,.md,.csv,.log,.ts,.tsx,.js,.jsx,.py,.go,.rs,.java,.c,.cpp,.h,.css,.html,.yml,.yaml,.toml,.sql,.sh"
+            bind:this={fileInput}
+            onchange={pickFiles}
+        />
+        {#if attachments.length > 0}
+            <div class="chat-attachments composer">
+                {#each attachments as attachment, index (index)}
+                    <span class="attachment-chip">
+                        {attachment.name}
+                        <button type="button" aria-label={`Remove ${attachment.name}`} onclick={() => removeAttachment(index)}>×</button>
+                    </span>
+                {/each}
+            </div>
         {/if}
+        <div class="composer-row">
+            <button type="button" class="icon-button" aria-label="Attach files" onclick={() => fileInput?.click()} disabled={streaming}>
+                <Icon name="plus" size={19} />
+            </button>
+            <textarea
+                rows="3"
+                bind:value={draft}
+                onkeydown={onKeydown}
+                placeholder="Send a message… (Enter to send, Shift+Enter for a new line)"
+                disabled={!model}></textarea>
+            {#if streaming}
+                <button type="button" class="tonal chat-send" onclick={stop}
+                    ><Icon name="power" size={19} /> Stop</button
+                >
+            {:else}
+                <button type="submit" class="filled chat-send" disabled={!canSend}
+                    ><Icon name="chevron" size={19} /> Send</button
+                >
+            {/if}
+        </div>
     </form>
 </div>
 
@@ -257,13 +308,52 @@
     }
     .chat-composer {
         display: flex;
-        gap: 10px;
-        align-items: flex-end;
+        flex-direction: column;
+        gap: 8px;
         background: #fff;
         border: 1px solid var(--outline-variant);
         border-radius: 16px;
         padding: 10px;
         box-shadow: 0 1px 2px rgba(26, 27, 32, 0.05);
+    }
+    .composer-row {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+    }
+    .icon-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        border: 1px solid var(--outline-variant);
+        background: transparent;
+        color: var(--muted);
+    }
+    .icon-button:hover { background: var(--surface-container); }
+    .chat-attachments { display: flex; flex-wrap: wrap; gap: 6px; }
+    .attachment-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--surface-container, #edf0f7);
+        font-size: 13px;
+        max-width: 260px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .attachment-chip button {
+        border: 0;
+        background: none;
+        color: inherit;
+        font-size: 15px;
+        line-height: 1;
+        padding: 0 2px;
     }
     .chat-composer:focus-within {
         border: 2px solid var(--primary);
