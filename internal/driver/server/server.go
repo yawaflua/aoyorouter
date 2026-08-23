@@ -40,6 +40,7 @@ type Dependencies struct {
 	Management     *cliproxyapi.Management
 	Logger         *slog.Logger
 	Cache          *cache.Cache
+	ProviderVendor *providers.ProviderVendor
 }
 
 type AoyoRouterService struct {
@@ -53,6 +54,7 @@ type AoyoRouterService struct {
 	warp           *warp.Warp
 	logger         *slog.Logger
 	cache          *cache.Cache
+	providerVendor *providers.ProviderVendor
 	aoyorouter.UnimplementedAoyoRouterServiceServer
 }
 
@@ -223,7 +225,7 @@ func (a *AoyoRouterService) CreateApiKey(ctx context.Context, req *aoyorouter.Cr
 }
 
 func (a *AoyoRouterService) CreateProvider(ctx context.Context, req *aoyorouter.CreateProviderRequest) (*aoyorouter.CreateProviderResponse, error) {
-	cfg, err := providers.ProviderOAuthConfig(req.GetType())
+	cfg, err := a.providerVendor.ProviderOAuthConfig(req.GetType())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "provider not supported")
 	}
@@ -397,7 +399,7 @@ func (a *AoyoRouterService) checkCPAPIAlive() error {
 }
 
 func (a *AoyoRouterService) UpdateProvider(ctx context.Context, req *aoyorouter.UpdateProviderRequest) (*aoyorouter.UpdateProviderResponse, error) {
-	cfg, err := providers.ProviderOAuthConfig(req.GetType())
+	cfg, err := a.providerVendor.ProviderOAuthConfig(req.GetType())
 	if err != nil {
 		return nil, err
 	}
@@ -427,7 +429,7 @@ func (a *AoyoRouterService) UpdateProvider(ctx context.Context, req *aoyorouter.
 	a.configMu.Lock()
 	defer a.configMu.Unlock()
 
-	removeProviderConfig(a.CPAPIConfig, oldProvider)
+	a.removeProviderConfig(a.CPAPIConfig, oldProvider)
 	a.addProviderConfig(ctx, a.CPAPIConfig, provider)
 
 	if err := config.SaveConfigPreserveComments(cpapiConfigPath, a.CPAPIConfig); err != nil {
@@ -445,5 +447,6 @@ func NewAoyoRouterService(deps Dependencies) *AoyoRouterService {
 	return &AoyoRouterService{
 		UserRepo: deps.UserRepo, ProviderRepo: deps.ProviderRepo, ApiKeyRepo: deps.ApiKeyRepo, UsageEntryRepo: deps.UsageEntryRepo,
 		CPAPIConfig: deps.CPAPIConfig, Management: deps.Management, warp: deps.Warp, logger: deps.Logger, cache: deps.Cache,
+		providerVendor: deps.ProviderVendor,
 	}
 }

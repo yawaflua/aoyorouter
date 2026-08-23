@@ -27,6 +27,18 @@ type OpencodeGoProvider struct {
 	logger *slog.Logger
 }
 
+func NewOpencodeZenProvider(logger *slog.Logger) *OpencodeZenProvider {
+	return &OpencodeZenProvider{
+		logger: logger,
+	}
+}
+
+func NewOpencodeGoProvider(logger *slog.Logger) *OpencodeGoProvider {
+	return &OpencodeGoProvider{
+		logger: logger,
+	}
+}
+
 // RemoveProviderConfig implements [ProviderConfig].
 func (p *OpencodeZenProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
 	removeOpenAICompatibilityConfig(cfg, provider)

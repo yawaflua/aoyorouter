@@ -18,7 +18,6 @@ import (
 	config "github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
 	_ "github.com/router-for-me/CLIProxyAPI/v7/sdk/translator/builtin"
 	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
-	providersconf "github.com/yawaflua/aoyorouter/internal/models/providers"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 )
 
@@ -53,14 +52,13 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 		http.Error(w, "upstream unavailable", http.StatusBadGateway)
 	}
 
-	credentialStore := cliproxyapi.NewProviderCredentialStore(p.ProviderRepo(ctx))
+	credentialStore := cliproxyapi.NewProviderCredentialStore(p.ProviderRepo(ctx), p.ProviderVendor(ctx))
 	auth.RegisterTokenStore(credentialStore)
 
 	coreAuthManager := coreauth.NewManager(credentialStore, nil, nil)
 	restrictedSelector := cliproxyapi.NewRestrictedSelector(accessPolicies, nil)
 	coreAuthManager.SetSelector(restrictedSelector)
-	// CLIProxyAPI replaces the selector on every config commit (watcher reload,
-	// management dashboard edits), so we have to re-assert ours.
+	
 	p.startSelectorKeeper(coreAuthManager, restrictedSelector)
 	if err := os.Setenv("MANAGEMENT_PASSWORD", p.Config().InitialPassword); err != nil {
 		return fmt.Errorf("set CLIProxyAPI management password: %w", err)
@@ -192,7 +190,7 @@ func (p *P) registerAllProviders(ctx context.Context) error {
 			}
 			p.ProviderRepo(ctx).UpdateProxy(ctx, provider.ID, provider.Proxy, true, true)
 		}
-		if conf, err := providersconf.ProviderOAuthConfig(aoyorouter.ProviderType(provider.Type)); err == nil {
+		if conf, err := p.ProviderVendor(ctx).ProviderOAuthConfig(aoyorouter.ProviderType(provider.Type)); err == nil {
 			conf.AddProviderConfig(ctx, cfg, provider)
 		}
 	}

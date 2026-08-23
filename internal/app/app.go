@@ -16,7 +16,6 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/app/provider"
 	"github.com/yawaflua/aoyorouter/internal/crons"
 	"github.com/yawaflua/aoyorouter/internal/driver/middlewares"
-	"github.com/yawaflua/aoyorouter/internal/models/providers"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 	"golang.org/x/sync/errgroup"
 )
@@ -127,8 +126,8 @@ func (a *App) initCrons(ctx context.Context) error {
 				}
 				for _, provider := range providers_db {
 					a.provider.Logger().Debug("Working on provider", "id", provider.ID)
-					if provider.Type != aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM {
-						if cfg, err := providers.ProviderOAuthConfig(provider.Type); err != nil {
+					if provider.Type != aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM && !provider.Disabled {
+						if cfg, err := a.provider.ProviderVendor(ctx).ProviderOAuthConfig(provider.Type); err != nil {
 							a.provider.Logger().Error("Failed to get provider oauth config", "id", provider.ID, "error", err)
 							return err
 						} else {

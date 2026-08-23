@@ -18,6 +18,12 @@ type CustomProvider struct {
 	logger *slog.Logger
 }
 
+func NewCustomProvider(logger *slog.Logger) *CustomProvider {
+	return &CustomProvider{
+		logger: logger,
+	}
+}
+
 // RemoveProviderConfig implements [ProviderConfig].
 func (a *CustomProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
 	for index, configured := range cfg.OpenAICompatibility {

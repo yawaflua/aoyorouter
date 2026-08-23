@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -13,6 +14,13 @@ import (
 )
 
 type AnthropicProvider struct {
+	logger *slog.Logger
+}
+
+func NewAnthropicProvider(logger *slog.Logger) *AnthropicProvider {
+	return &AnthropicProvider{
+		logger: logger,
+	}
 }
 
 const anthropicUsageURL = "https://api.anthropic.com/api/oauth/usage"
@@ -72,11 +80,13 @@ func (a *AnthropicProvider) LoadQuota(ctx context.Context, credentials map[strin
 	accessToken, _ := credentials["access_token"].(string)
 	accessToken = strings.TrimSpace(accessToken)
 	if accessToken == "" {
+		
 		return &aoyorouter.ProviderQuota{Error: "Anthropic credentials are incomplete"}
 	}
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, anthropicUsageURL, nil)
 	if err != nil {
+		a.logger.Error("Quota request failed", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "quota unavailable"}
 	}
 	request.Header.Set("Authorization", "Bearer "+accessToken)
@@ -86,20 +96,24 @@ func (a *AnthropicProvider) LoadQuota(ctx context.Context, credentials map[strin
 
 	client, err := proxyHTTPClient(useProxy, proxyURL)
 	if err != nil {
+		a.logger.Error("Quota request failed", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
 	}
 	response, err := client.Do(request)
 	if err != nil {
+		a.logger.Error("Quota request failed", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		a.logger.Error("Quota request failed", "status", response.StatusCode)
 		return &aoyorouter.ProviderQuota{Error: fmt.Sprintf("quota returned status %d", response.StatusCode)}
 	}
 
 	var usage anthropicUsageResponse
 	if err := json.NewDecoder(response.Body).Decode(&usage); err != nil {
+		a.logger.Error("Invalid quota response", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "invalid quota response"}
 	}
 

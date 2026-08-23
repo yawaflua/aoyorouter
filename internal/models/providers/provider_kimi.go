@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,6 +16,13 @@ import (
 )
 
 type KimiProvider struct {
+	logger *slog.Logger
+}
+
+func NewKimiProvider(logger *slog.Logger) *KimiProvider {
+	return &KimiProvider{
+		logger: logger,
+	}
 }
 
 // RemoveProviderConfig implements [ProviderConfig].
@@ -49,7 +57,7 @@ func (k *KimiProvider) GetOAuthDefinition() *ProviderOAuthDefinition {
 // LoadQuota implements [providers.ProviderConfig].
 func (k *KimiProvider) LoadQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
 
-	return loadKimiQuota(ctx, credentials, useProxy, proxyURL)
+	return k.loadKimiQuota(ctx, credentials, useProxy, proxyURL)
 }
 
 const kimiUsageURL = "https://api.kimi.com/coding/v1/usages"
@@ -75,14 +83,16 @@ type kimiUsageDetail struct {
 	ResetTime string `json:"resetTime"`
 }
 
-func loadKimiQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
+func (k *KimiProvider) loadKimiQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
 	accessToken, _ := credentials["access_token"].(string)
 	if strings.TrimSpace(accessToken) == "" {
+		
 		return &aoyorouter.ProviderQuota{Error: "Kimi credentials are incomplete"}
 	}
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, kimiUsageURL, nil)
 	if err != nil {
+		k.logger.Error("failed to create request", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "quota unavailable"}
 	}
 	request.Header.Set("Authorization", "Bearer "+accessToken)
@@ -93,16 +103,19 @@ func loadKimiQuota(ctx context.Context, credentials map[string]any, useProxy boo
 
 	server, err := proxyHTTPClient(useProxy, proxyURL)
 	if err != nil {
+		k.logger.Error("failed to create proxy client", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
 	}
 	response, err := server.Do(request)
 	if err != nil {
+		k.logger.Error("failed to send request", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
 	}
 	defer response.Body.Close()
 
 	data, err := io.ReadAll(io.LimitReader(response.Body, 1<<20))
 	if err != nil {
+		k.logger.Error("failed to read response", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
 	}
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
@@ -113,6 +126,7 @@ func loadKimiQuota(ctx context.Context, credentials map[string]any, useProxy boo
 	decoder := json.NewDecoder(strings.NewReader(string(data)))
 	decoder.UseNumber()
 	if err := decoder.Decode(&usage); err != nil {
+		k.logger.Error("failed to decode response", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "invalid quota response"}
 	}
 

@@ -59,6 +59,7 @@ export const providerLabels: Record<ProviderType, string> = {
   PROVIDER_TYPE_OPENCODE_ZEN: 'OpenCode Zen',
   PROVIDER_TYPE_OPENCODE_GO: 'OpenCode Go',
   PROVIDER_TYPE_CLINE: 'CLine',
+  PROVIDER_TYPE_CURSOR: 'Cursor',
 }
 
 export const providerOptions = Object.entries(providerLabels).map(([value, label]) => ({

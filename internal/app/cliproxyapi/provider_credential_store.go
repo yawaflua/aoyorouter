@@ -15,6 +15,7 @@ import (
 
 type ProviderCredentialStore struct {
 	repo providerCredentialRepository
+	vendor *providers.ProviderVendor
 }
 
 type providerCredentialRepository interface {
@@ -23,8 +24,8 @@ type providerCredentialRepository interface {
 	UpdateProviderCredentials(context.Context, string, string, map[string]any) (*models.Provider, error)
 }
 
-func NewProviderCredentialStore(repo providerCredentialRepository) *ProviderCredentialStore {
-	return &ProviderCredentialStore{repo: repo}
+func NewProviderCredentialStore(repo providerCredentialRepository, vendor *providers.ProviderVendor) *ProviderCredentialStore {
+	return &ProviderCredentialStore{repo: repo, vendor: vendor}
 }
 
 func (s *ProviderCredentialStore) List(ctx context.Context) ([]*coreauth.Auth, error) {
@@ -40,7 +41,7 @@ func (s *ProviderCredentialStore) List(ctx context.Context) ([]*coreauth.Auth, e
 		if provider.Disabled {
 			continue
 		}
-		credentialType := providerCredentialType(provider)
+		credentialType := s.providerCredentialType(provider)
 		if credentialType == "" {
 			continue
 		}
@@ -72,7 +73,7 @@ func (s *ProviderCredentialStore) List(ctx context.Context) ([]*coreauth.Auth, e
 	return auths, nil
 }
 
-func providerCredentialType(provider *models.Provider) string {
+func (s *ProviderCredentialStore) providerCredentialType(provider *models.Provider) string {
 	if provider == nil {
 		return ""
 	}
@@ -80,7 +81,7 @@ func providerCredentialType(provider *models.Provider) string {
 		return strings.ToLower(strings.TrimSpace(credentialType))
 	}
 
-	cfg, err := providers.ProviderOAuthConfig(provider.Type)
+	cfg, err := s.vendor.ProviderOAuthConfig(provider.Type)
 	if err != nil {
 		return ""
 	}

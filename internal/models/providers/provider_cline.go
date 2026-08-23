@@ -2,6 +2,7 @@ package providers
 
 import (
 	"context"
+	"log/slog"
 	"strings"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
@@ -10,6 +11,13 @@ import (
 )
 
 type ProviderCline struct {
+	logger *slog.Logger
+}
+
+func NewClineProvider(logger *slog.Logger) *ProviderCline {
+	return &ProviderCline{
+		logger: logger,
+	}
 }
 
 // AddProviderConfig implements [ProviderConfig].

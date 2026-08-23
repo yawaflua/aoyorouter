@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -13,7 +14,16 @@ import (
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 )
 
-type CodexProvider struct{}
+type CodexProvider struct {
+	logger *slog.Logger
+}
+
+func NewCodexProvider(logger *slog.Logger) *CodexProvider {
+	return &CodexProvider{
+		logger: logger,
+	}
+}
+
 
 type codexUsageWindow struct {
 	UsedPercent   float64 `json:"used_percent"`
@@ -74,10 +84,10 @@ func (c *CodexProvider) GetOAuthDefinition() *ProviderOAuthDefinition {
 
 // LoadQuota implements [providers.ProviderConfig].
 func (c *CodexProvider) LoadQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
-	return loadCodexQuota(ctx, credentials, useProxy, proxyURL)
+	return c.loadCodexQuota(ctx, credentials, useProxy, proxyURL)
 }
 
-func loadCodexQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
+func (a *CodexProvider) loadCodexQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
 	if len(credentials) == 0 {
 		return &aoyorouter.ProviderQuota{Error: "quota unavailable"}
 	}
@@ -88,10 +98,12 @@ func loadCodexQuota(ctx context.Context, credentials map[string]any, useProxy bo
 	}
 	client, err := proxyHTTPClient(useProxy, proxyURL)
 	if err != nil {
+		a.logger.Error("Quota request failed", "error", err)
 		return &aoyorouter.ProviderQuota{Error: fmt.Sprintf("quota request failed: %v", err)}
 	}
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://chatgpt.com/backend-api/wham/usage", nil)
 	if err != nil {
+		a.logger.Error("Quota request failed", "error", err)
 		return &aoyorouter.ProviderQuota{Error: fmt.Sprintf("quota request failed: %v", err)}
 	}
 	request.Header.Set("Authorization", "Bearer "+accessToken)
@@ -100,14 +112,17 @@ func loadCodexQuota(ctx context.Context, credentials map[string]any, useProxy bo
 	request.Header.Set("Originator", "codex_cli_rs")
 	response, err := client.Do(request)
 	if err != nil {
+		a.logger.Error("Quota request failed", "error", err)
 		return &aoyorouter.ProviderQuota{Error: fmt.Sprintf("quota request failed: %v", err)}
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
+		a.logger.Error("Quota request failed", "status", response.StatusCode)
 		return &aoyorouter.ProviderQuota{Error: fmt.Sprintf("quota returned status %d", response.StatusCode)}
 	}
 	var usage codexUsageResponse
 	if err := json.NewDecoder(response.Body).Decode(&usage); err != nil {
+		a.logger.Error("Quota request failed", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "invalid quota response"}
 	}
 	primary := usage.Primary

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/cliproxy"
+	"github.com/yawaflua/aoyorouter/internal/adapter/cursor"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/apikey_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/provider_repo"
@@ -16,6 +17,7 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/closer"
 	"github.com/yawaflua/aoyorouter/internal/config"
 	"github.com/yawaflua/aoyorouter/internal/driver/server"
+	"github.com/yawaflua/aoyorouter/internal/models/providers"
 	"github.com/yawaflua/aoyorouter/pkg/logger"
 
 	cpapi_config "github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
@@ -38,6 +40,8 @@ type P struct {
 	usagePlugin     *cliproxyapi.UsagePlugin
 	management      *cliproxyapi.Management
 	cache           *cache.Cache
+	cursor          *cursor.CursorServer
+	providerVendor  *providers.ProviderVendor
 
 	warp *warp.Warp
 }
@@ -81,6 +85,8 @@ func (p *P) Server(ctx context.Context) *server.AoyoRouterService {
 			Management:     p.Management(ctx),
 			Warp:           p.Warp(ctx),
 			Logger:         p.Logger(),
+			Cache:          p.Cache(),
+			ProviderVendor: p.ProviderVendor(ctx),
 		})
 	}
 
@@ -145,4 +151,12 @@ func (p *P) Management(ctx context.Context) *cliproxyapi.Management {
 	}
 
 	return p.management
+}
+
+func (p *P) ProviderVendor(ctx context.Context) *providers.ProviderVendor {
+	if p.providerVendor == nil {
+		p.providerVendor = providers.NewProviderVendor(p.Logger(), p.Warp(ctx), p.Cursor(ctx))
+	}
+
+	return p.providerVendor
 }

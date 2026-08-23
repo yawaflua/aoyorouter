@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"math"
 	"net/http"
 	"strings"
@@ -17,6 +18,13 @@ import (
 )
 
 type XAIProvider struct {
+	logger *slog.Logger
+}
+
+func NewXAIProvider(logger *slog.Logger) *XAIProvider {
+	return &XAIProvider{
+		logger: logger,
+	}
 }
 
 var errInvalidXAIQuotaResponse = errors.New("invalid quota response")
@@ -96,6 +104,7 @@ func (x *XAIProvider) LoadQuota(ctx context.Context, credentials map[string]any,
 
 	client, err := proxyHTTPClient(useProxy, proxyURL)
 	if err != nil {
+		x.logger.Error("failed to create proxy client", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
 	}
 	quotaClient := *client
@@ -106,6 +115,7 @@ func (x *XAIProvider) LoadQuota(ctx context.Context, credentials map[string]any,
 	var user xaiUserResponse
 	statusCode, err := loadXAIQuotaJSON(ctx, &quotaClient, xaiUserURL, accessToken, "", &user)
 	if err != nil {
+		x.logger.Error("failed to load user quota", "error", err)
 		return xaiQuotaRequestError(statusCode, err)
 	}
 	if !validXAIUserID(user.UserID) {
@@ -115,6 +125,7 @@ func (x *XAIProvider) LoadQuota(ctx context.Context, credentials map[string]any,
 	var billing xaiBillingResponse
 	statusCode, err = loadXAIQuotaJSON(ctx, &quotaClient, xaiBillingURL, accessToken, user.UserID, &billing)
 	if err != nil {
+		x.logger.Error("failed to load billing quota", "error", err)
 		return xaiQuotaRequestError(statusCode, err)
 	}
 	if billing.Config == nil {

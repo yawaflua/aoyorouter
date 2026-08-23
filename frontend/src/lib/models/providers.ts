@@ -11,6 +11,7 @@ export type ProviderType =
   | 'PROVIDER_TYPE_OPENCODE_ZEN'
   | 'PROVIDER_TYPE_OPENCODE_GO'
   | 'PROVIDER_TYPE_CLINE'
+  | 'PROVIDER_TYPE_CURSOR'
 
 
 
@@ -74,6 +75,7 @@ export function providerType(value: unknown): ProviderType {
   if (value === 7 || value === 'PROVIDER_TYPE_OPENCODE_ZEN') return 'PROVIDER_TYPE_OPENCODE_ZEN'
   if (value === 8 || value === 'PROVIDER_TYPE_OPENCODE_GO') return 'PROVIDER_TYPE_OPENCODE_GO'
   if (value === 9 || value === 'PROVIDER_TYPE_CLINE') return 'PROVIDER_TYPE_CLINE'
+  if (value === 10 || value === 'PROVIDER_TYPE_CURSOR') return 'PROVIDER_TYPE_CURSOR'
   return 'PROVIDER_TYPE_CUSTOM'
 }
 
@@ -90,6 +92,7 @@ export function providerTypeAsCLIPROXY(value: ProviderType): string {
   if (value === 'PROVIDER_TYPE_OPENCODE_ZEN') return 'opencode'
   if (value === 'PROVIDER_TYPE_OPENCODE_GO') return 'opencode'
   if (value === 'PROVIDER_TYPE_CLINE') return 'cline'
+  if (value === 'PROVIDER_TYPE_CURSOR') return 'cursor'
   return 'custom'
 }
 

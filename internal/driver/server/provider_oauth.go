@@ -9,7 +9,6 @@ import (
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/api"
 	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
-	"github.com/yawaflua/aoyorouter/internal/models/providers"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -22,7 +21,11 @@ func (a *AoyoRouterService) CreateProviderAuthorization(ctx context.Context, req
 	if name == "" {
 		return nil, status.Error(codes.InvalidArgument, "provider name is required")
 	}
-	definition, err := providers.ProviderOAuthConfig(req.GetType())
+
+	if req.GetType() == aoyorouter.ProviderType_PROVIDER_TYPE_CURSOR {
+		return a.createCursorProviderAuthorization(ctx, req)
+	}
+	definition, err := a.providerVendor.ProviderOAuthConfig(req.GetType())
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +76,7 @@ func (a *AoyoRouterService) CompleteProviderAuthorization(ctx context.Context, r
 	} else if completed {
 		return &aoyorouter.ProviderAuthorizationStatusResponse{Status: "ok", ProviderId: provider}, nil
 	}
-	if conf, err := providers.ProviderOAuthConfig(req.Type); err != nil {
+	if conf, err := a.providerVendor.ProviderOAuthConfig(req.Type); err != nil {
 		return nil, err
 	} else if !conf.GetOAuthDefinition().Callback {
 		return a.providerAuthorizationStatus(ctx, state, provider, req.GetUseProxy(), req.GetProxy())
@@ -97,6 +100,14 @@ func (a *AoyoRouterService) CompleteProviderAuthorization(ctx context.Context, r
 
 func (a *AoyoRouterService) GetProviderAuthorizationStatus(ctx context.Context, req *aoyorouter.GetProviderAuthorizationStatusRequest) (*aoyorouter.ProviderAuthorizationStatusResponse, error) {
 	state := strings.TrimSpace(req.GetState())
+
+	cursorOAuthMu.Lock()
+	_, isCursor := cursorOAuthFlows[state]
+	cursorOAuthMu.Unlock()
+	if isCursor {
+		return a.cursorProviderAuthorizationStatus(ctx, state)
+	}
+
 	provider, session, ok := a.providerOAuthSession(state)
 	if !ok {
 		return nil, status.Error(codes.NotFound, "authorization session was not found or expired")

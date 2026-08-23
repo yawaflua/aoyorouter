@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -16,6 +17,13 @@ import (
 const antigravityQuotaURL = "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota"
 
 type AntigravityProvider struct {
+	logger *slog.Logger
+}
+
+func NewAntigravityProvider(logger *slog.Logger) *AntigravityProvider {
+	return &AntigravityProvider{
+		logger: logger,
+	}
 }
 
 // RemoveProviderConfig implements [ProviderConfig].
@@ -42,8 +50,9 @@ func (a *AntigravityProvider) AddProviderConfig(ctx context.Context, cfg *config
 		APIKey:   provider.ClientSecret,
 		BaseURL:  provider.BaseUrl,
 		ProxyURL: provider.Proxy,
-		Prefix: "antigravity",
-	})}
+		Prefix:   "antigravity",
+	})
+}
 
 // GetOAuthDefinition implements [providers.ProviderConfig].
 func (a *AntigravityProvider) GetOAuthDefinition() *ProviderOAuthDefinition {
@@ -58,7 +67,7 @@ func (a *AntigravityProvider) GetOAuthDefinition() *ProviderOAuthDefinition {
 
 // LoadQuota implements [providers.ProviderConfig].
 func (a *AntigravityProvider) LoadQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
-	return loadAntigravityQuota(ctx, credentials, useProxy, proxyURL)
+	return a.loadAntigravityQuota(ctx, credentials, useProxy, proxyURL)
 }
 
 type antigravityQuotaResponse struct {
@@ -71,14 +80,16 @@ type antigravityQuotaBucket struct {
 	ResetTime         string  `json:"resetTime"`
 }
 
-func loadAntigravityQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
+func (a *AntigravityProvider) loadAntigravityQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
 	accessToken, _ := credentials["access_token"].(string)
 	if strings.TrimSpace(accessToken) == "" {
+		a.logger.Error("Antigravity credentials are incomplete")
 		return &aoyorouter.ProviderQuota{Error: "Antigravity credentials are incomplete"}
 	}
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, antigravityQuotaURL, strings.NewReader("{}"))
 	if err != nil {
+		a.logger.Error("Failed to create quota request", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "quota unavailable"}
 	}
 	request.Header.Set("Authorization", "Bearer "+accessToken)
@@ -88,24 +99,29 @@ func loadAntigravityQuota(ctx context.Context, credentials map[string]any, usePr
 
 	client, err := proxyHTTPClient(useProxy, proxyURL)
 	if err != nil {
+		a.logger.Error("Failed to create proxy HTTP client", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
 	}
 	response, err := client.Do(request)
 	if err != nil {
+		a.logger.Error("Failed to send quota request", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
 	}
 	defer response.Body.Close()
 
 	data, err := io.ReadAll(io.LimitReader(response.Body, 1<<20))
 	if err != nil {
+		a.logger.Error("Failed to read quota response", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "quota request failed"}
 	}
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		a.logger.Error("Quota returned status", "status", response.StatusCode)
 		return &aoyorouter.ProviderQuota{Error: fmt.Sprintf("quota returned status %d", response.StatusCode)}
 	}
 
 	var usage antigravityQuotaResponse
 	if err := json.Unmarshal(data, &usage); err != nil {
+		a.logger.Error("Invalid quota response", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "invalid quota response"}
 	}
 	result := antigravityQuotaWindows(usage.Buckets)
