@@ -164,6 +164,44 @@
         ]
       }
     },
+    "/api/aoyo/v1/api-keys/{apiKeyId}/recreate": {
+      "post": {
+        "operationId": "AoyoRouterService_RecreateApiKey",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RecreateApiKeyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "apiKeyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AoyoRouterServiceRecreateApiKeyBody"
+            }
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
     "/api/aoyo/v1/healthz": {
       "get": {
         "operationId": "AoyoRouterService_HealthCheck",
@@ -638,6 +676,9 @@
         }
       }
     },
+    "AoyoRouterServiceRecreateApiKeyBody": {
+      "type": "object"
+    },
     "AoyoRouterServiceUpdateProviderBody": {
       "type": "object",
       "properties": {
@@ -788,7 +829,7 @@
           "type": "string"
         },
         "isAdmin": {
-          "type": "string"
+          "type": "boolean"
         },
         "isActive": {
           "type": "boolean"
@@ -852,7 +893,7 @@
           "type": "string"
         },
         "isAdmin": {
-          "type": "string"
+          "type": "boolean"
         }
       }
     },
@@ -1334,6 +1375,20 @@
         "QUOTA_RESET_STRATEGY_FOREVER"
       ],
       "default": "QUOTA_RESET_STRATEGY_UNSPECIFIED"
+    },
+    "v1RecreateApiKeyResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "apiKey": {
+          "type": "string"
+        },
+        "apiKeyId": {
+          "type": "string"
+        }
+      }
     },
     "v1SignInRequest": {
       "type": "object",

@@ -54,6 +54,7 @@ type AoyoRouterService struct {
 }
 
 
+
 // mustEmbedUnimplementedAoyoRouterServiceServer implements [aoyorouter.AoyoRouterServiceServer].
 func (a *AoyoRouterService) mustEmbedUnimplementedAoyoRouterServiceServer() {
 	panic("unimplemented")

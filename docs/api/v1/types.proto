@@ -151,7 +151,7 @@ message DeleteProviderResponse {
 
 message CreateApiKeyRequest {
     string name = 1;
-    string is_admin = 2;
+    bool is_admin = 2;
 }
 message CreateApiKeyResponse {
     string status = 1;
@@ -180,10 +180,20 @@ message GetApiKeyListResponse {
     repeated ApiKey api_keys = 1;
 }
 
+message RecreateApiKeyRequest {
+    string api_key_id = 1;
+}
+message RecreateApiKeyResponse {
+    string status = 1;
+    string api_key = 2;
+    string api_key_id = 3;
+}
+
+
 message ApiKey {
     string id = 1;
     string name = 2;
-    string is_admin = 3;
+    bool is_admin = 3;
     bool is_active = 4;
     bool quota_setted = 5;
     int64 reserved_tokens = 6;

@@ -20,6 +20,9 @@ func (a *AoyoRouterService) GetError(context.Context, *aoyorouter.GetErrorReques
 func (a *AoyoRouterService) GetErrors(context.Context, *aoyorouter.GetErrorsRequest) (*aoyorouter.GetErrorsResponse, error) {
 	dir, err := os.ReadDir("auth/logs")
 	if err != nil {
+		if os.IsNotExist(err) {
+			return &aoyorouter.GetErrorsResponse{Status: "no errors found", Errors: []*aoyorouter.Error{}}, nil
+		}
 		return nil, err
 	}
 	var errors []*aoyorouter.Error

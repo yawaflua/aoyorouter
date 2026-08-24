@@ -1443,6 +1443,10 @@ h3 {
     appearance: none;
     padding-right: 42px;
 }
+option {
+    background: var(--surface-container-lowest);
+    color: var(--on-surface);
+}
 .dialog textarea {
     width: 100%;
     min-height: 88px;
@@ -2003,6 +2007,74 @@ h3 {
         padding: 12px;
         font-size: 0.75rem;
     }
+}
+
+.chat-message-body p {
+    margin: 0 0 0.75em;
+}
+.chat-message-body h1,
+.chat-message-body h2,
+.chat-message-body h3,
+.chat-message-body h4 {
+    margin: 1em 0 0.5em;
+    font-size: 1em;
+    font-weight: 700;
+}
+.chat-message-body ul,
+.chat-message-body ol {
+    margin: 0 0 0.75em;
+    padding-left: 1.4em;
+}
+.chat-message-body li {
+    margin: 0.25em 0;
+}
+.chat-message-body pre {
+    margin: 0 0 0.75em;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--surface-container-highest);
+    overflow-x: auto;
+}
+.chat-message-body code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.88em;
+}
+.chat-message-body pre code {
+    background: transparent;
+    padding: 0;
+}
+.chat-message-body :not(pre) > code {
+    padding: 2px 5px;
+    border-radius: 5px;
+    background: var(--surface-container-highest);
+}
+.chat-message-body blockquote {
+    margin: 0 0 0.75em;
+    padding: 4px 0 4px 12px;
+    border-left: 3px solid var(--outline-variant);
+    color: var(--on-surface-variant);
+}
+.chat-message-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 0.75em;
+    font-size: 0.9em;
+}
+.chat-message-body th,
+.chat-message-body td {
+    padding: 6px 10px;
+    border: 1px solid var(--outline-variant);
+    text-align: left;
+}
+.chat-message-body th {
+    background: var(--surface-container-high);
+}
+.chat-message-body.pending::after {
+    content: "▍";
+    animation: blink 1s steps(2) infinite;
+}
+.chat-message-body .pending-dots {
+    opacity: 0.7;
 }
 @media (prefers-reduced-motion: reduce) {
     *,

@@ -12,7 +12,7 @@ export type QuotaResetStrategy =
 export interface ApiKey {
   id: string
   name: string
-  isAdmin: string
+  isAdmin: boolean
   isActive: boolean
   quotaSet: boolean
   reservedTokens: number
@@ -26,7 +26,7 @@ export interface ApiKey {
 export interface UpdateApiKeyInput {
   id: string
   name: string
-  isAdmin: string
+  isAdmin: boolean
   isActive: boolean
   quotaSet: boolean
   reservedTokens: number
@@ -65,7 +65,7 @@ export function parseApiKey(value: unknown): ApiKey {
   return {
     id: text(item.id),
     name: text(item.name),
-    isAdmin: text(item.isAdmin ?? item.is_admin),
+    isAdmin: booleanValue(item.isAdmin ?? item.is_admin, false),
     isActive: booleanValue(item.isActive ?? item.is_active, true),
     quotaSet: booleanValue(item.quotaSetted ?? item.quota_setted, false),
     reservedTokens: Number(item.reservedTokens ?? item.reserved_tokens ?? item.reserverTokens ?? item.reserver_tokens ?? 0),

@@ -37,7 +37,7 @@ func (a AccessProvider) Authenticate(ctx context.Context, r *http.Request) (*acc
 		authorization := strings.TrimSpace(r.Header.Get("Authorization"))
 		if strings.Contains(authorization, "Password") {
 			token = strings.TrimSpace(strings.TrimPrefix(authorization, "Password "))
-			if err := a.userRepo.LoginUser(token); err != nil {
+			if err := a.userRepo.LoginUser(ctx, token); err != nil {
 				return nil, &access.AuthError{Message: err.Error()}
 			} else {
 				return &access.Result{
@@ -53,7 +53,7 @@ func (a AccessProvider) Authenticate(ctx context.Context, r *http.Request) (*acc
 	if err != nil {
 		return nil, &access.AuthError{Message: err.Error()}
 	}
-	if key == nil || !key.IsActive {
+	if key == nil || !key.IsActive || key.IsDeleted {
 		return nil, &access.AuthError{Message: "invalid token"}
 	}
 	if key.QuotaSetted {

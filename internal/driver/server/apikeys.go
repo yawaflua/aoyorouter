@@ -58,7 +58,7 @@ func (a *AoyoRouterService) EditApiKey(ctx context.Context, req *aoyorouter.Edit
 }
 
 func (a *AoyoRouterService) CreateApiKey(ctx context.Context, req *aoyorouter.CreateApiKeyRequest) (*aoyorouter.CreateApiKeyResponse, error) {
-	key, err := a.ApiKeyRepo.CreateApiKey(ctx, req.GetName())
+	key, err := a.ApiKeyRepo.CreateApiKey(ctx, req.GetName(), req.GetIsAdmin())
 	if err != nil {
 		return nil, err
 	}
@@ -120,8 +120,25 @@ func (a *AoyoRouterService) GetApiKeyList(ctx context.Context, _ *aoyorouter.Get
 			QuotaResetAt: timestamppb.New(key.QuotaResetAt), QuotaResetStrategy: quotaResetStrategy(key.QuotaPeriod),
 			RestrictedProviders: append([]string(nil), key.RestrictedProviders...),
 			RestrictedModels:    append([]string(nil), key.RestrictedModels...),
+			IsAdmin:             key.IsAdmin,
 		})
 	}
 
 	return &aoyorouter.GetApiKeyListResponse{ApiKeys: result}, nil
+}
+
+// RecreateApiKey implements [aoyorouter.AoyoRouterServiceServer].
+func (a *AoyoRouterService) RecreateApiKey(ctx context.Context, req *aoyorouter.RecreateApiKeyRequest) (*aoyorouter.RecreateApiKeyResponse, error) {
+	if req.GetApiKeyId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "key id should to be provided")
+	}
+	apiKey, err := a.ApiKeyRepo.RecreateApiKey(ctx, req.GetApiKeyId())
+	if err != nil {
+		return nil, err
+	}
+	return &aoyorouter.RecreateApiKeyResponse{
+		Status:   "ok",
+		ApiKey:   apiKey,
+		ApiKeyId: req.GetApiKeyId(),
+	}, nil
 }

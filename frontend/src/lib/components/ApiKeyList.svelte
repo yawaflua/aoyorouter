@@ -13,10 +13,11 @@
     onCreate: () => void
     onEdit: (key: ApiKey) => void
     onDelete: (key: ApiKey) => void
+    onRegenerate: (key: ApiKey) => void
     onLoadUsage: (key: ApiKey) => Promise<void>
   }
 
-  let { keys, search, usage, usageLoading, usageErrors, onClearSearch, onCreate, onEdit, onDelete, onLoadUsage }: Props = $props()
+  let { keys, search, usage, usageLoading, usageErrors, onClearSearch, onCreate, onEdit, onDelete, onRegenerate, onLoadUsage }: Props = $props()
   let expandedId = $state('')
 
   async function toggle(key: ApiKey) {
@@ -50,7 +51,7 @@
         >
           <div class="entity-icon key-icon"><Icon name="key" /></div>
           <div class="entity-main"><h2>{key.name}</h2><p><code>{key.id}</code></p></div>
-          {#if key.isAdmin === 'true'}<span class="status-chip">Admin</span>{/if}
+          {#if key.isAdmin === true}<span class="status-chip">Admin</span>{/if}
           <span class:inactive={!key.isActive} class="status-chip key-status">{key.isActive ? 'Active' : 'Inactive'}</span>
           <span class:expanded={expandedId === key.id} class="expand-icon" aria-hidden="true"><Icon name="chevron" size={19} /></span>
           <button
@@ -70,6 +71,7 @@
               <div><span>Blocked providers</span><strong>{key.restrictedProviders.length}</strong></div>
               <div><span>Blocked models</span><strong>{key.restrictedModels.length}</strong></div>
               <button class="tonal" onclick={() => onEdit(key)}>Edit</button>
+              <button class="text-button" onclick={() => onRegenerate(key)}>Regenerate</button>
             </div>
             {#if usageLoading === key.id}
               <div class="details-loading"><span class="dark-spinner"></span> Loading usage…</div>

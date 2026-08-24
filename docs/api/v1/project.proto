@@ -99,6 +99,12 @@ service AoyoRouterService {
             get: "/api/aoyo/v1/api-keys"
         };
     }
+    rpc RecreateApiKey(RecreateApiKeyRequest) returns (RecreateApiKeyResponse) {
+        option (google.api.http) = {
+            post: "/api/aoyo/v1/api-keys/{api_key_id}/recreate"
+            body: "*"
+        };
+    }
 
     rpc GetUsageLogs(GetUsageLogsRequest) returns (GetUsageLogsResponse) {
         option (google.api.http) = {

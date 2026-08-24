@@ -53,6 +53,8 @@
   let keyUsageErrors = $state<Record<string, string>>({})
 
   let createdKey = $state('')
+  let regeneratedKey = $state('')
+  let secretMode = $state<'create' | 'regenerate'>('create')
   let targetKey = $state<ApiKey | null>(null)
   let targetProvider = $state<Provider | null>(null)
   let targetProxy = $state<LiveProxy | null>(null)
@@ -61,9 +63,6 @@
   let models = $state<ProviderModel[]>([])
 
   const theme = createThemeStore()
-  $effect(() => {
-    theme.set(theme.resolved)
-  })
 
   const client = $derived(new ApiClient(password))
   const sectionInfo = $derived(getSection(section))
@@ -201,6 +200,16 @@
     }
     await runDialogAction(async () => {
       createdKey = (await client.createApiKey(name.trim(), isAdmin)).value
+      secretMode = 'create'
+      await loadSection('keys')
+      dialog = 'secret'
+    }).catch(() => undefined)
+  }
+
+  async function regenerateApiKey(key: ApiKey) {
+    await runDialogAction(async () => {
+      regeneratedKey = (await client.recreateApiKey(key.id)).value
+      secretMode = 'regenerate'
       await loadSection('keys')
       dialog = 'secret'
     }).catch(() => undefined)
@@ -482,6 +491,7 @@
             onCreate={() => openDialog('key')}
             onEdit={requestKeyEdit}
             onDelete={requestKeyDelete}
+            onRegenerate={regenerateApiKey}
             onLoadUsage={loadKeyUsage}
           />
         {:else if section === 'providers'}
@@ -518,7 +528,15 @@
       {:else if dialog === 'edit-key' && targetKey}
         <ApiKeyEditDialog apiKey={targetKey} models={models} providers={providers} pending={actionPending} error={dialogError} onSubmit={updateKey} onClose={closeDialog} />
       {:else if dialog === 'secret'}
-        <SecretDialog value={createdKey} onCopy={() => copy(createdKey, 'API key copied.')} onClose={closeDialog} />
+        <SecretDialog
+          value={secretMode === 'create' ? createdKey : regeneratedKey}
+          eyebrow={secretMode === 'create' ? 'KEY CREATED' : 'KEY REGENERATED'}
+          title={secretMode === 'create' ? 'Save your API key' : 'API key regenerated'}
+          description={secretMode === 'create' ? 'This is the only time the full key will be shown.' : 'Your old key no longer works. Copy the new key now.'}
+          warning={secretMode === 'create' ? 'Store this key somewhere secure before closing.' : 'Store this key somewhere secure. The old key is invalid.'}
+          onCopy={() => copy(secretMode === 'create' ? createdKey : regeneratedKey, 'API key copied.')}
+          onClose={closeDialog}
+        />
       {:else if dialog === 'provider'}
         <ProviderDialog
           pending={actionPending}

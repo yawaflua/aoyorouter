@@ -33,6 +33,7 @@ export function createThemeStore() {
     theme = value
     resolved = resolveTheme(value)
     localStorage.setItem(THEME_KEY, value)
+    apply(resolved)
   }
 
   function init() {

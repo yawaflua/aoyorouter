@@ -31,13 +31,15 @@ func AuthInterceptor(next runtime.HandlerFunc) runtime.HandlerFunc {
 
 		if after, ok := strings.CutPrefix(auth, "Password "); ok {
 			auth = after
+		} else if after, ok := strings.CutPrefix(auth, "Bearer "); ok {
+			auth = after
 		} else {
 			http.Error(w, "Invalid authorization header", http.StatusUnauthorized)
 			return
 		}
 
 		user_repo := r.Context().Value(userRepoKey{}).(*user_repo.UserRepo)
-		err := user_repo.LoginUser(auth)
+		err := user_repo.LoginUser(r.Context(), auth)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)

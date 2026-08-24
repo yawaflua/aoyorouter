@@ -10,7 +10,7 @@ import (
 
 func (p *P) UserRepo(ctx context.Context) *user_repo.UserRepo {
 	if p.userRepo == nil {
-		p.userRepo = user_repo.NewUserRepo(p.DB(ctx), p.Config())
+		p.userRepo = user_repo.NewUserRepo(p.DB(ctx), p.Config(), p.ApiKeyRepo(ctx))
 	}
 	return p.userRepo
 }

@@ -34,6 +34,7 @@ const (
 	AoyoRouterService_EditApiKey_FullMethodName                     = "/aoyorouter.docs.api.v1.AoyoRouterService/EditApiKey"
 	AoyoRouterService_DeleteApiKey_FullMethodName                   = "/aoyorouter.docs.api.v1.AoyoRouterService/DeleteApiKey"
 	AoyoRouterService_GetApiKeyList_FullMethodName                  = "/aoyorouter.docs.api.v1.AoyoRouterService/GetApiKeyList"
+	AoyoRouterService_RecreateApiKey_FullMethodName                 = "/aoyorouter.docs.api.v1.AoyoRouterService/RecreateApiKey"
 	AoyoRouterService_GetUsageLogs_FullMethodName                   = "/aoyorouter.docs.api.v1.AoyoRouterService/GetUsageLogs"
 	AoyoRouterService_GetError_FullMethodName                       = "/aoyorouter.docs.api.v1.AoyoRouterService/GetError"
 	AoyoRouterService_GetErrors_FullMethodName                      = "/aoyorouter.docs.api.v1.AoyoRouterService/GetErrors"
@@ -60,6 +61,7 @@ type AoyoRouterServiceClient interface {
 	EditApiKey(ctx context.Context, in *EditApiKeyRequest, opts ...grpc.CallOption) (*EditApiKeyResponse, error)
 	DeleteApiKey(ctx context.Context, in *DeleteApiKeyRequest, opts ...grpc.CallOption) (*DeleteApiKeyResponse, error)
 	GetApiKeyList(ctx context.Context, in *GetApiKeyListRequest, opts ...grpc.CallOption) (*GetApiKeyListResponse, error)
+	RecreateApiKey(ctx context.Context, in *RecreateApiKeyRequest, opts ...grpc.CallOption) (*RecreateApiKeyResponse, error)
 	GetUsageLogs(ctx context.Context, in *GetUsageLogsRequest, opts ...grpc.CallOption) (*GetUsageLogsResponse, error)
 	GetError(ctx context.Context, in *GetErrorRequest, opts ...grpc.CallOption) (*GetErrorResponse, error)
 	GetErrors(ctx context.Context, in *GetErrorsRequest, opts ...grpc.CallOption) (*GetErrorsResponse, error)
@@ -216,6 +218,16 @@ func (c *aoyoRouterServiceClient) GetApiKeyList(ctx context.Context, in *GetApiK
 	return out, nil
 }
 
+func (c *aoyoRouterServiceClient) RecreateApiKey(ctx context.Context, in *RecreateApiKeyRequest, opts ...grpc.CallOption) (*RecreateApiKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecreateApiKeyResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_RecreateApiKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *aoyoRouterServiceClient) GetUsageLogs(ctx context.Context, in *GetUsageLogsRequest, opts ...grpc.CallOption) (*GetUsageLogsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetUsageLogsResponse)
@@ -294,6 +306,7 @@ type AoyoRouterServiceServer interface {
 	EditApiKey(context.Context, *EditApiKeyRequest) (*EditApiKeyResponse, error)
 	DeleteApiKey(context.Context, *DeleteApiKeyRequest) (*DeleteApiKeyResponse, error)
 	GetApiKeyList(context.Context, *GetApiKeyListRequest) (*GetApiKeyListResponse, error)
+	RecreateApiKey(context.Context, *RecreateApiKeyRequest) (*RecreateApiKeyResponse, error)
 	GetUsageLogs(context.Context, *GetUsageLogsRequest) (*GetUsageLogsResponse, error)
 	GetError(context.Context, *GetErrorRequest) (*GetErrorResponse, error)
 	GetErrors(context.Context, *GetErrorsRequest) (*GetErrorsResponse, error)
@@ -351,6 +364,9 @@ func (UnimplementedAoyoRouterServiceServer) DeleteApiKey(context.Context, *Delet
 }
 func (UnimplementedAoyoRouterServiceServer) GetApiKeyList(context.Context, *GetApiKeyListRequest) (*GetApiKeyListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetApiKeyList not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) RecreateApiKey(context.Context, *RecreateApiKeyRequest) (*RecreateApiKeyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RecreateApiKey not implemented")
 }
 func (UnimplementedAoyoRouterServiceServer) GetUsageLogs(context.Context, *GetUsageLogsRequest) (*GetUsageLogsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUsageLogs not implemented")
@@ -643,6 +659,24 @@ func _AoyoRouterService_GetApiKeyList_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AoyoRouterService_RecreateApiKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecreateApiKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).RecreateApiKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_RecreateApiKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).RecreateApiKey(ctx, req.(*RecreateApiKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AoyoRouterService_GetUsageLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetUsageLogsRequest)
 	if err := dec(in); err != nil {
@@ -813,6 +847,10 @@ var AoyoRouterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetApiKeyList",
 			Handler:    _AoyoRouterService_GetApiKeyList_Handler,
+		},
+		{
+			MethodName: "RecreateApiKey",
+			Handler:    _AoyoRouterService_RecreateApiKey_Handler,
 		},
 		{
 			MethodName: "GetUsageLogs",

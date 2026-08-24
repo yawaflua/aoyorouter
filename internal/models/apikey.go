@@ -23,6 +23,7 @@ type ApiKey struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	IsDeleted bool      `json:"is_deleted"`
 	IsActive  bool      `json:"is_active"`
+	IsAdmin   bool      `json:"is_admin"`
 }
 
 type QuotaPeriod string

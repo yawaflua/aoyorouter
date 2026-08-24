@@ -69,7 +69,7 @@ export class ApiClient {
   async createApiKey(name: string, isAdmin: boolean): Promise<CreatedApiKey> {
     const response = await this.request('/api/aoyo/v1/api-keys', {
       method: 'POST',
-      body: JSON.stringify({ name, isAdmin: String(isAdmin) }),
+      body: JSON.stringify({ name, isAdmin: isAdmin }),
     })
     return {
       id: text(response.apiKeyId ?? response.api_key_id),
@@ -79,6 +79,17 @@ export class ApiClient {
 
   async deleteApiKey(id: string): Promise<void> {
     await this.request(`/api/aoyo/v1/api-keys/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  }
+
+  async recreateApiKey(id: string): Promise<CreatedApiKey> {
+    const response = await this.request(`/api/aoyo/v1/api-keys/${encodeURIComponent(id)}/recreate`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    })
+    return {
+      id: text(response.apiKeyId ?? response.api_key_id),
+      value: text(response.apiKey ?? response.api_key),
+    }
   }
 
   async updateApiKey(input: UpdateApiKeyInput): Promise<void> {

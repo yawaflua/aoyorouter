@@ -55,7 +55,7 @@ func (r *ApiKeyRepo) ProcessQueue(ctx context.Context) {
 	}
 }
 
-func (r *ApiKeyRepo) CreateApiKey(ctx context.Context, name string) (*models.ApiKey, error) {
+func (r *ApiKeyRepo) CreateApiKey(ctx context.Context, name string, is_admin bool) (*models.ApiKey, error) {
 	conn := r.DB.GetConnection(ctx)
 
 	token, err := generateToken()
@@ -68,8 +68,8 @@ func (r *ApiKeyRepo) CreateApiKey(ctx context.Context, name string) (*models.Api
 	}
 
 	sql, args, err := squirrel.Insert("api_keys").
-		Columns("ID", "name", "key", "created_at", "updated_at", "is_deleted", "is_active").
-		Values(id, name, token, time.Now(), time.Now(), false, true).
+		Columns("ID", "name", "key", "created_at", "updated_at", "is_deleted", "is_active", "is_admin").
+		Values(id, name, token, time.Now(), time.Now(), false, true, true).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 
@@ -91,10 +91,32 @@ func (r *ApiKeyRepo) CreateApiKey(ctx context.Context, name string) (*models.Api
 	}, nil
 }
 
+func (r *ApiKeyRepo) RecreateApiKey(ctx context.Context, id string) (string, error) {
+	conn := r.DB.GetConnection(ctx)
+	newKey, err := generateToken()
+	if err != nil {
+		return "", fmt.Errorf("postgres.apikey_repo.RecreateApiKey: %w", err)
+	}
+	sql, args, err := squirrel.Update("api_keys").
+		Set("updated_at", time.Now()).
+		Set("key", newKey).
+		Where(squirrel.Eq{"id": id}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return "", fmt.Errorf("postgres.apikey_repo.RecreateApiKey: %w", err)
+	}
+	_, err = conn.Exec(ctx, sql, args...)
+	if err != nil {
+		return "", fmt.Errorf("postgres.apikey_repo.RecreateApiKey: %w", err)
+	}
+	return newKey, nil
+}
+
 func (r *ApiKeyRepo) GetApiKeyByID(ctx context.Context, id string) (*models.ApiKey, error) {
 	conn := r.DB.GetConnection(ctx)
 
-	sql, args, err := squirrel.Select("id", "name", "key", "quota_setted", "quota_tokens", "quota_period", "quota_reset_at", "reserved_tokens", "excluded_providers", "excluded_models", "created_at", "updated_at", "is_deleted", "is_active").
+	sql, args, err := squirrel.Select("id", "name", "key", "quota_setted", "quota_tokens", "quota_period", "quota_reset_at", "reserved_tokens", "excluded_providers", "excluded_models", "created_at", "updated_at", "is_deleted", "is_active", "is_admin").
 		From("api_keys").
 		Where(squirrel.Eq{"id": id}).
 		PlaceholderFormat(squirrel.Dollar).
@@ -103,7 +125,7 @@ func (r *ApiKeyRepo) GetApiKeyByID(ctx context.Context, id string) (*models.ApiK
 		return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeyByID: %w", err)
 	}
 	var apiKey models.ApiKey
-	if err := conn.QueryRow(ctx, sql, args...).Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.QuotaSetted, &apiKey.QuotaTokens, &apiKey.QuotaPeriod, &apiKey.QuotaResetAt, &apiKey.ReservedTokens, &apiKey.RestrictedProviders, &apiKey.RestrictedModels, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive); err != nil {
+	if err := conn.QueryRow(ctx, sql, args...).Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.QuotaSetted, &apiKey.QuotaTokens, &apiKey.QuotaPeriod, &apiKey.QuotaResetAt, &apiKey.ReservedTokens, &apiKey.RestrictedProviders, &apiKey.RestrictedModels, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive, &apiKey.IsAdmin); err != nil {
 		return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeyByID: %w", err)
 	}
 	return &apiKey, nil
@@ -111,7 +133,7 @@ func (r *ApiKeyRepo) GetApiKeyByID(ctx context.Context, id string) (*models.ApiK
 
 func (r *ApiKeyRepo) GetApiKeyByKey(ctx context.Context, key string) (*models.ApiKey, error) {
 	conn := r.DB.GetConnection(ctx)
-	sql, args, err := squirrel.Select("id", "name", "key", "quota_setted", "quota_tokens", "quota_period", "quota_reset_at", "reserved_tokens", "excluded_providers", "excluded_models", "created_at", "updated_at", "is_deleted", "is_active").
+	sql, args, err := squirrel.Select("id", "name", "key", "quota_setted", "quota_tokens", "quota_period", "quota_reset_at", "reserved_tokens", "excluded_providers", "excluded_models", "created_at", "updated_at", "is_deleted", "is_active", "is_admin").
 		From("api_keys").
 		Where(squirrel.Eq{"key": key}).
 		PlaceholderFormat(squirrel.Dollar).
@@ -127,7 +149,7 @@ func (r *ApiKeyRepo) GetApiKeyByKey(ctx context.Context, key string) (*models.Ap
 
 	var apiKey models.ApiKey
 	if rows.Next() {
-		if err := rows.Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.QuotaSetted, &apiKey.QuotaTokens, &apiKey.QuotaPeriod, &apiKey.QuotaResetAt, &apiKey.ReservedTokens, &apiKey.RestrictedProviders, &apiKey.RestrictedModels, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive); err != nil {
+		if err := rows.Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.QuotaSetted, &apiKey.QuotaTokens, &apiKey.QuotaPeriod, &apiKey.QuotaResetAt, &apiKey.ReservedTokens, &apiKey.RestrictedProviders, &apiKey.RestrictedModels, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive, &apiKey.IsAdmin); err != nil {
 			return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeyByKey: %w", err)
 		}
 	}
@@ -170,6 +192,7 @@ func (r *ApiKeyRepo) UpdateApiKey(ctx context.Context, apiKey *models.ApiKey) er
 	sql, args, err := squirrel.Update("api_keys").
 		Set("name", apiKey.Name).
 		Set("is_active", apiKey.IsActive).
+		Set("is_admin", apiKey.IsAdmin).
 		Set("quota_setted", apiKey.QuotaSetted).
 		Set("quota_period", apiKey.QuotaPeriod).
 		Set("quota_reset_at", apiKey.QuotaResetAt).
@@ -195,7 +218,7 @@ func (r *ApiKeyRepo) UpdateApiKey(ctx context.Context, apiKey *models.ApiKey) er
 
 func (r *ApiKeyRepo) GetApiKeys(ctx context.Context) ([]*models.ApiKey, error) {
 	conn := r.DB.GetConnection(ctx)
-	rows, err := conn.Query(ctx, "SELECT id, name, key, quota_setted, quota_tokens, quota_period, quota_reset_at, reserved_tokens, excluded_providers, excluded_models, created_at, updated_at, is_deleted, is_active FROM api_keys WHERE is_deleted = false")
+	rows, err := conn.Query(ctx, "SELECT id, name, key, quota_setted, quota_tokens, quota_period, quota_reset_at, reserved_tokens, excluded_providers, excluded_models, created_at, updated_at, is_deleted, is_active, is_admin FROM api_keys WHERE is_deleted = false")
 	if err != nil {
 		return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeys: %w", err)
 	}
@@ -204,7 +227,7 @@ func (r *ApiKeyRepo) GetApiKeys(ctx context.Context) ([]*models.ApiKey, error) {
 	var apiKeys []*models.ApiKey
 	for rows.Next() {
 		var apiKey models.ApiKey
-		if err := rows.Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.QuotaSetted, &apiKey.QuotaTokens, &apiKey.QuotaPeriod, &apiKey.QuotaResetAt, &apiKey.ReservedTokens, &apiKey.RestrictedProviders, &apiKey.RestrictedModels, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive); err != nil {
+		if err := rows.Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.QuotaSetted, &apiKey.QuotaTokens, &apiKey.QuotaPeriod, &apiKey.QuotaResetAt, &apiKey.ReservedTokens, &apiKey.RestrictedProviders, &apiKey.RestrictedModels, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive, &apiKey.IsAdmin); err != nil {
 			return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeys: %w", err)
 		}
 		apiKeys = append(apiKeys, &apiKey)
@@ -217,8 +240,9 @@ func (r *ApiKeyRepo) GetApiKeys(ctx context.Context) ([]*models.ApiKey, error) {
 
 func (r *ApiKeyRepo) DeleteApiKey(ctx context.Context, id string) error {
 	conn := r.DB.GetConnection(ctx)
-	sql, args, err := squirrel.Delete("api_keys").
+	sql, args, err := squirrel.Update("api_keys").
 		Where(squirrel.Eq{"id": id}).
+		Set("is_deleted", true).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 

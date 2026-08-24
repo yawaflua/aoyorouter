@@ -1,5 +1,6 @@
 <script lang="ts">
     import { readFile, streamChat, type ChatMessage, type ContentBlock } from "../models/chat";
+    import { renderMarkdown } from "../markdown";
     import Icon from "../Icon.svelte";
 
     interface Props {
@@ -176,9 +177,13 @@
                             <p>{message.thinking}</p>
                         </details>
                     {/if}
-                    <p class:pending={streaming && index === messages.length - 1 && !message.content}>
-                        {message.content || "…"}
-                    </p>
+                    <div class="chat-message-body" class:pending={streaming && index === messages.length - 1 && !message.content}>
+                        {#if message.content}
+                            {@html renderMarkdown(message.content)}
+                        {:else}
+                            <span class="pending-dots">…</span>
+                        {/if}
+                    </div>
                 </article>
             {/each}
         {/if}
@@ -284,10 +289,15 @@
         opacity: 0.65;
         margin-bottom: 6px;
     }
-    .chat-message p {
-        white-space: pre-wrap;
+    .chat-message-body {
+        line-height: 1.55;
         word-break: break-word;
-        margin: 0;
+    }
+    .chat-message-body > :first-child {
+        margin-top: 0;
+    }
+    .chat-message-body > :last-child {
+        margin-bottom: 0;
     }
     .chat-message.user {
         align-self: flex-end;
@@ -299,9 +309,12 @@
         background: var(--surface-container);
         color: var(--on-surface);
     }
-    p.pending::after {
+    .chat-message-body.pending::after {
         content: "▍";
         animation: blink 1s steps(2) infinite;
+    }
+    .pending-dots {
+        opacity: 0.7;
     }
     @keyframes blink {
         to {
