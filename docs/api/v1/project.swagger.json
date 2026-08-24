@@ -480,6 +480,40 @@
         ]
       }
     },
+    "/api/aoyo/v1/providers/reload": {
+      "post": {
+        "operationId": "AoyoRouterService_ReloadProviders",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
     "/api/aoyo/v1/providers/{providerId}": {
       "get": {
         "operationId": "AoyoRouterService_GetProvider",

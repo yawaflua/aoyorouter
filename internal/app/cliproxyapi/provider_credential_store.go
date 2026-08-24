@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"maps"
 	"strconv"
 	"strings"
@@ -18,6 +19,7 @@ import (
 type ProviderCredentialStore struct {
 	repo   providerCredentialRepository
 	vendor *providers.ProviderVendor
+	logger *slog.Logger
 }
 
 type providerCredentialRepository interface {
@@ -26,28 +28,37 @@ type providerCredentialRepository interface {
 	UpdateProviderCredentials(context.Context, string, string, map[string]any) (*models.Provider, error)
 }
 
-func NewProviderCredentialStore(repo providerCredentialRepository, vendor *providers.ProviderVendor) *ProviderCredentialStore {
-	return &ProviderCredentialStore{repo: repo, vendor: vendor}
+func NewProviderCredentialStore(repo providerCredentialRepository, vendor *providers.ProviderVendor, logger *slog.Logger) *ProviderCredentialStore {
+	return &ProviderCredentialStore{repo: repo, vendor: vendor, logger: logger}
 }
 
 func (s *ProviderCredentialStore) List(ctx context.Context) ([]*coreauth.Auth, error) {
 	providers, err := s.repo.GetProviders(ctx)
 	if err != nil {
+		s.logger.Error("provider credential store: failed to list providers", "error", err)
 		return nil, err
 	}
 	auths := make([]*coreauth.Auth, 0, len(providers))
 	for _, provider := range providers {
+		if provider == nil {
+			continue
+		}
 		if provider.Type == aoyorouter.ProviderType_PROVIDER_TYPE_CURSOR {
 			continue
 		}
-		if provider == nil || len(provider.Credentials) == 0 {
+		if provider.Disabled {
+			s.logger.Debug("provider credential store: skipping disabled provider", "provider_id", provider.ID, "name", provider.Name)
 			continue
 		}
-		if provider.Disabled {
+		if len(provider.Credentials) == 0 {
+			if s.requiresCredentials(provider) {
+				s.logger.Warn("provider credential store: provider has empty credentials", "provider_id", provider.ID, "name", provider.Name, "type", provider.Type, "client_secret", provider.ClientSecret)
+			}
 			continue
 		}
 		credentialType := s.providerCredentialType(provider)
 		if credentialType == "" {
+			s.logger.Warn("provider credential store: unknown credential type", "provider_id", provider.ID, "name", provider.Name, "type", provider.Type)
 			continue
 		}
 		var proxyUrl string
@@ -77,7 +88,20 @@ func (s *ProviderCredentialStore) List(ctx context.Context) ([]*coreauth.Auth, e
 			Prefix:     credentialType,
 		})
 	}
+	s.logger.Info("provider credential store: listed credentials", "providers", len(providers), "auths", len(auths))
 	return auths, nil
+}
+
+func (s *ProviderCredentialStore) requiresCredentials(provider *models.Provider) bool {
+	if provider == nil {
+		return false
+	}
+	cfg, err := s.vendor.ProviderOAuthConfig(provider.Type)
+	if err != nil {
+		return false
+	}
+	def := cfg.GetOAuthDefinition()
+	return def != nil && def.CredentialProvider != ""
 }
 
 func (s *ProviderCredentialStore) providerCredentialType(provider *models.Provider) string {
@@ -112,6 +136,10 @@ func (s *ProviderCredentialStore) Save(ctx context.Context, auth *coreauth.Auth)
 	if clientSecret == "oauth:pending" {
 		clientSecret = "oauth:database"
 	}
+	if len(credentials) == 0 {
+		s.logger.Warn("provider credential store: saving empty credentials", "provider_id", provider.ID, "name", provider.Name)
+	}
+	s.logger.Info("provider credential store: saving credentials", "provider_id", provider.ID, "name", provider.Name, "credential_type", auth.Provider, "keys", credentialKeys(credentials))
 	if _, err := s.repo.UpdateProviderCredentials(ctx, provider.ID, clientSecret, credentials); err != nil {
 		return "", fmt.Errorf("provider credential store: save credentials: %w", err)
 	}
@@ -123,8 +151,17 @@ func (s *ProviderCredentialStore) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return fmt.Errorf("provider credential store: get provider: %w", err)
 	}
+	s.logger.Info("provider credential store: deleting credentials", "provider_id", provider.ID, "name", provider.Name)
 	_, err = s.repo.UpdateProviderCredentials(ctx, provider.ID, provider.ClientSecret, map[string]any{})
 	return err
+}
+
+func credentialKeys(credentials map[string]any) []string {
+	keys := make([]string, 0, len(credentials))
+	for key := range credentials {
+		keys = append(keys, key)
+	}
+	return keys
 }
 
 func cloneCredentials(credentials map[string]any) map[string]any {

@@ -7,6 +7,7 @@ import (
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func (a *AoyoRouterService) CreateProvider(ctx context.Context, req *aoyorouter.CreateProviderRequest) (*aoyorouter.CreateProviderResponse, error) {
@@ -80,6 +81,16 @@ func (a *AoyoRouterService) GetProvidersList(ctx context.Context, _ *aoyorouter.
 	}
 
 	return &aoyorouter.GetProvidersListResponse{Providers: result}, nil
+}
+
+func (a *AoyoRouterService) ReloadProviders(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+	if a.cpapiRestarter == nil {
+		return nil, status.Error(codes.Unimplemented, "provider reload is not configured")
+	}
+	if err := a.cpapiRestarter(ctx); err != nil {
+		return nil, status.Errorf(codes.Internal, "reload providers: %v", err)
+	}
+	return &emptypb.Empty{}, nil
 }
 
 func (a *AoyoRouterService) UpdateProvider(ctx context.Context, req *aoyorouter.UpdateProviderRequest) (*aoyorouter.UpdateProviderResponse, error) {

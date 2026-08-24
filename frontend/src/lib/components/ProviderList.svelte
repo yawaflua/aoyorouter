@@ -13,10 +13,12 @@
     onEdit: (provider: Provider) => void
     onDelete: (provider: Provider) => void
     onToggleDisabled: (provider: Provider) => void
+    onReload: () => void
     togglePendingId: string
+    reloadPending: boolean
   }
 
-  let { providers, search, models, onClearSearch, onCreate, onEdit, onDelete, onToggleDisabled, togglePendingId }: Props = $props()
+  let { providers, search, models, onClearSearch, onCreate, onEdit, onDelete, onToggleDisabled, onReload, togglePendingId, reloadPending }: Props = $props()
   let expandedId = $state('')
 
   function toggle(provider: Provider) {
@@ -36,6 +38,12 @@
 </script>
 
 {#if providers.length}
+  <div class="provider-toolbar">
+    <button class="text-button" onclick={onReload} disabled={reloadPending}>
+      <Icon name="refresh" size={17} />
+      {reloadPending ? 'Reloading…' : 'Reload providers'}
+    </button>
+  </div>
   <div class="data-list" aria-label="Providers">
     {#each providers as provider (provider.id)}
       <article class:provider-expanded={expandedId === provider.id} class:provider-disabled={provider.disabled} class="provider-item">

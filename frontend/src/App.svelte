@@ -59,6 +59,7 @@
   let targetProvider = $state<Provider | null>(null)
   let targetProxy = $state<LiveProxy | null>(null)
   let providerTogglePending = $state('')
+  let providerReloadPending = $state(false)
 
   let models = $state<ProviderModel[]>([])
 
@@ -412,6 +413,21 @@
     }
   }
 
+  async function reloadProviders() {
+    if (providerReloadPending) return
+    providerReloadPending = true
+    pageError = ''
+    try {
+      await client.reloadProviders()
+      await loadSection('providers')
+      notice = 'Providers reloaded.'
+    } catch (error) {
+      pageError = errorMessage(error)
+    } finally {
+      providerReloadPending = false
+    }
+  }
+
   async function updateProxy(input: { id: string, endpoint: string, newEndpoint: string }){
     await runDialogAction(async () => {
       await client.updateProxy({
@@ -504,7 +520,9 @@
             onEdit={requestProviderEdit}
             onDelete={requestProviderDelete}
             onToggleDisabled={toggleProviderDisabled}
+            onReload={reloadProviders}
             togglePendingId={providerTogglePending}
+            reloadPending={providerReloadPending}
           />
         {:else if section === 'proxies'}
           <ProxyList proxies={filteredProxies} {search} onEdit={requestProxyEdit} onClearSearch={() => (search = '')} onCopy={copy} />

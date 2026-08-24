@@ -117,6 +117,10 @@ export class ApiClient {
     return Array.isArray(response.providers) ? response.providers.map(parseProvider) : []
   }
 
+  async reloadProviders(): Promise<void> {
+    await this.request('/api/aoyo/v1/providers/reload', { method: 'POST', body: JSON.stringify({}) })
+  }
+
   async getProxies(): Promise<{ resp_proxies: LiveProxy[], availableEndpoints: Endpoint[] }> {
     const response = await this.request('/api/aoyo/v1/proxies')
     let resp_proxies: LiveProxy[] = []

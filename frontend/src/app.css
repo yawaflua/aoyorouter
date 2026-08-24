@@ -574,6 +574,16 @@ h3 {
 .provider-item .data-row {
     border-bottom: 0;
 }
+.provider-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+}
+.provider-toolbar button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
 .provider-row {
     cursor: pointer;
 }

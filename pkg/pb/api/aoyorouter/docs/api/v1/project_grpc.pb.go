@@ -28,6 +28,7 @@ const (
 	AoyoRouterService_GetProviderAuthorizationStatus_FullMethodName = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProviderAuthorizationStatus"
 	AoyoRouterService_GetProvider_FullMethodName                    = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProvider"
 	AoyoRouterService_GetProvidersList_FullMethodName               = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProvidersList"
+	AoyoRouterService_ReloadProviders_FullMethodName                = "/aoyorouter.docs.api.v1.AoyoRouterService/ReloadProviders"
 	AoyoRouterService_UpdateProvider_FullMethodName                 = "/aoyorouter.docs.api.v1.AoyoRouterService/UpdateProvider"
 	AoyoRouterService_DeleteProvider_FullMethodName                 = "/aoyorouter.docs.api.v1.AoyoRouterService/DeleteProvider"
 	AoyoRouterService_CreateApiKey_FullMethodName                   = "/aoyorouter.docs.api.v1.AoyoRouterService/CreateApiKey"
@@ -55,6 +56,7 @@ type AoyoRouterServiceClient interface {
 	GetProviderAuthorizationStatus(ctx context.Context, in *GetProviderAuthorizationStatusRequest, opts ...grpc.CallOption) (*ProviderAuthorizationStatusResponse, error)
 	GetProvider(ctx context.Context, in *GetProviderRequest, opts ...grpc.CallOption) (*GetProviderResponse, error)
 	GetProvidersList(ctx context.Context, in *GetProvidersListRequest, opts ...grpc.CallOption) (*GetProvidersListResponse, error)
+	ReloadProviders(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	UpdateProvider(ctx context.Context, in *UpdateProviderRequest, opts ...grpc.CallOption) (*UpdateProviderResponse, error)
 	DeleteProvider(ctx context.Context, in *DeleteProviderRequest, opts ...grpc.CallOption) (*DeleteProviderResponse, error)
 	CreateApiKey(ctx context.Context, in *CreateApiKeyRequest, opts ...grpc.CallOption) (*CreateApiKeyResponse, error)
@@ -152,6 +154,16 @@ func (c *aoyoRouterServiceClient) GetProvidersList(ctx context.Context, in *GetP
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetProvidersListResponse)
 	err := c.cc.Invoke(ctx, AoyoRouterService_GetProvidersList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aoyoRouterServiceClient) ReloadProviders(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AoyoRouterService_ReloadProviders_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -300,6 +312,7 @@ type AoyoRouterServiceServer interface {
 	GetProviderAuthorizationStatus(context.Context, *GetProviderAuthorizationStatusRequest) (*ProviderAuthorizationStatusResponse, error)
 	GetProvider(context.Context, *GetProviderRequest) (*GetProviderResponse, error)
 	GetProvidersList(context.Context, *GetProvidersListRequest) (*GetProvidersListResponse, error)
+	ReloadProviders(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	UpdateProvider(context.Context, *UpdateProviderRequest) (*UpdateProviderResponse, error)
 	DeleteProvider(context.Context, *DeleteProviderRequest) (*DeleteProviderResponse, error)
 	CreateApiKey(context.Context, *CreateApiKeyRequest) (*CreateApiKeyResponse, error)
@@ -346,6 +359,9 @@ func (UnimplementedAoyoRouterServiceServer) GetProvider(context.Context, *GetPro
 }
 func (UnimplementedAoyoRouterServiceServer) GetProvidersList(context.Context, *GetProvidersListRequest) (*GetProvidersListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetProvidersList not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) ReloadProviders(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReloadProviders not implemented")
 }
 func (UnimplementedAoyoRouterServiceServer) UpdateProvider(context.Context, *UpdateProviderRequest) (*UpdateProviderResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateProvider not implemented")
@@ -547,6 +563,24 @@ func _AoyoRouterService_GetProvidersList_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AoyoRouterServiceServer).GetProvidersList(ctx, req.(*GetProvidersListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AoyoRouterService_ReloadProviders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).ReloadProviders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_ReloadProviders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).ReloadProviders(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -823,6 +857,10 @@ var AoyoRouterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProvidersList",
 			Handler:    _AoyoRouterService_GetProvidersList_Handler,
+		},
+		{
+			MethodName: "ReloadProviders",
+			Handler:    _AoyoRouterService_ReloadProviders_Handler,
 		},
 		{
 			MethodName: "UpdateProvider",

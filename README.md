@@ -12,6 +12,17 @@ For example, Claude Code can connect to AoyoRouter and use a model exposed by an
 - API-key management, quotas, usage logs, and provider quota display
 - HTTP and SOCKS proxy support
 - Web dashboard for administration
+### Supported providers
+
+- OpenAI Codex
+- Claude Code
+- xAI Grok
+- Google Antigravity
+- Kimi
+- OpenCode (Go/Zen)
+- Cline
+- Cursor
+- Any OpenAI-compatible provider
 
 ## Requirements
 

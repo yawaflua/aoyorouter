@@ -52,7 +52,7 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 		http.Error(w, "upstream unavailable", http.StatusBadGateway)
 	}
 
-	credentialStore := cliproxyapi.NewProviderCredentialStore(p.ProviderRepo(ctx), p.ProviderVendor(ctx))
+	credentialStore := cliproxyapi.NewProviderCredentialStore(p.ProviderRepo(ctx), p.ProviderVendor(ctx), p.Logger())
 	auth.RegisterTokenStore(credentialStore)
 
 	coreAuthManager := coreauth.NewManager(credentialStore, nil, nil)

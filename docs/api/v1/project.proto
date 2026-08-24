@@ -61,6 +61,13 @@ service AoyoRouterService {
         };
     }
 
+    rpc ReloadProviders(google.protobuf.Empty) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/api/aoyo/v1/providers/reload"
+            body: "*"
+        };
+    }
+
     rpc UpdateProvider(UpdateProviderRequest) returns (UpdateProviderResponse) {
         option (google.api.http) = {
             patch: "/api/aoyo/v1/providers/{provider_id}"
