@@ -5,11 +5,14 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"math/rand"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -24,10 +27,12 @@ const (
 
 // Server is an OpenAI-compatible HTTP bridge to the Cursor AI backend.
 type Server struct {
-	cfg    Config
-	client *http.Client
-	logger *slog.Logger
-	http   *http.Server
+	cfg      Config
+	client   *http.Client
+	logger   *slog.Logger
+	http     *http.Server
+	listener net.Listener
+	port     int
 }
 
 // NewServer creates a bridge server. ProxyURL in cfg routes outbound
@@ -47,22 +52,38 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	mux.HandleFunc("GET /v1/models", s.handleModels)
 	mux.HandleFunc("POST /v1/chat/completions", s.handleChatCompletions)
 
-	s.http = &http.Server{
-		Addr:    fmt.Sprintf("0.0.0.0:%d", cfg.Port),
-		Handler: mux,
+	// Log unmatched endpoints/methods instead of a bare 404.
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		s.logger.Warn("cursor: no handler for request",
+			slog.String("method", r.Method),
+			slog.String("path", r.URL.Path),
+			slog.String("remote", r.RemoteAddr))
+		writeError(w, http.StatusNotFound, "not found")
+	})
+
+	ln, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", cfg.Port))
+	if err != nil {
+		return nil, fmt.Errorf("cursor: listen on port %d: %w", cfg.Port, err)
 	}
+	s.listener = ln
+	s.port = ln.Addr().(*net.TCPAddr).Port
+	s.http = &http.Server{Handler: mux}
 	return s, nil
 }
 
+// Port returns the TCP port the bridge is bound to.
+func (s *Server) Port() int { return s.port }
+
 // BaseURL returns the local OpenAI-compatible base URL of the bridge.
 func (s *Server) BaseURL() string {
-	return fmt.Sprintf("http://127.0.0.1:%d/v1", s.cfg.Port)
+	return fmt.Sprintf("http://127.0.0.1:%d/v1", s.port)
 }
 
-// ListenAndServe starts the bridge and blocks until the server stops.
+// ListenAndServe serves the bridge on the port bound by NewServer and blocks
+// until the server stops.
 func (s *Server) ListenAndServe() error {
-	s.logger.Info("cursor bridge listening", slog.Int("port", s.cfg.Port), slog.String("proxy", s.cfg.ProxyURL))
-	return s.http.ListenAndServe()
+	s.logger.Info("cursor bridge listening", slog.Int("port", s.port), slog.String("proxy", s.cfg.ProxyURL))
+	return s.http.Serve(s.listener)
 }
 
 // Shutdown gracefully stops the bridge.
@@ -102,7 +123,7 @@ func (s *Server) cursorHeaders(checksum, token string, streaming bool) http.Head
 	h.Set("connect-protocol-version", "1")
 	h.Set("user-agent", "connect-es/1.6.1")
 	h.Set("x-cursor-checksum", checksum)
-	h.Set("x-cursor-client-version", s.cfg.CursorClientVersion)
+	h.Set("x-cursor-client-version", DefaultClientVersion)
 	h.Set("x-cursor-config-version", uuid.NewString())
 	h.Set("x-cursor-timezone", "Asia/Shanghai")
 	h.Set("x-ghost-mode", "true")
@@ -170,13 +191,12 @@ func (s *Server) HandleModels(ctx context.Context, token string, checksum string
 // ---------- /v1/models ----------
 func (s *Server) handleModels(w http.ResponseWriter, r *http.Request) {
 	token := extractToken(r)
-
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
 
 	names, err := s.HandleModels(ctx, token, r.Header.Get("x-cursor-checksum"))
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "internal server error")
+		writeError(w, http.StatusBadGateway, "cursor: "+err.Error())
 		return
 	}
 
@@ -194,9 +214,11 @@ type chatCompletionRequest struct {
 }
 
 func (s *Server) handleChatCompletions(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
 	var reqBody chatCompletionRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid request body")
+		s.logger.Warn("cursor: bad request body", slog.Any("err", err))
+		writeError(w, http.StatusBadRequest, "invalid request body: "+err.Error())
 		return
 	}
 	token := extractToken(r)
@@ -208,7 +230,7 @@ func (s *Server) handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 	cursorBody, err := GenerateChatBody(reqBody.Messages, reqBody.Model)
 	if err != nil {
 		s.logger.Error("cursor: build request body failed", slog.Any("err", err))
-		writeError(w, http.StatusInternalServerError, "internal server error")
+		writeError(w, http.StatusInternalServerError, "cursor: "+err.Error())
 		return
 	}
 
@@ -227,13 +249,21 @@ func (s *Server) handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 	resp, err := s.client.Do(req)
 	if err != nil {
 		s.logger.Error("cursor: StreamUnifiedChatWithTools failed", slog.Any("err", err))
-		writeError(w, http.StatusInternalServerError, "internal server error")
+		writeError(w, http.StatusBadGateway, "cursor: "+err.Error())
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		writeError(w, resp.StatusCode, resp.Status)
+		detail, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		s.logger.Error("cursor: StreamUnifiedChatWithTools rejected",
+			slog.Int("status", resp.StatusCode),
+			slog.String("body", string(detail)))
+		msg := resp.Status
+		if len(detail) > 0 {
+			msg += ": " + string(detail)
+		}
+		writeError(w, resp.StatusCode, "cursor: "+msg)
 		return
 	}
 
@@ -244,56 +274,102 @@ func (s *Server) handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 	s.collectResponse(w, resp.Body, reqBody.Model)
 }
 
-// streamResponse forwards Connect-RPC frames as OpenAI SSE chunks.
-func (s *Server) streamResponse(w http.ResponseWriter, body io.Reader, model string) {
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
+// thinkingTagger wraps runs of reasoning output in <thinking> tags while
+// passing normal text through untouched.
+type thinkingTagger struct{ open bool }
 
+func (t *thinkingTagger) next(thinking, text string) string {
+	var b strings.Builder
+	if thinking != "" {
+		if !t.open {
+			b.WriteString("<thinking>\n")
+			t.open = true
+		}
+		b.WriteString(thinking)
+	}
+	if text != "" {
+		b.WriteString(t.close())
+		b.WriteString(text)
+	}
+	return b.String()
+}
+
+// close emits the terminator if a thinking block is still open.
+func (t *thinkingTagger) close() string {
+	if !t.open {
+		return ""
+	}
+	t.open = false
+	return "\n</thinking>\n"
+}
+
+// streamResponse forwards Connect-RPC frames as OpenAI SSE chunks.
+//
+// SSE headers are written lazily: Cursor reports rejections in the very first
+// frame, so as long as nothing has been sent we can still answer with a real
+// HTTP error status instead of an empty 200 stream that callers can only
+// report as "stream ended without receiving any events".
+func (s *Server) streamResponse(w http.ResponseWriter, body io.Reader, model string) {
 	flusher, _ := w.(http.Flusher)
 	responseID := "chatcmpl-" + uuid.NewString()
+	started := false
 
-	thinkingStart, thinkingEnd := "<thinking>", "</thinking>"
-	emit := func(content string) {
-		if content == "" {
-			return
+	send := func(choice map[string]any) {
+		if !started {
+			w.Header().Set("Content-Type", "text/event-stream")
+			w.Header().Set("Cache-Control", "no-cache")
+			w.Header().Set("Connection", "keep-alive")
+			w.WriteHeader(http.StatusOK)
+			started = true
 		}
-		chunk := map[string]any{
+		data, _ := json.Marshal(map[string]any{
 			"id":      responseID,
 			"object":  "chat.completion.chunk",
 			"created": time.Now().Unix(),
 			"model":   model,
-			"choices": []map[string]any{{
-				"index": 0,
-				"delta": map[string]any{"content": content},
-			}},
-		}
-		data, _ := json.Marshal(chunk)
+			"choices": []map[string]any{choice},
+		})
 		fmt.Fprintf(w, "data: %s\n\n", data)
 		if flusher != nil {
 			flusher.Flush()
 		}
 	}
+	emit := func(content string) {
+		if content == "" {
+			return
+		}
+		if !started {
+			send(map[string]any{
+				"index": 0,
+				"delta": map[string]any{"role": "assistant", "content": ""},
+			})
+		}
+		send(map[string]any{
+			"index": 0,
+			"delta": map[string]any{"content": content},
+		})
+	}
 
+	var tagger thinkingTagger
 	err := readFrames(body, func(thinking, text string) {
-		var content strings.Builder
-		if thinkingStart != "" && len(thinking) > 0 {
-			content.WriteString(thinkingStart + "\n")
-			thinkingStart = ""
-		}
-		content.WriteString(thinking)
-		if thinkingEnd != "" && len(thinking) == 0 && len(text) != 0 && thinkingStart == "" {
-			content.WriteString("\n" + thinkingEnd + "\n")
-			thinkingEnd = ""
-		}
-		content.WriteString(text)
-		emit(content.String())
+		emit(tagger.next(thinking, text))
 	})
 	if err != nil {
-		s.logger.Error("cursor: stream error", slog.Any("err", err))
-		errData, _ := json.Marshal(map[string]any{"error": "stream processing error"})
-		fmt.Fprintf(w, "data: %s\n\n", errData)
+		s.logger.Error("cursor: stream error", slog.Any("err", err), slog.String("model", model))
+		if !started {
+			status, msg := errorStatus(err)
+			writeError(w, status, msg)
+			return
+		}
+		// Already streaming: the only way left to signal failure is an
+		// in-band error event before closing the stream.
+		errData, _ := json.Marshal(map[string]any{
+			"error": map[string]any{"message": err.Error(), "type": "upstream_error"},
+		})
+		fmt.Fprintf(w, "event: error\ndata: %s\n\n", errData)
 	}
+	emit(tagger.close())
+	send(map[string]any{"index": 0, "delta": map[string]any{}, "finish_reason": "stop"})
 	fmt.Fprint(w, "data: [DONE]\n\n")
 	if flusher != nil {
 		flusher.Flush()
@@ -302,25 +378,18 @@ func (s *Server) streamResponse(w http.ResponseWriter, body io.Reader, model str
 
 // collectResponse aggregates the full stream and returns one OpenAI response.
 func (s *Server) collectResponse(w http.ResponseWriter, body io.Reader, model string) {
-	thinkingStart, thinkingEnd := "<thinking>", "</thinking>"
+	var tagger thinkingTagger
 	var content strings.Builder
 	err := readFrames(body, func(thinking, text string) {
-		if thinkingStart != "" && len(thinking) > 0 {
-			content.WriteString(thinkingStart + "\n")
-			thinkingStart = ""
-		}
-		content.WriteString(thinking)
-		if thinkingEnd != "" && len(thinking) == 0 && len(text) != 0 && thinkingStart == "" {
-			content.WriteString("\n" + thinkingEnd + "\n")
-			thinkingEnd = ""
-		}
-		content.WriteString(text)
+		content.WriteString(tagger.next(thinking, text))
 	})
 	if err != nil {
-		s.logger.Error("cursor: collect error", slog.Any("err", err))
-		writeError(w, http.StatusInternalServerError, "internal server error")
+		s.logger.Error("cursor: collect error", slog.Any("err", err), slog.String("model", model))
+		status, msg := errorStatus(err)
+		writeError(w, status, msg)
 		return
 	}
+	content.WriteString(tagger.close())
 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"id":      "chatcmpl-" + uuid.NewString(),
@@ -336,33 +405,70 @@ func (s *Server) collectResponse(w http.ResponseWriter, body io.Reader, model st
 	})
 }
 
-// readFrames reads the Connect-RPC framed stream incrementally and calls
-// fn for each decoded chunk's thinking/text payloads.
+// errorStatus maps an upstream failure to an HTTP status and a message safe
+// to hand back to the caller.
+func errorStatus(err error) (int, string) {
+	var se *StreamError
+	if !errors.As(err, &se) {
+		return http.StatusBadGateway, err.Error()
+	}
+	status := http.StatusBadGateway
+	switch se.Code {
+	case "unauthenticated":
+		status = http.StatusUnauthorized
+	case "permission_denied":
+		status = http.StatusForbidden
+	case "resource_exhausted":
+		status = http.StatusTooManyRequests
+	case "invalid_argument":
+		status = http.StatusBadRequest
+	case "unavailable":
+		status = http.StatusServiceUnavailable
+	}
+	return status, se.Error()
+}
+
+// readFrames reads the Connect-RPC framed stream incrementally and calls fn
+// for each decoded chunk's thinking/text payloads. It returns a [StreamError]
+// when Cursor terminated the stream with an error.
 func readFrames(body io.Reader, fn func(thinking, text string)) error {
 	reader := bufio.NewReader(body)
 	for {
-		header := make([]byte, 5)
-		if _, err := io.ReadFull(reader, header); err != nil {
+		var header [5]byte
+		if _, err := io.ReadFull(reader, header[:]); err != nil {
 			if err == io.EOF || err == io.ErrUnexpectedEOF {
 				return nil
 			}
 			return err
 		}
-		magic := header[0]
-		dataLen := int(header[1])<<24 | int(header[2])<<16 | int(header[3])<<8 | int(header[4])
-		if dataLen <= 0 {
+		flag := header[0]
+		dataLen := int(binary.BigEndian.Uint32(header[1:]))
+
+		var data []byte
+		if dataLen > 0 {
+			data = make([]byte, dataLen)
+			if _, err := io.ReadFull(reader, data); err != nil {
+				return err
+			}
+		}
+
+		payload, err := decodeFramePayload(flag, data)
+		if err != nil {
+			return fmt.Errorf("cursor: decompress frame: %w", err)
+		}
+		if flag&flagEndStream != 0 {
+			// The end-of-stream frame is where Cursor reports rejections
+			// (plan limits, outdated client, bad token). Never drop it.
+			return parseEndStream(payload)
+		}
+		if len(payload) == 0 {
 			continue
 		}
-		data := make([]byte, dataLen)
-		if _, err := io.ReadFull(reader, data); err != nil {
-			return err
+		chunk, err := DecodeStreamUnifiedChatResponse(payload)
+		if err != nil || chunk == nil {
+			continue
 		}
-		thinking, text, err := ParseStreamChunk(append(header, data...))
-		if err != nil {
-			return err
-		}
-		_ = magic
-		fn(thinking, text)
+		fn(chunk.Thinking, chunk.Content)
 	}
 }
 
@@ -391,6 +497,14 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
+// writeError replies with an OpenAI-shaped error object so that callers
+// treating this bridge as an OpenAI endpoint can parse the message.
 func writeError(w http.ResponseWriter, status int, msg string) {
-	writeJSON(w, status, map[string]any{"error": msg})
+	writeJSON(w, status, map[string]any{
+		"error": map[string]any{
+			"message": msg,
+			"type":    "cursor_bridge_error",
+			"code":    status,
+		},
+	})
 }

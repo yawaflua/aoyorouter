@@ -2,10 +2,9 @@ package cursor
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
-	"math/rand"
 
+	"github.com/google/uuid"
 	"github.com/yawaflua/aoyorouter/internal/adapter/warp"
 	"github.com/yawaflua/aoyorouter/internal/closer"
 	"github.com/yawaflua/aoyorouter/pkg/cursor"
@@ -28,17 +27,15 @@ func NewCursorServer(logger *slog.Logger, warp *warp.Warp, closer *closer.C) *Cu
 }
 
 func (s *CursorServer) CreateServer(ctx context.Context, cfg cursor.Config, useProxy bool) (*cursor.Server, error) {
-	cfg.Port = rand.Intn(65535)
+	cfg.Port = 0
 	if useProxy {
-		cfg.ProxyURL = "http://" + s.warp.CreateProxy(ctx, fmt.Sprintf("cursor-%d", cfg.Port)).Addr().String()
+		cfg.ProxyURL = "http://" + s.warp.CreateProxy(ctx, "cursor-"+uuid.NewString()).Addr().String()
 	}
-	s.logger.Info("creating cursor server", slog.Int("port", cfg.Port))
-
 	server, err := cursor.NewServer(cfg, s.logger)
 	if err != nil {
 		return nil, err
 	}
-	s.logger.Info("cursor server created", slog.Int("port", cfg.Port))
+	s.logger.Info("cursor server created", slog.Int("port", server.Port()))
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {

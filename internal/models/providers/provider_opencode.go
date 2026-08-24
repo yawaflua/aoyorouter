@@ -75,7 +75,7 @@ func addOpencodeProviderConfig(logger *slog.Logger, cfg *config.Config, provider
 	}
 	modelsURL, err := url.Parse(fmt.Sprintf("%s/models", baseURL))
 	if err != nil {
-		fmt.Println("Error when parsing opencode provider", slog.Any("err", err), slog.String("url", baseURL))
+		logger.Error("Error when parsing opencode provider", slog.Any("err", err), slog.String("url", baseURL))
 		return
 	}
 	request := &http.Request{
@@ -87,7 +87,7 @@ func addOpencodeProviderConfig(logger *slog.Logger, cfg *config.Config, provider
 	}
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
-		fmt.Println("Error when fetching opencode provider models", slog.Any("err", err), slog.String("url", modelsURL.String()))
+		logger.Error("Error when fetching opencode provider models", slog.Any("err", err), slog.String("url", modelsURL.String()))
 		return
 	}
 	var openaiModels []config.OpenAICompatibilityModel
@@ -133,7 +133,8 @@ func addOpencodeProviderConfig(logger *slog.Logger, cfg *config.Config, provider
 			APIKeyEntries: []config.OpenAICompatibilityAPIKey{
 				{APIKey: provider.ClientSecret},
 			},
-			Models: openaiModels,
+			Models:   openaiModels,
+			Disabled: provider.Disabled,
 		},
 	)
 }

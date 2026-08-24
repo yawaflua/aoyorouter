@@ -25,14 +25,20 @@ func obfuscateBytes(b []byte) {
 }
 
 // Checksum builds the x-cursor-checksum header value for the given token.
+//
+// The timestamp block must match the Cursor client byte for byte or the API
+// answers every chat request with ERROR_UNAUTHORIZED. Two details are easy to
+// get wrong: the counter is floor(unixMillis/1e6) — a ~16.7 minute tick, not a
+// second counter — and the six bytes are not a plain big-endian encoding, they
+// repeat the low half of the counter in the client's own order.
 func Checksum(token string) string {
 	machineID := Hashed64Hex(token, "machineId")
 	macMachineID := Hashed64Hex(token, "macMachineId")
 
-	ts := uint64(time.Now().UnixMilli()) / 1000 // floor(Date.now() / 1e6) in JS ~ seconds
+	ts := uint32(time.Now().UnixMilli() / 1e6)
 	b := []byte{
-		byte(ts >> 40),
-		byte(ts >> 32),
+		byte(ts >> 8),
+		byte(ts),
 		byte(ts >> 24),
 		byte(ts >> 16),
 		byte(ts >> 8),

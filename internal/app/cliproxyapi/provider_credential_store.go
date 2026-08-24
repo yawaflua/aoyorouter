@@ -11,6 +11,7 @@ import (
 	coreauth "github.com/router-for-me/CLIProxyAPI/v7/sdk/cliproxy/auth"
 	"github.com/yawaflua/aoyorouter/internal/models"
 	"github.com/yawaflua/aoyorouter/internal/models/providers"
+	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 )
 
 type ProviderCredentialStore struct {
@@ -35,6 +36,9 @@ func (s *ProviderCredentialStore) List(ctx context.Context) ([]*coreauth.Auth, e
 	}
 	auths := make([]*coreauth.Auth, 0, len(providers))
 	for _, provider := range providers {
+		if provider.Type == aoyorouter.ProviderType_PROVIDER_TYPE_CURSOR {
+			continue
+		}
 		if provider == nil || len(provider.Credentials) == 0 {
 			continue
 		}
@@ -53,21 +57,23 @@ func (s *ProviderCredentialStore) List(ctx context.Context) ([]*coreauth.Auth, e
 		credentials["type"] = credentialType
 		credentials["provider_id"] = provider.ID
 		credentials["label"] = provider.Name
+		attributes := map[string]string{
+			coreauth.AttributeSourceBackend: coreauth.AuthSourcePostgres,
+			"priority":                      strconv.Itoa(provider.Priority),
+		}
+	
 		auths = append(auths, &coreauth.Auth{
-			ID:       provider.ID,
-			Provider: credentialType,
-			Label:    provider.Name,
-			Status:   coreauth.StatusActive,
-			Attributes: map[string]string{
-				coreauth.AttributeSourceBackend: coreauth.AuthSourcePostgres,
-				"priority":                      strconv.Itoa(provider.Priority),
-			},
-			Metadata:  credentials,
-			CreatedAt: provider.CreatedAt,
-			UpdatedAt: provider.UpdatedAt,
-			ProxyURL:  proxyUrl,
-			Disabled:  provider.Disabled,
-			Prefix:    credentialType,
+			ID:         provider.ID,
+			Provider:   credentialType,
+			Label:      provider.Name,
+			Status:     coreauth.StatusActive,
+			Attributes: attributes,
+			Metadata:   credentials,
+			CreatedAt:  provider.CreatedAt,
+			UpdatedAt:  provider.UpdatedAt,
+			ProxyURL:   proxyUrl,
+			Disabled:   provider.Disabled,
+			Prefix:     credentialType,
 		})
 	}
 	return auths, nil

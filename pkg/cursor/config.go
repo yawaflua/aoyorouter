@@ -13,9 +13,16 @@ import (
 	"golang.org/x/net/proxy"
 )
 
+// DefaultClientVersion is the Cursor client version reported to the API.
+// Cursor rejects releases it no longer supports with ERROR_OUTDATED_CLIENT,
+// so this has to track the current release from
+// https://api2.cursor.sh/updates/api/update/linux-x64/cursor/0.0.0/stable.
+const DefaultClientVersion = "3.17.8"
+
 // Config configures the cursor bridge server.
 type Config struct {
-	// Port to listen on (e.g. 3010). If 0, defaults to 3010.
+	// Port to listen on. If 0, a free ephemeral port is assigned by the OS
+	// and reported by Server.Port / Server.BaseURL.
 	Port int
 	// CursorClientVersion is sent as x-cursor-client-version.
 	CursorClientVersion string
@@ -26,12 +33,7 @@ type Config struct {
 
 func (c *Config) withDefaults() Config {
 	out := *c
-	if out.Port == 0 {
-		out.Port = 3010
-	}
-	if out.CursorClientVersion == "" {
-		out.CursorClientVersion = "2.6.21"
-	}
+	out.CursorClientVersion = DefaultClientVersion
 	return out
 }
 

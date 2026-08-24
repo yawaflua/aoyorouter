@@ -10,10 +10,9 @@ import (
 type C struct {
 	Env string `env:"ENV" env-default:"dev"`
 
-	InitialPassword string `env:"INITIAL_PASSWORD" env-default:""`
-	WarpLimit       int    `env:"WARP_LIMIT" env-default:"10"`
+	InitialPassword  string `env:"INITIAL_PASSWORD" env-default:""`
+	WarpLimit        int    `env:"WARP_LIMIT" env-default:"10"`
 	NotUseCloudflare bool   `env:"ILL_NOT_USE_CLOUDFLARE_REALLY_NOT_NEEDED" env-default:"false"`
-	
 
 	GRPC     GRPCConfig
 	HTTP     HTTPConfig
@@ -26,13 +25,14 @@ type GRPCConfig struct {
 }
 
 type HTTPConfig struct {
-	Host string `env:"HTTP_HOST" env-default:"0.0.0.0"`
-	Port int    `env:"HTTP_PORT" env-default:"8080"`
+	Host             string `env:"HTTP_HOST" env-default:"0.0.0.0"`
+	Port             int    `env:"HTTP_PORT" env-default:"8080"`
+	CursorServerPort int    `env:"CURSOR_SERVER_PORT" env-default:"8787"`
 }
 
 func MustLoad() *C {
 	var cfg C
-	
+
 	if err := cleanenv.ReadConfig(".env", &cfg); err != nil && !os.IsNotExist(err) {
 		panic(err)
 	}

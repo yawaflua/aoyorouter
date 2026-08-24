@@ -3,9 +3,16 @@ package cursor
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/binary"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -35,8 +42,8 @@ func TestHashed64Hex(t *testing.T) {
 
 func TestGenerateChatBodyFraming(t *testing.T) {
 	msgs := []OpenAIMessage{
-		{Role: "system", Content: "be brief"},
-		{Role: "user", Content: "hi"},
+		{Role: "system", Content: TextContent("be brief")},
+		{Role: "user", Content: TextContent("hi")},
 	}
 	body, err := GenerateChatBody(msgs, "claude-3-7-sonnet")
 	if err != nil {
@@ -56,9 +63,9 @@ func TestGenerateChatBodyFraming(t *testing.T) {
 
 func TestGenerateChatBodyGzip(t *testing.T) {
 	msgs := []OpenAIMessage{
-		{Role: "user", Content: "a"},
-		{Role: "assistant", Content: "b"},
-		{Role: "user", Content: "c"},
+		{Role: "user", Content: TextContent("a")},
+		{Role: "assistant", Content: TextContent("b")},
+		{Role: "user", Content: TextContent("c")},
 	}
 	body, err := GenerateChatBody(msgs, "claude-3-7-sonnet")
 	if err != nil {
@@ -183,4 +190,216 @@ func makeFrame(magic byte, payload []byte) ([]byte, error) {
 	out := []byte{magic, 0, 0, 0, 0}
 	binary.BigEndian.PutUint32(out[1:], uint32(len(data)))
 	return append(out, data...), nil
+}
+
+func TestMessageContentShapes(t *testing.T) {
+	var msg OpenAIMessage
+	if err := json.Unmarshal([]byte(`{"role":"user","content":"hi"}`), &msg); err != nil {
+		t.Fatal(err)
+	}
+	if msg.Content.Text != "hi" {
+		t.Fatalf("string content: got %q", msg.Content.Text)
+	}
+
+	if err := json.Unmarshal([]byte(
+		`{"role":"user","content":[{"type":"text","text":"a"},{"type":"text","text":"b"}]}`), &msg); err != nil {
+		t.Fatal(err)
+	}
+	if msg.Content.Text != "a\nb" {
+		t.Fatalf("array content: got %q", msg.Content.Text)
+	}
+
+	// Non-text parts carry no text and must not leak JSON into the prompt.
+	if err := json.Unmarshal([]byte(
+		`{"role":"user","content":[{"type":"image_url"},{"type":"text","text":"c"}]}`), &msg); err != nil {
+		t.Fatal(err)
+	}
+	if msg.Content.Text != "c" {
+		t.Fatalf("mixed content: got %q", msg.Content.Text)
+	}
+}
+
+// The prompt sent to Cursor must be the plain text, never a JSON encoding of
+// the OpenAI content parts.
+func TestGenerateChatBodySendsPlainText(t *testing.T) {
+	body, err := GenerateChatBody([]OpenAIMessage{
+		{Role: "user", Content: TextContent("hi")},
+	}, "default")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Contains(body, []byte(`"type":"text"`)) || bytes.Contains(body, []byte(`[{`)) {
+		t.Fatalf("body carries JSON-encoded content: %q", body)
+	}
+	if !bytes.Contains(body, []byte("hi")) {
+		t.Fatalf("body missing prompt text: %q", body)
+	}
+}
+
+func TestParseStreamChunkSurfacesEndStreamError(t *testing.T) {
+	payload := []byte(`{"error":{"code":"resource_exhausted","message":"Error","details":[` +
+		`{"debug":{"error":"ERROR_RATE_LIMITED_CHANGEABLE","details":` +
+		`{"title":"Named models unavailable","detail":"Free plans can only use Auto."}}}]}}`)
+	frame, err := makeFrame(0x02, payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = ParseStreamChunk(frame)
+	if err == nil {
+		t.Fatal("expected an error from the end-of-stream frame")
+	}
+	var se *StreamError
+	if !errors.As(err, &se) {
+		t.Fatalf("expected *StreamError, got %T", err)
+	}
+	if se.Reason != "ERROR_RATE_LIMITED_CHANGEABLE" || se.Code != "resource_exhausted" {
+		t.Fatalf("got %+v", se)
+	}
+	if !strings.Contains(err.Error(), "Free plans can only use Auto.") {
+		t.Fatalf("error message lost the detail: %v", err)
+	}
+}
+
+func TestParseStreamChunkEmptyEndStreamIsNotAnError(t *testing.T) {
+	frame, err := makeFrame(0x02, []byte(`{}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := ParseStreamChunk(frame); err != nil {
+		t.Fatalf("clean end-of-stream reported an error: %v", err)
+	}
+}
+
+func TestReadFramesReturnsStreamError(t *testing.T) {
+	var message []byte
+	message = appendString(message, 1, "hello")
+	var resp []byte
+	resp = appendMessage(resp, 2, message)
+	dataFrame, err := makeFrame(0x00, resp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	endFrame, err := makeFrame(0x02, []byte(`{"error":{"code":"unauthenticated","message":"User is unauthorized"}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var got string
+	err = readFrames(bytes.NewReader(append(dataFrame, endFrame...)), func(_, text string) { got += text })
+	if got != "hello" {
+		t.Fatalf("content before the error was dropped: %q", got)
+	}
+	var se *StreamError
+	if !errors.As(err, &se) || se.Code != "unauthenticated" {
+		t.Fatalf("got %v", err)
+	}
+	if status, _ := errorStatus(err); status != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d", status)
+	}
+}
+
+func TestThinkingTagger(t *testing.T) {
+	var tg thinkingTagger
+	var b strings.Builder
+	b.WriteString(tg.next("re", ""))
+	b.WriteString(tg.next("asoning", ""))
+	b.WriteString(tg.next("", "answer"))
+	b.WriteString(tg.close())
+	if got := b.String(); got != "<thinking>\nreasoning\n</thinking>\nanswer" {
+		t.Fatalf("got %q", got)
+	}
+
+	// A stream that never leaves the thinking block must still be closed.
+	var tg2 thinkingTagger
+	out := tg2.next("only", "") + tg2.close()
+	if out != "<thinking>\nonly\n</thinking>\n" {
+		t.Fatalf("got %q", out)
+	}
+
+	// Plain text must pass through untouched.
+	var tg3 thinkingTagger
+	if out := tg3.next("", "plain") + tg3.close(); out != "plain" {
+		t.Fatalf("got %q", out)
+	}
+}
+
+func newTestServer(t *testing.T) *Server {
+	t.Helper()
+	s, err := NewServer(Config{Port: 0}, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { s.Shutdown(context.Background()) })
+	return s
+}
+
+func TestServerBindsEphemeralPort(t *testing.T) {
+	s := newTestServer(t)
+	if s.Port() == 0 {
+		t.Fatal("port not assigned")
+	}
+	if want := fmt.Sprintf("http://127.0.0.1:%d/v1", s.Port()); s.BaseURL() != want {
+		t.Fatalf("BaseURL = %q, want %q", s.BaseURL(), want)
+	}
+	// A second server must not collide with the first.
+	if other := newTestServer(t); other.Port() == s.Port() {
+		t.Fatalf("both servers bound port %d", s.Port())
+	}
+}
+
+// The SSE stream must be well formed: a role delta, the content, an explicit
+// finish_reason and [DONE]. A bare content chunk is what made downstream
+// clients report "stream ended without receiving any events".
+func TestStreamResponseSSEShape(t *testing.T) {
+	var message []byte
+	message = appendString(message, 1, "hello")
+	var resp []byte
+	resp = appendMessage(resp, 2, message)
+	data, err := makeFrame(0x00, resp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	end, err := makeFrame(0x02, []byte(`{}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rec := httptest.NewRecorder()
+	newTestServer(t).streamResponse(rec, bytes.NewReader(append(data, end...)), "default")
+
+	body := rec.Body.String()
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status %d: %s", rec.Code, body)
+	}
+	for _, want := range []string{`"role":"assistant"`, `"content":"hello"`, `"finish_reason":"stop"`, "data: [DONE]"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("SSE missing %s:\n%s", want, body)
+		}
+	}
+	if ct := rec.Header().Get("Content-Type"); ct != "text/event-stream" {
+		t.Fatalf("Content-Type = %q", ct)
+	}
+}
+
+// When Cursor rejects the request the caller must get a real HTTP error with
+// the upstream message, not an empty 200 stream.
+func TestStreamResponseUpstreamErrorBecomesHTTPError(t *testing.T) {
+	end, err := makeFrame(0x02, []byte(`{"error":{"code":"resource_exhausted","message":"Error","details":[`+
+		`{"debug":{"error":"ERROR_RATE_LIMITED_CHANGEABLE","details":{"detail":"Free plans can only use Auto."}}}]}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rec := httptest.NewRecorder()
+	newTestServer(t).streamResponse(rec, bytes.NewReader(end), "claude-4.5-sonnet")
+
+	if rec.Code != http.StatusTooManyRequests {
+		t.Fatalf("status = %d, want 429; body=%s", rec.Code, rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "Free plans can only use Auto.") {
+		t.Fatalf("upstream detail not surfaced: %s", rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "[DONE]") {
+		t.Fatalf("error response must not be an SSE stream: %s", rec.Body.String())
+	}
 }

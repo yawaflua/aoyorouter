@@ -26,7 +26,7 @@ func (r *Crons) Run() error {
 		}
 	})
 	if err != nil {
-		fmt.Println("Error adding cron job:", err)
+		r.Logger.Error("Error adding cron job:", slog.Any("error", err))
 		return err
 	}
 	err = r.Handler()

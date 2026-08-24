@@ -58,7 +58,7 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 	coreAuthManager := coreauth.NewManager(credentialStore, nil, nil)
 	restrictedSelector := cliproxyapi.NewRestrictedSelector(accessPolicies, nil)
 	coreAuthManager.SetSelector(restrictedSelector)
-	
+
 	p.startSelectorKeeper(coreAuthManager, restrictedSelector)
 	if err := os.Setenv("MANAGEMENT_PASSWORD", p.Config().InitialPassword); err != nil {
 		return fmt.Errorf("set CLIProxyAPI management password: %w", err)
@@ -116,7 +116,7 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 		WithConfigPath("config.yaml").
 		Build()
 	p.cliproxy.RegisterUsagePlugin(p.UsagePlugin(ctx))
-	
+
 	if err != nil {
 		p.logger.Error("failed to create CLIProxyAPI", "error", err)
 		panic("failed to create CLIProxyAPI")
@@ -175,6 +175,7 @@ func (p *P) CLIProxyAPIConfig() *config.Config {
 			},
 		})
 	}
+	config.SaveConfigPreserveComments("config.yaml", p.cliproxy_config)
 	return p.cliproxy_config
 }
 
@@ -191,7 +192,7 @@ func (p *P) registerAllProviders(ctx context.Context) error {
 		return err
 	}
 
-	for _, provider := range providers {
+	for i, provider := range providers {
 		if provider.Disabled {
 			continue
 		}
@@ -204,6 +205,9 @@ func (p *P) registerAllProviders(ctx context.Context) error {
 		}
 		if conf, err := p.ProviderVendor(ctx).ProviderOAuthConfig(aoyorouter.ProviderType(provider.Type)); err == nil {
 			conf.AddProviderConfig(ctx, cfg, provider)
+		}
+		if provider.Type == aoyorouter.ProviderType_PROVIDER_TYPE_CURSOR {
+			p.ProviderRepo(ctx).UpdateProvider(ctx, provider.ID, provider.Name, int32(provider.Type), provider.BaseUrl, provider.ClientSecret, provider.UseProxy, provider.Proxy, provider.IsCloudflare, int32(provider.Priority), provider.Disabled)
 		}
 	}
 	return nil

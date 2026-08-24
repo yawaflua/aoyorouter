@@ -102,7 +102,7 @@ func (a *AoyoRouterService) cursorProviderAuthorizationStatus(ctx context.Contex
 		"access_token": result.AccessToken,
 		"auth_id":      result.AuthID,
 	}
-	provider, err := a.ProviderRepo.UpdateProviderCredentials(ctx, flow.providerID, result.Cookie, credentials)
+	provider, err := a.ProviderRepo.UpdateProviderCredentials(ctx, flow.providerID, result.AccessToken, credentials)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to store cursor credentials: %v", err)
 	}
