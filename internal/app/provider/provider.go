@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"log/slog"
+	"net/http"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/cliproxy"
 	"github.com/yawaflua/aoyorouter/internal/adapter/cursor"
@@ -19,6 +20,7 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/driver/server"
 	"github.com/yawaflua/aoyorouter/internal/models/providers"
 	"github.com/yawaflua/aoyorouter/pkg/logger"
+	"golang.org/x/sync/errgroup"
 
 	cpapi_config "github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
 )
@@ -42,6 +44,10 @@ type P struct {
 	cache           *cache.Cache
 	cursor          *cursor.CursorServer
 	providerVendor  *providers.ProviderVendor
+	pbHandler       http.Handler
+	selectorCancel  context.CancelFunc
+	cpapiCloserSet  bool
+	appCtx          context.Context
 
 	warp *warp.Warp
 }
@@ -160,4 +166,28 @@ func (p *P) ProviderVendor(ctx context.Context) *providers.ProviderVendor {
 	}
 
 	return p.providerVendor
+}
+
+func (p *P) SetSelectorCancel(cncl context.CancelFunc) {
+	p.selectorCancel = cncl
+}
+
+func (p *P) SetAppCtx(ctx context.Context) {
+	p.appCtx = ctx
+}
+
+func (p *P) AppCtx() context.Context {
+	return p.appCtx
+}
+
+func (a *P) RunCPAPI(ctx context.Context) error {
+	group, ctx := errgroup.WithContext(ctx)
+
+	group.Go(func() error {
+		ctx, cancel := context.WithCancel(ctx)
+		a.SetSelectorCancel(cancel)
+		return a.CLIProxyAPI(ctx).Run(ctx)
+	})
+
+	return nil
 }

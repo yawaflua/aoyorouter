@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"time"
 
@@ -55,8 +57,9 @@ func (a *App) Start(ctx context.Context) error {
 	})
 
 	group.Go(func() error {
-		return a.provider.CLIProxyAPI(ctx).Run(ctx)
+		return a.provider.RunCPAPI(ctx)
 	})
+	a.provider.SetAppCtx(ctx)
 
 	return nil
 }
@@ -141,6 +144,26 @@ func (a *App) initCrons(ctx context.Context) error {
 				return nil
 			},
 		},
+		{
+			Name:     "ProviderRemover",
+			Interval: "*/5 * * * *",
+			Handler: func() error {
+				providers, err := a.provider.ProviderRepo(ctx).GetProviders(ctx)
+				if err != nil {
+					return err
+				}
+				for _, provider := range providers {
+					if provider.ClientSecret == "oauth:pending" && provider.UpdatedAt.Before(time.Now().Add(-10*time.Minute)) {
+						if err := a.provider.ProviderRepo(ctx).DeleteProvider(ctx, provider.ID); err != nil {
+							return err
+						}
+					}
+				}
+				return nil
+			},
+			Closer: a.provider.Closer(),
+			Logger: a.provider.Logger(),
+		},
 	}
 
 	for _, cron := range crons {
@@ -193,17 +216,47 @@ func (a *App) initHttpServer(ctx context.Context) error {
 			middlewares.LoggerInterceptor,
 		),
 	)
-	rootMux := http.NewServeMux()
-	rootMux.Handle("/api/", restServer)
-	if a.provider.Config().Env != "dev" {
-		rootMux.Handle("/", frontend.Handler())
-	}
+
 	if err := aoyorouter.RegisterAoyoRouterServiceHandlerServer(context.Background(), restServer, server); err != nil {
 		panic(err)
 	}
 
+	target, err := url.Parse(fmt.Sprintf("http://%s:%d", a.provider.Config().HTTP.Host, a.provider.Config().HTTP.Port+1))
+	if err != nil {
+		return fmt.Errorf("url.Parse error: %w", err)
+	}
+	proxy := httputil.NewSingleHostReverseProxy(target)
+	proxy.ErrorHandler = func(w http.ResponseWriter, _ *http.Request, err error) {
+		http.Error(w, "upstream unavailable", http.StatusBadGateway)
+	}
+
+	rootMux := http.NewServeMux()
+
+	rootMux.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
+		// origin := r.Header.Get("Origin")
+		r.Header.Set("Access-Control-Allow-Origin", "*")
+		r.Header.Set("Vary", "Origin")
+		r.Header.Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		r.Header.Set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-API-Key")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		restServer.ServeHTTP(w, r)
+	})
+	rootMux.Handle("/v1/{path...}", proxy)
+	rootMux.Handle("/v1beta/{path...}", proxy)
+	if a.provider.Config().Env != "prod" {
+		rootMux.Handle("/v0/{path...}", proxy)
+	}
+	if a.provider.Config().Env == "prod" {
+		rootMux.Handle("/", frontend.Handler())
+	}
+
 	httpServer := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", a.provider.Config().HTTP.Host, a.provider.Config().HTTP.Port+1),
+		Addr:    fmt.Sprintf("%s:%d", a.provider.Config().HTTP.Host, a.provider.Config().HTTP.Port),
 		Handler: rootMux,
 	}
 
@@ -222,7 +275,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) runHTTPServer(ctx context.Context) error {
+func (a *App) runHTTPServer(context.Context) error {
 	a.provider.Logger().Info("http server started", slog.String("address", a.httpServer.Addr))
 
 	if err := a.httpServer.ListenAndServe(); err != nil {

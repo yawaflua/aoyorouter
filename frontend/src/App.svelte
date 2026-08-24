@@ -521,6 +521,7 @@
             onDelete={requestProviderDelete}
             onToggleDisabled={toggleProviderDisabled}
             onReload={reloadProviders}
+            onCopy={copy}
             togglePendingId={providerTogglePending}
             reloadPending={providerReloadPending}
           />

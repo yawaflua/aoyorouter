@@ -3,6 +3,7 @@ package providers
 import (
 	"context"
 	"log/slog"
+	"slices"
 	"strings"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
@@ -26,63 +27,89 @@ func NewCursorProvider(logger *slog.Logger, cursor *cursor_adapter.CursorServer)
 
 // AddProviderConfig implements [ProviderConfig].
 func (p *ProviderCursor) AddProviderConfig(ctx context.Context, cfg *config.Config, provider *models.Provider) {
-	// if provider.ClientSecret == "oauth:database" {
-	// 	return
-	// }
 	if len(provider.Credentials) == 0 {
 		p.logger.Error("cursor provider: no credentials")
 		return
 	}
+	if i := slices.IndexFunc(cfg.OpenAICompatibility, func(model config.OpenAICompatibility) bool {
+		return model.Name == p.GetOAuthDefinition().Provider
+	}); i != -1 {
+		proxyUrl := ""
+		if provider.UseProxy {
+			if provider.Proxy != "" {
+				proxyUrl = provider.Proxy
+			}
+		}
 
-	var server *cursor.Server
-	var err error
-	if provider.UseProxy && provider.IsCloudflare {
-		server, err = p.cursor.CreateServer(ctx, cursor.Config{
-			CursorClientVersion: "3.17.8",
-		}, true)
-		if err != nil {
-			p.logger.Error("cursor provider: failed to start bridge", "error", err)
+		accessToken, _ := provider.Credentials["access_token"].(string)
+		if strings.TrimSpace(accessToken) == "" {
+			p.logger.Error("cursor provider: missing access token")
 			return
 		}
+		if proxyUrl != "" {
+			proxies := p.cursor.GetProxiesFromServer()
+			proxiesWithoutAddr := *proxies
+			proxiesWithoutAddr[accessToken] = proxyUrl
+			proxies = &proxiesWithoutAddr
+		}
+		cfg.OpenAICompatibility[i].APIKeyEntries = append(cfg.OpenAICompatibility[i].APIKeyEntries, config.OpenAICompatibilityAPIKey{
+			APIKey: provider.ClientSecret,
+		})
 	} else {
-		server, err = p.cursor.CreateServer(ctx, cursor.Config{
+
+		server, err := p.cursor.GetOrCreateServer(ctx, cursor.Config{
 			CursorClientVersion: "3.17.8",
-		}, false)
+		})
 		if err != nil {
 			p.logger.Error("cursor provider: failed to start bridge", "error", err)
 			return
 		}
-	}
-	provider.BaseUrl = server.BaseURL()
 
-	models, err := server.HandleModels(ctx, provider.Credentials["access_token"].(string), "")
-	if err != nil {
-		p.logger.Error("Error when fetching custom provider models", slog.Any("err", err))
-		return
-	}
+		proxyUrl := ""
+		if provider.UseProxy {
+			if provider.Proxy != "" {
+				proxyUrl = provider.Proxy
+			}
+		}
 
-	var customModels []config.OpenAICompatibilityModel
-	for _, model := range models {
-		customModels = append(customModels, config.OpenAICompatibilityModel{
-			Name: model.Id,
+		provider.BaseUrl = server.BaseURL()
+
+		models, err := server.HandleModels(ctx, provider.Credentials["access_token"].(string), "", proxyUrl)
+		if err != nil {
+			p.logger.Error("Error when fetching custom provider models", slog.Any("err", err))
+			return
+		}
+
+		var customModels []config.OpenAICompatibilityModel
+		for _, model := range models {
+			customModels = append(customModels, config.OpenAICompatibilityModel{
+				Name: model.Id,
+			})
+		}
+
+		accessToken, _ := provider.Credentials["access_token"].(string)
+		if strings.TrimSpace(accessToken) == "" {
+			p.logger.Error("cursor provider: missing access token")
+			return
+		}
+
+		if proxyUrl != "" {
+			proxies := server.Proxies()
+			proxiesWithoutAddr := *proxies
+			proxiesWithoutAddr[accessToken] = proxyUrl
+			proxies = &proxiesWithoutAddr
+		}
+		cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{
+			Name:     provider.ID,
+			Disabled: provider.Disabled,
+			BaseURL:  server.BaseURL(),
+			Prefix:   "cursor",
+			APIKeyEntries: []config.OpenAICompatibilityAPIKey{
+				{APIKey: accessToken},
+			},
+			Models: customModels,
 		})
 	}
-
-	accessToken, _ := provider.Credentials["access_token"].(string)
-	if strings.TrimSpace(accessToken) == "" {
-		p.logger.Error("cursor provider: missing access token")
-		return
-	}
-	cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{
-		Name:     provider.ID,
-		Disabled: provider.Disabled,
-		BaseURL:  server.BaseURL(),
-		Prefix:   "cursor",
-		APIKeyEntries: []config.OpenAICompatibilityAPIKey{
-			{APIKey: accessToken},
-		},
-		Models: customModels,
-	})
 }
 
 // GetOAuthDefinition implements [ProviderConfig].
@@ -102,10 +129,13 @@ func (p *ProviderCursor) LoadQuota(ctx context.Context, credentials map[string]a
 
 // RemoveProviderConfig implements [ProviderConfig].
 func (p *ProviderCursor) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
-	for index, configured := range cfg.OpenAICompatibility {
-		if configured.Name == provider.ID {
-			cfg.OpenAICompatibility = append(cfg.OpenAICompatibility[:index], cfg.OpenAICompatibility[index+1:]...)
-			return
+	for i, configured := range cfg.OpenAICompatibility {
+		if configured.Name == p.GetOAuthDefinition().Provider {
+			accessToken, _ := provider.Credentials["access_token"].(string)
+			cfg.OpenAICompatibility[i].APIKeyEntries = slices.DeleteFunc(configured.APIKeyEntries, func(entry config.OpenAICompatibilityAPIKey) bool {
+				return entry.APIKey == accessToken
+			})
+			break
 		}
 	}
 }

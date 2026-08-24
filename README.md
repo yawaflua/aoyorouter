@@ -57,7 +57,7 @@ To build image locally from current source instead:
 docker compose up --build
 ```
 
-Open <http://localhost:8080/dashboard>.
+Open <http://localhost:8080>.
 
 To choose dashboard password, set `INITIAL_PASSWORD` before startup:
 

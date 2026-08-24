@@ -4,33 +4,39 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/google/uuid"
 	"github.com/yawaflua/aoyorouter/internal/adapter/warp"
 	"github.com/yawaflua/aoyorouter/internal/closer"
 	"github.com/yawaflua/aoyorouter/pkg/cursor"
 )
 
 type CursorServer struct {
-	servers []*cursor.Server
-	logger  *slog.Logger
-	warp    *warp.Warp
-	closer  *closer.C
+	server *cursor.Server
+	logger *slog.Logger
+	warp   *warp.Warp
+	closer *closer.C
 }
 
 func NewCursorServer(logger *slog.Logger, warp *warp.Warp, closer *closer.C) *CursorServer {
 	return &CursorServer{
-		logger:  logger,
-		servers: make([]*cursor.Server, 0),
-		warp:    warp,
-		closer:  closer,
+		logger: logger,
+		warp:   warp,
+		closer: closer,
 	}
 }
 
-func (s *CursorServer) CreateServer(ctx context.Context, cfg cursor.Config, useProxy bool) (*cursor.Server, error) {
-	cfg.Port = 0
-	if useProxy {
-		cfg.ProxyURL = "http://" + s.warp.CreateProxy(ctx, "cursor-"+uuid.NewString()).Addr().String()
+func (s *CursorServer) GetOrCreateServer(ctx context.Context, cfg cursor.Config) (*cursor.Server, error) {
+	if s.server != nil {
+		return s.server, nil
 	}
+	return s.CreateServer(ctx, cfg)
+}
+
+func (s *CursorServer) GetProxiesFromServer() *map[string]string {
+	return s.server.Proxies()
+}
+
+func (s *CursorServer) CreateServer(ctx context.Context, cfg cursor.Config) (*cursor.Server, error) {
+	cfg.Port = 0
 	server, err := cursor.NewServer(cfg, s.logger)
 	if err != nil {
 		return nil, err
@@ -46,10 +52,10 @@ func (s *CursorServer) CreateServer(ctx context.Context, cfg cursor.Config, useP
 		return server.Shutdown(ctx)
 	})
 
-	s.servers = append(s.servers, server)
+	s.server = server
 	return server, nil
 }
 
-func (s *CursorServer) GetServers() []*cursor.Server {
-	return s.servers
+func (s *CursorServer) GetServer() *cursor.Server {
+	return s.server
 }

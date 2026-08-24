@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -27,10 +28,13 @@ func NewKimiProvider(logger *slog.Logger) *KimiProvider {
 
 // RemoveProviderConfig implements [ProviderConfig].
 func (k *KimiProvider) RemoveProviderConfig(cfg *config.Config, provider *models.Provider) {
-	for index, configured := range cfg.OpenAICompatibility {
-		if configured.Name == provider.Name && configured.BaseURL == provider.BaseUrl && configured.APIKeyEntries[0].APIKey == provider.ClientSecret {
-			cfg.OpenAICompatibility = append(cfg.OpenAICompatibility[:index], cfg.OpenAICompatibility[index+1:]...)
-			return
+	for _, configured := range cfg.OpenAICompatibility {
+		if configured.Name == k.GetOAuthDefinition().Provider {
+			accessToken := provider.ClientSecret
+			configured.APIKeyEntries = slices.DeleteFunc(configured.APIKeyEntries, func(entry config.OpenAICompatibilityAPIKey) bool {
+				return entry.APIKey == accessToken
+			})
+			break
 		}
 	}
 }
@@ -40,8 +44,14 @@ func (k *KimiProvider) AddProviderConfig(ctx context.Context, cfg *config.Config
 	if strings.HasPrefix(provider.ClientSecret, "oauth:") {
 		return
 	}
-
-	cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{Name: "kimi", BaseURL: provider.BaseUrl, Prefix: "kimi", APIKeyEntries: []config.OpenAICompatibilityAPIKey{{APIKey: provider.ClientSecret}}})
+	if i := slices.IndexFunc(cfg.OpenAICompatibility, func(c config.OpenAICompatibility) bool {
+		return c.Name == k.GetOAuthDefinition().Provider
+	}); i != -1 {
+		cfg.OpenAICompatibility[i].APIKeyEntries = append(cfg.OpenAICompatibility[i].APIKeyEntries, config.OpenAICompatibilityAPIKey{APIKey: provider.ClientSecret, ProxyURL: provider.Proxy})
+		return
+	} else {
+		cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{Name: "kimi", BaseURL: provider.BaseUrl, Prefix: "kimi", APIKeyEntries: []config.OpenAICompatibilityAPIKey{{APIKey: provider.ClientSecret, ProxyURL: provider.Proxy}}})
+	}
 }
 
 // GetOAuthDefinition implements [providers.ProviderConfig].
@@ -86,7 +96,7 @@ type kimiUsageDetail struct {
 func (k *KimiProvider) loadKimiQuota(ctx context.Context, credentials map[string]any, useProxy bool, proxyURL string) *aoyorouter.ProviderQuota {
 	accessToken, _ := credentials["access_token"].(string)
 	if strings.TrimSpace(accessToken) == "" {
-		
+
 		return &aoyorouter.ProviderQuota{Error: "Kimi credentials are incomplete"}
 	}
 

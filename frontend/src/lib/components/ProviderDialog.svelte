@@ -78,7 +78,7 @@
   </div>
   <div class="dialog-body provider-form">
     <div class="form-grid">
-      <div class="field-group"><label for="provider-name">Provider name</label><div class="text-field"><input id="provider-name" bind:value={name} placeholder="My provider" /></div></div>
+      <div class="field-group"><label for="provider-name">Provider name <strong color="red">*</strong></label><div class="text-field"><input id="provider-name" bind:value={name} placeholder="My provider" /></div></div>
       <div class="field-group">
         <label for="provider-type">Provider type</label>
         <div class="select-field">

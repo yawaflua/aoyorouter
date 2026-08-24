@@ -28,11 +28,15 @@ const (
 // Server is an OpenAI-compatible HTTP bridge to the Cursor AI backend.
 type Server struct {
 	cfg      Config
-	client   *http.Client
 	logger   *slog.Logger
 	http     *http.Server
 	listener net.Listener
 	port     int
+	proxies  map[string]string
+}
+
+func (s *Server) Proxies() *map[string]string {
+	return &s.proxies
 }
 
 // NewServer creates a bridge server. ProxyURL in cfg routes outbound
@@ -42,11 +46,8 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	client, err := buildHTTPClient(cfg.ProxyURL)
-	if err != nil {
-		return nil, err
-	}
-	s := &Server{cfg: cfg, client: client, logger: logger}
+
+	s := &Server{cfg: cfg, logger: logger}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /v1/models", s.handleModels)
@@ -150,7 +151,18 @@ type ModelResponse struct {
 	OwnedBy string
 }
 
-func (s *Server) HandleModels(ctx context.Context, token string, checksum string) ([]ModelResponse, error) {
+func (s *Server) HandleModels(ctx context.Context, token string, checksum string, proxyURL string) ([]ModelResponse, error) {
+	if proxyURL == "" {
+		proxy, ok := s.proxies[token]
+		if ok {
+			proxyURL = proxy
+		}
+	}
+	client, err := buildHTTPClient(proxyURL)
+	if err != nil {
+		return nil, err
+	}
+	defer client.CloseIdleConnections()
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
 		cursorAPIHost+"/aiserver.v1.AiService/AvailableModels", nil)
 	if err != nil {
@@ -158,7 +170,7 @@ func (s *Server) HandleModels(ctx context.Context, token string, checksum string
 	}
 	req.Header = s.cursorHeaders(checksum, token, false)
 
-	resp, err := s.client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		s.logger.Error("cursor: AvailableModels request failed", slog.Any("err", err))
 		return nil, err
@@ -194,7 +206,7 @@ func (s *Server) handleModels(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
 
-	names, err := s.HandleModels(ctx, token, r.Header.Get("x-cursor-checksum"))
+	names, err := s.HandleModels(ctx, token, r.Header.Get("x-cursor-checksum"), s.proxies[token])
 	if err != nil {
 		writeError(w, http.StatusBadGateway, "cursor: "+err.Error())
 		return
@@ -236,7 +248,16 @@ func (s *Server) handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Minute)
 	defer cancel()
-
+	proxyURL, ok := s.proxies[token]
+	if !ok {
+		proxyURL = ""
+	}
+	client, err := buildHTTPClient(proxyURL)
+	if err != nil {
+		s.logger.Error("cursor: build http client failed", slog.Any("err", err))
+		writeError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
 		cursorAPIHost+"/aiserver.v1.ChatService/StreamUnifiedChatWithTools",
 		bytes.NewReader(cursorBody))
@@ -246,7 +267,7 @@ func (s *Server) handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Header = s.cursorHeaders(r.Header.Get("x-cursor-checksum"), token, true)
 
-	resp, err := s.client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		s.logger.Error("cursor: StreamUnifiedChatWithTools failed", slog.Any("err", err))
 		writeError(w, http.StatusBadGateway, "cursor: "+err.Error())

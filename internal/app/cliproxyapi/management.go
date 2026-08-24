@@ -36,7 +36,7 @@ func NewManagement(config *config.C, logger *slog.Logger) *Management {
 }
 
 func (a *Management) ManagementJSON(ctx context.Context, method, path string, query url.Values, body any, output any) error {
-	endpoint := fmt.Sprintf("http://%s:%d%s", a.config.HTTP.Host, a.config.HTTP.Port, path)
+	endpoint := fmt.Sprintf("http://%s:%d%s", a.config.HTTP.Host, a.config.HTTP.Port+1, path)
 	if len(query) > 0 {
 		endpoint += "?" + query.Encode()
 	}

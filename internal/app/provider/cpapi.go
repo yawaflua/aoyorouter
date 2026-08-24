@@ -4,14 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/access"
-	"github.com/router-for-me/CLIProxyAPI/v7/sdk/api"
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/auth"
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/cliproxy"
 	coreauth "github.com/router-for-me/CLIProxyAPI/v7/sdk/cliproxy/auth"
@@ -22,34 +18,30 @@ import (
 )
 
 func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
-	if p.cliproxy != nil {
-		return nil
-	}
-
 	if pbHandler == nil {
 		panic("pbHandler is nil")
 	}
+	p.pbHandler = pbHandler
+	if p.cliproxy != nil {
+		return nil
+	}
+	return p.buildCPAPI(ctx)
+}
+
+func (p *P) buildCPAPI(ctx context.Context) error {
+	if p.pbHandler == nil {
+		panic("pbHandler is nil")
+	}
+
+	p.logger.Info("building CLIProxyAPI from current providers and config")
 
 	accessPolicies := cliproxyapi.NewAccessPolicyStore(p.ProviderRepo(ctx))
 	access.RegisterProvider("psql", cliproxyapi.NewAccessProvider(p.ApiKeyRepo(ctx), p.logger, p.UserRepo(ctx), accessPolicies))
-	err := p.registerAllProviders(ctx)
-	if err != nil {
+	if err := p.registerAllProviders(ctx); err != nil {
 		return fmt.Errorf("registerAllProviders error: %w", err)
 	}
-
-	err = p.registerAllKeys(ctx)
-	if err != nil {
+	if err := p.registerAllKeys(ctx); err != nil {
 		return fmt.Errorf("registerAllKeys error: %w", err)
-	}
-
-	target, err := url.Parse(fmt.Sprintf("http://%s:%d", p.Config().HTTP.Host, p.Config().HTTP.Port+1))
-	if err != nil {
-		return fmt.Errorf("url.Parse error: %w", err)
-	}
-
-	proxy := httputil.NewSingleHostReverseProxy(target)
-	proxy.ErrorHandler = func(w http.ResponseWriter, _ *http.Request, err error) {
-		http.Error(w, "upstream unavailable", http.StatusBadGateway)
 	}
 
 	credentialStore := cliproxyapi.NewProviderCredentialStore(p.ProviderRepo(ctx), p.ProviderVendor(ctx), p.Logger())
@@ -59,11 +51,11 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 	restrictedSelector := cliproxyapi.NewRestrictedSelector(accessPolicies, nil)
 	coreAuthManager.SetSelector(restrictedSelector)
 
-	p.startSelectorKeeper(coreAuthManager, restrictedSelector)
 	if err := os.Setenv("MANAGEMENT_PASSWORD", p.Config().InitialPassword); err != nil {
 		return fmt.Errorf("set CLIProxyAPI management password: %w", err)
 	}
-	cliproxy, err := cliproxy.NewBuilder().
+
+	svc, err := cliproxy.NewBuilder().
 		WithConfig(p.CLIProxyAPIConfig()).
 		WithCoreAuthManager(coreAuthManager).
 		WithAuthManager(auth.NewManager(credentialStore, auth.NewAntigravityAuthenticator(), auth.NewClaudeAuthenticator(), auth.NewCodexAuthenticator(), auth.NewKimiAuthenticator(), auth.NewXAIAuthenticator())).
@@ -86,47 +78,23 @@ func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 		}).
 		WithAPIKeyClientProvider(cliproxy.NewAPIKeyClientProvider()).
 		WithLocalManagementPassword(p.Config().InitialPassword).
-		WithServerOptions(api.WithEngineConfigurator(func(e *gin.Engine) {
-			e.Any("/dashboard", func(c *gin.Context) {
-				proxy.ServeHTTP(c.Writer, c.Request)
-			})
-			e.Any("/assets/*path", func(c *gin.Context) {
-				proxy.ServeHTTP(c.Writer, c.Request)
-			})
-			e.Any("/favicon.svg", func(c *gin.Context) {
-				proxy.ServeHTTP(c.Writer, c.Request)
-			})
-			e.Any("/api/aoyo/v1/*path", func(c *gin.Context) {
-				origin := c.GetHeader("Origin")
-				if origin != "" {
-					c.Header("Access-Control-Allow-Origin", origin)
-					c.Header("Vary", "Origin")
-				}
-				c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-				c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-API-Key")
-
-				if c.Request.Method == http.MethodOptions {
-					c.Status(http.StatusNoContent)
-					return
-				}
-
-				proxy.ServeHTTP(c.Writer, c.Request)
-			})
-		})).
 		WithConfigPath("config.yaml").
 		Build()
-	p.cliproxy.RegisterUsagePlugin(p.UsagePlugin(ctx))
-
 	if err != nil {
 		p.logger.Error("failed to create CLIProxyAPI", "error", err)
-		panic("failed to create CLIProxyAPI")
+		return fmt.Errorf("failed to create CLIProxyAPI: %w", err)
 	}
-	p.cliproxy = cliproxy
 
-	p.Closer().Add(func() error {
-		p.Logger().Info("cpapi shutdown")
-		return p.CLIProxyAPI(ctx).Shutdown(ctx)
-	})
+	svc.RegisterUsagePlugin(p.UsagePlugin(ctx))
+	p.cliproxy = svc
+
+	if !p.cpapiCloserSet {
+		p.cpapiCloserSet = true
+		p.Closer().Add(func() error {
+			p.Logger().Info("cpapi shutdown")
+			return p.CLIProxyAPI(ctx).Shutdown(ctx)
+		})
+	}
 	return nil
 }
 
@@ -139,14 +107,31 @@ func (p *P) CLIProxyAPI(ctx context.Context) *cliproxy.Service {
 }
 
 func (p *P) RestartCPAPI(ctx context.Context) error {
-	if p.cliproxy == nil {
-		return nil
+	p.logger.Info("restarting CLIProxyAPI")
+
+	if p.cliproxy != nil {
+		p.selectorCancel()
+		if err := p.cliproxy.Shutdown(ctx); err != nil {
+			p.logger.Error("failed to shutdown CLIProxyAPI during restart, forcing restart", "error", err)
+		}
+		p.cliproxy = nil
 	}
-	if err := p.cliproxy.Shutdown(ctx); err != nil {
+
+	if p.selectorCancel != nil {
+		p.selectorCancel()
+		p.selectorCancel = nil
+	}
+
+	p.cliproxy_config = nil
+
+	err := p.buildCPAPI(ctx)
+	if err != nil {
 		return err
 	}
-	err := p.cliproxy.Run(ctx)
-	return err
+	go func() {
+		p.RunCPAPI(p.AppCtx())
+	}()
+	return nil
 }
 
 func (p *P) CLIProxyAPIConfig() *config.Config {
@@ -155,7 +140,7 @@ func (p *P) CLIProxyAPIConfig() *config.Config {
 			AuthDir: "auth",
 			Debug:   p.Config().Env == "dev",
 			Host:    p.Config().HTTP.Host,
-			Port:    p.Config().HTTP.Port,
+			Port:    p.Config().HTTP.Port + 1,
 			SDKConfig: config.SDKConfig{
 				APIKeys: make([]string, 0),
 			},

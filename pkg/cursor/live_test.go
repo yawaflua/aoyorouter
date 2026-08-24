@@ -53,7 +53,7 @@ func liveModel() string {
 
 func TestLiveModels(t *testing.T) {
 	token := liveToken(t)
-	models, err := liveServer(t).HandleModels(context.Background(), token, "")
+	models, err := liveServer(t).HandleModels(context.Background(), token, "", "")
 	if err != nil {
 		t.Fatalf("HandleModels: %v", err)
 	}
@@ -124,23 +124,27 @@ func (s *Server) probeModel(token, model string) string {
 		cursorAPIHost+"/aiserver.v1.ChatService/StreamUnifiedChatWithTools", bytes.NewReader(body))
 	req.Header = s.cursorHeaders("", token, true)
 
-	resp, err := s.client.Do(req)
-	if err != nil {
-		return "http-error: " + err.Error()
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return "HTTP " + resp.Status
-	}
+	if client, err := buildHTTPClient(""); err != nil {
+		return "build-error: " + err.Error()
+	} else {
+		resp, err := client.Do(req)
+		if err != nil {
+			return "http-error: " + err.Error()
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return "HTTP " + resp.Status
+		}
 
-	var text strings.Builder
-	if err := readFrames(resp.Body, func(_, t string) { text.WriteString(t) }); err != nil {
-		return err.Error()
+		var text strings.Builder
+		if err := readFrames(resp.Body, func(_, t string) { text.WriteString(t) }); err != nil {
+			return err.Error()
+		}
+		if text.Len() == 0 {
+			return "OK but empty"
+		}
+		return "OK: " + text.String()
 	}
-	if text.Len() == 0 {
-		return "OK but empty"
-	}
-	return "OK: " + text.String()
 }
 
 // TestLiveEndpoints checks which chat RPCs the API still exposes. Cursor 3.x
