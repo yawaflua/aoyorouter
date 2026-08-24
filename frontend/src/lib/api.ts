@@ -6,6 +6,7 @@ import {
   type ProviderAuthorizationStatus,
 } from './models/authorization'
 import { parseLogEntry, type LogEntry } from './models/logentry'
+import { parseErrorLog, type ErrorLog } from './models/errorlog'
 import { parseEndpoint, parseLiveProxy, type Endpoint, type LiveProxy } from './models/liveproxy'
 import {
   parseProvider,
@@ -206,8 +207,13 @@ export class ApiClient {
 
   async getUsageLogs(limit = 100, offset = 0): Promise<LogEntry[]> {
     const query = new URLSearchParams({ limit: String(limit), offset: String(offset) })
-    const response = await this.request(`/api/aoyo/v1/usage/logs?${query}`)
+    const response = await this.request(`/api/aoyo/v1/logs?${query}`)
     return Array.isArray(response.logs) ? response.logs.map(parseLogEntry) : []
+  }
+
+  async getErrors(): Promise<ErrorLog[]> {
+    const response = await this.request('/api/aoyo/v1/logs/errors')
+    return Array.isArray(response.errors) ? response.errors.map(parseErrorLog) : []
   }
 
   async getProviderLogsByKeyID(apiKeyId: string): Promise<ApiKeyUsage> {

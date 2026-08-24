@@ -1,7 +1,6 @@
 package crons
 
 import (
-	"fmt"
 	"log/slog"
 
 	"github.com/robfig/cron/v3"

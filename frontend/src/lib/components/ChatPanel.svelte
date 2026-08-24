@@ -270,7 +270,7 @@
         display: grid;
         gap: 8px;
         justify-items: center;
-        color: var(--muted, #667085);
+        color: var(--muted);
     }
     .chat-message {
         border-radius: 14px;
@@ -291,11 +291,13 @@
     }
     .chat-message.user {
         align-self: flex-end;
-        background: var(--primary-soft, #eef0ff);
+        background: var(--primary-container);
+        color: var(--on-primary-container);
     }
     .chat-message.assistant {
         align-self: flex-start;
-        background: var(--surface-alt, #f5f6fa);
+        background: var(--surface-container);
+        color: var(--on-surface);
     }
     p.pending::after {
         content: "▍";
@@ -310,18 +312,18 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
-        background: #fff;
+        background: var(--surface-container-lowest);
         border: 1px solid var(--outline-variant);
         border-radius: 16px;
         padding: 10px;
-        box-shadow: 0 1px 2px rgba(26, 27, 32, 0.05);
+        box-shadow: 0 1px 2px var(--shadow);
     }
     .composer-row {
         display: flex;
         gap: 10px;
         align-items: flex-end;
     }
-    .icon-button {
+    .chat-composer .icon-button {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -332,7 +334,7 @@
         background: transparent;
         color: var(--muted);
     }
-    .icon-button:hover { background: var(--surface-container); }
+    .chat-composer .icon-button:hover { background: var(--surface-container); }
     .chat-attachments { display: flex; flex-wrap: wrap; gap: 6px; }
     .attachment-chip {
         display: inline-flex;
@@ -340,7 +342,7 @@
         gap: 6px;
         padding: 4px 10px;
         border-radius: 999px;
-        background: var(--surface-container, #edf0f7);
+        background: var(--surface-container);
         font-size: 13px;
         max-width: 260px;
         overflow: hidden;
@@ -357,7 +359,7 @@
     }
     .chat-composer:focus-within {
         border: 2px solid var(--primary);
-        box-shadow: 0 0 0 3px rgba(54, 92, 141, 0.08);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent);
     }
     .chat-composer textarea {
         flex: 1;
@@ -368,7 +370,7 @@
         border: 0;
         outline: 0;
         background: transparent;
-        color: #1a1b20;
+        color: var(--on-surface);
         line-height: 1.5;
     }
     .chat-send {
@@ -398,7 +400,7 @@
         display: flex;
         gap: 6px;
         align-items: center;
-        color: #b42318;
+        color: var(--error);
         margin: 0;
     }
 </style>

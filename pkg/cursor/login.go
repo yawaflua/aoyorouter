@@ -119,7 +119,7 @@ func (f *LoginFlow) PollOnce(ctx context.Context) (*LoginResult, bool, error) {
 // Poll polls until the login completes, the context is cancelled, or
 // maxAttempts is reached (interval between attempts).
 func (f *LoginFlow) Poll(ctx context.Context, interval time.Duration, maxAttempts int) (*LoginResult, error) {
-	for i := 0; i < maxAttempts; i++ {
+	for range maxAttempts {
 		result, ok, err := f.PollOnce(ctx)
 		if err != nil {
 			return nil, err

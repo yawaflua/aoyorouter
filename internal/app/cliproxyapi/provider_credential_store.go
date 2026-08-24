@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"strconv"
 	"strings"
 	"time"
@@ -61,7 +62,7 @@ func (s *ProviderCredentialStore) List(ctx context.Context) ([]*coreauth.Auth, e
 			coreauth.AttributeSourceBackend: coreauth.AuthSourcePostgres,
 			"priority":                      strconv.Itoa(provider.Priority),
 		}
-	
+
 		auths = append(auths, &coreauth.Auth{
 			ID:         provider.ID,
 			Provider:   credentialType,
@@ -128,9 +129,7 @@ func (s *ProviderCredentialStore) Delete(ctx context.Context, id string) error {
 
 func cloneCredentials(credentials map[string]any) map[string]any {
 	cloned := make(map[string]any, len(credentials))
-	for key, value := range credentials {
-		cloned[key] = value
-	}
+	maps.Copy(cloned, credentials)
 	return cloned
 }
 
@@ -145,8 +144,6 @@ func authCredentials(auth *coreauth.Auth) (map[string]any, error) {
 			return nil, err
 		}
 	}
-	for key, value := range auth.Metadata {
-		credentials[key] = value
-	}
+	maps.Copy(credentials, auth.Metadata)
 	return credentials, nil
 }

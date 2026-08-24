@@ -192,7 +192,7 @@ func (p *P) registerAllProviders(ctx context.Context) error {
 		return err
 	}
 
-	for i, provider := range providers {
+	for _, provider := range providers {
 		if provider.Disabled {
 			continue
 		}

@@ -35,6 +35,8 @@ const (
 	AoyoRouterService_DeleteApiKey_FullMethodName                   = "/aoyorouter.docs.api.v1.AoyoRouterService/DeleteApiKey"
 	AoyoRouterService_GetApiKeyList_FullMethodName                  = "/aoyorouter.docs.api.v1.AoyoRouterService/GetApiKeyList"
 	AoyoRouterService_GetUsageLogs_FullMethodName                   = "/aoyorouter.docs.api.v1.AoyoRouterService/GetUsageLogs"
+	AoyoRouterService_GetError_FullMethodName                       = "/aoyorouter.docs.api.v1.AoyoRouterService/GetError"
+	AoyoRouterService_GetErrors_FullMethodName                      = "/aoyorouter.docs.api.v1.AoyoRouterService/GetErrors"
 	AoyoRouterService_GetProviderLogsByKeyID_FullMethodName         = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProviderLogsByKeyID"
 	AoyoRouterService_GetProxies_FullMethodName                     = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProxies"
 	AoyoRouterService_UpdateProxy_FullMethodName                    = "/aoyorouter.docs.api.v1.AoyoRouterService/UpdateProxy"
@@ -59,6 +61,8 @@ type AoyoRouterServiceClient interface {
 	DeleteApiKey(ctx context.Context, in *DeleteApiKeyRequest, opts ...grpc.CallOption) (*DeleteApiKeyResponse, error)
 	GetApiKeyList(ctx context.Context, in *GetApiKeyListRequest, opts ...grpc.CallOption) (*GetApiKeyListResponse, error)
 	GetUsageLogs(ctx context.Context, in *GetUsageLogsRequest, opts ...grpc.CallOption) (*GetUsageLogsResponse, error)
+	GetError(ctx context.Context, in *GetErrorRequest, opts ...grpc.CallOption) (*GetErrorResponse, error)
+	GetErrors(ctx context.Context, in *GetErrorsRequest, opts ...grpc.CallOption) (*GetErrorsResponse, error)
 	GetProviderLogsByKeyID(ctx context.Context, in *GetProviderLogsByKeyIDRequest, opts ...grpc.CallOption) (*GetProviderLogsByKeyIDResponse, error)
 	GetProxies(ctx context.Context, in *GetProxiesRequest, opts ...grpc.CallOption) (*GetProxiesResponse, error)
 	UpdateProxy(ctx context.Context, in *UpdateProxyRequest, opts ...grpc.CallOption) (*UpdateProxyResponse, error)
@@ -222,6 +226,26 @@ func (c *aoyoRouterServiceClient) GetUsageLogs(ctx context.Context, in *GetUsage
 	return out, nil
 }
 
+func (c *aoyoRouterServiceClient) GetError(ctx context.Context, in *GetErrorRequest, opts ...grpc.CallOption) (*GetErrorResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetErrorResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_GetError_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aoyoRouterServiceClient) GetErrors(ctx context.Context, in *GetErrorsRequest, opts ...grpc.CallOption) (*GetErrorsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetErrorsResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_GetErrors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *aoyoRouterServiceClient) GetProviderLogsByKeyID(ctx context.Context, in *GetProviderLogsByKeyIDRequest, opts ...grpc.CallOption) (*GetProviderLogsByKeyIDResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetProviderLogsByKeyIDResponse)
@@ -271,6 +295,8 @@ type AoyoRouterServiceServer interface {
 	DeleteApiKey(context.Context, *DeleteApiKeyRequest) (*DeleteApiKeyResponse, error)
 	GetApiKeyList(context.Context, *GetApiKeyListRequest) (*GetApiKeyListResponse, error)
 	GetUsageLogs(context.Context, *GetUsageLogsRequest) (*GetUsageLogsResponse, error)
+	GetError(context.Context, *GetErrorRequest) (*GetErrorResponse, error)
+	GetErrors(context.Context, *GetErrorsRequest) (*GetErrorsResponse, error)
 	GetProviderLogsByKeyID(context.Context, *GetProviderLogsByKeyIDRequest) (*GetProviderLogsByKeyIDResponse, error)
 	GetProxies(context.Context, *GetProxiesRequest) (*GetProxiesResponse, error)
 	UpdateProxy(context.Context, *UpdateProxyRequest) (*UpdateProxyResponse, error)
@@ -328,6 +354,12 @@ func (UnimplementedAoyoRouterServiceServer) GetApiKeyList(context.Context, *GetA
 }
 func (UnimplementedAoyoRouterServiceServer) GetUsageLogs(context.Context, *GetUsageLogsRequest) (*GetUsageLogsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUsageLogs not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) GetError(context.Context, *GetErrorRequest) (*GetErrorResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetError not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) GetErrors(context.Context, *GetErrorsRequest) (*GetErrorsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetErrors not implemented")
 }
 func (UnimplementedAoyoRouterServiceServer) GetProviderLogsByKeyID(context.Context, *GetProviderLogsByKeyIDRequest) (*GetProviderLogsByKeyIDResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetProviderLogsByKeyID not implemented")
@@ -629,6 +661,42 @@ func _AoyoRouterService_GetUsageLogs_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AoyoRouterService_GetError_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetErrorRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).GetError(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_GetError_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).GetError(ctx, req.(*GetErrorRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AoyoRouterService_GetErrors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetErrorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).GetErrors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_GetErrors_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).GetErrors(ctx, req.(*GetErrorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AoyoRouterService_GetProviderLogsByKeyID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetProviderLogsByKeyIDRequest)
 	if err := dec(in); err != nil {
@@ -749,6 +817,14 @@ var AoyoRouterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUsageLogs",
 			Handler:    _AoyoRouterService_GetUsageLogs_Handler,
+		},
+		{
+			MethodName: "GetError",
+			Handler:    _AoyoRouterService_GetError_Handler,
+		},
+		{
+			MethodName: "GetErrors",
+			Handler:    _AoyoRouterService_GetErrors_Handler,
 		},
 		{
 			MethodName: "GetProviderLogsByKeyID",

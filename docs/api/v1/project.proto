@@ -102,7 +102,19 @@ service AoyoRouterService {
 
     rpc GetUsageLogs(GetUsageLogsRequest) returns (GetUsageLogsResponse) {
         option (google.api.http) = {
-            get: "/api/aoyo/v1/usage/logs"
+            get: "/api/aoyo/v1/logs"
+        };
+    }
+
+    rpc GetError(GetErrorRequest) returns (GetErrorResponse) {
+        option (google.api.http) = {
+            get: "/api/aoyo/v1/logs/errors/{error_id}"
+        };
+    }
+
+    rpc GetErrors(GetErrorsRequest) returns (GetErrorsResponse) {
+        option (google.api.http) = {
+            get: "/api/aoyo/v1/logs/errors"
         };
     }
 

@@ -52,6 +52,12 @@
     <path d="M12 3 5 6v5c0 4.8 3 8.2 7 10 4-1.8 7-5.2 7-10V6l-7-3Z"></path><path d="m9 12 2 2 4-4"></path>
   {:else if name === 'warning'}
     <path d="M12 4 3 20h18L12 4Zm0 6v4m0 3h.01"></path>
+  {:else if name === 'sun'}
+    <circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+  {:else if name === 'moon'}
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
+  {:else if name === 'monitor'}
+    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line>
   {:else}
     <circle cx="12" cy="12" r="9"></circle><path d="M12 8v5m0 3h.01"></path>
   {/if}

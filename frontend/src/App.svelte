@@ -8,6 +8,7 @@
   import DeleteDialog from './lib/components/DeleteDialog.svelte'
   import KeyDialog from './lib/components/KeyDialog.svelte'
   import LogList from './lib/components/LogList.svelte'
+  import ErrorList from './lib/components/ErrorList.svelte'
   import Navigation from './lib/components/Navigation.svelte'
   import PageHeader from './lib/components/PageHeader.svelte'
   import ProviderDialog, { type ProviderDraft } from './lib/components/ProviderDialog.svelte'
@@ -20,10 +21,13 @@
   import { ApiError } from './lib/models/apierror'
   import type { ApiKey, ApiKeyUsage, UpdateApiKeyInput } from './lib/models/apikey'
   import type { LogEntry } from './lib/models/logentry'
+  import type { ErrorLog } from './lib/models/errorlog'
   import type { Endpoint, LiveProxy } from './lib/models/liveproxy'
   import { providerUsesApiKey, type Provider, type ProviderModel, type ProviderType, type UpdateProviderInput } from './lib/models/providers'
   import { validateProxy } from './lib/models/proxy'
     import ProxyEditDialog from './lib/components/ProxyEditDialog.svelte';
+  import { createThemeStore } from './lib/theme.svelte'
+  import ThemeToggle from './lib/components/ThemeToggle.svelte'
 
   const PASSWORD_KEY = 'aoyo.password'
   const storedPassword = sessionStorage.getItem(PASSWORD_KEY) ?? ''
@@ -43,6 +47,7 @@
   let proxies = $state<LiveProxy[]>([])
   let endpoints = $state<Endpoint[]>([])
   let logs = $state<LogEntry[]>([])
+  let errors = $state<ErrorLog[]>([])
   let keyUsage = $state<Record<string, ApiKeyUsage>>({})
   let keyUsageLoading = $state('')
   let keyUsageErrors = $state<Record<string, string>>({})
@@ -55,6 +60,10 @@
 
   let models = $state<ProviderModel[]>([])
 
+  const theme = createThemeStore()
+  $effect(() => {
+    theme.set(theme.resolved)
+  })
 
   const client = $derived(new ApiClient(password))
   const sectionInfo = $derived(getSection(section))
@@ -103,6 +112,7 @@
     providers = []
     proxies = []
     logs = []
+    errors = []
     closeDialog()
     if (showNotice) notice = 'Signed out.'
   }
@@ -133,6 +143,9 @@
           break
         case 'logs':
           logs = await client.getUsageLogs()
+          break
+        case 'errors':
+          errors = await client.getErrors()
           break
         case 'chat':
           models = await client.getModels()
@@ -426,7 +439,7 @@
 
 <svelte:head>
   <title>{password ? `${sectionInfo.label} · Aoyo Router` : 'Sign in · Aoyo Router'}</title>
-  <meta name="theme-color" content="#f8f9ff" />
+  <meta name="theme-color" content={theme.resolved === 'dark' ? '#111318' : '#f8f9ff'} />
 </svelte:head>
 
 {#if !password}
@@ -435,9 +448,12 @@
   <div class="app-shell">
     <Navigation current={section} onNavigate={navigate} onSignOut={() => signOut()} />
     <main class="workspace">
+      <div class="topbar-extras">
+        <ThemeToggle theme={theme.theme} onChange={theme.set} />
+      </div>
       <PageHeader section={sectionInfo} onAction={openSectionDialog} />
       <section class="content" aria-live="polite">
-        {#if section !== 'logs' && section !== 'chat'}
+        {#if section !== 'logs' && section !== 'errors' && section !== 'chat'}
           <CollectionToolbar
             bind:search
             entity={section === 'keys' ? 'API keys' : section === 'providers' ? 'providers' : 'live proxies'}
@@ -484,6 +500,8 @@
           <ProxyList proxies={filteredProxies} {search} onEdit={requestProxyEdit} onClearSearch={() => (search = '')} onCopy={copy} />
         {:else if section === 'chat'}
           <ChatPanel {password} models={models.map((item) => ({ id: item.id, displayName: item.displayName ?? '' }))} />
+        {:else if section === 'errors'}
+          <ErrorList {errors} />
         {:else}
           <LogList {logs} />
         {/if}

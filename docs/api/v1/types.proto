@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package aoyorouter.docs.api.v1;
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/api.proto";
 
 option go_package = "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter;aoyorouter";
 
@@ -219,10 +220,42 @@ message LogEntry {
     google.protobuf.Timestamp created_at = 13;
 }
 
+message Error {
+    string id = 1;
+    string url = 2;
+    google.protobuf.Method method = 3;
+    google.protobuf.Timestamp timestamp = 4;
+
+    repeated string headers = 5;
+
+    string body = 6;
+    string response_body = 7;
+    int32 status_code = 8;
+}
+
 message GetUsageLogsRequest {
     int32 limit = 2;
     int32 offset = 3;
 }
+
+message GetErrorRequest {
+    string error_id = 1;
+}
+
+message GetErrorResponse {
+    Error error = 1;
+    string status = 2;
+}
+
+message GetErrorsRequest {
+    string error_id = 1;
+}
+
+message GetErrorsResponse {
+    repeated Error errors = 1;
+    string status = 2;
+}
+
 message GetProviderLogsByKeyIDRequest {
     string api_key_id = 1;
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/user_repo"
 )
+
 type userRepoKey struct{}
 
 func UserRepoToCtxInterceptor(userRepo *user_repo.UserRepo) func(next runtime.HandlerFunc) runtime.HandlerFunc {
@@ -28,17 +29,16 @@ func AuthInterceptor(next runtime.HandlerFunc) runtime.HandlerFunc {
 			return
 		}
 
-		if strings.HasPrefix(auth, "Password ") {
-			auth = strings.TrimPrefix(auth, "Password ")
+		if after, ok := strings.CutPrefix(auth, "Password "); ok {
+			auth = after
 		} else {
 			http.Error(w, "Invalid authorization header", http.StatusUnauthorized)
 			return
 		}
-		
 
 		user_repo := r.Context().Value(userRepoKey{}).(*user_repo.UserRepo)
 		err := user_repo.LoginUser(auth)
-		
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
