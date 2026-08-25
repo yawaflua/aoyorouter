@@ -7,7 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/yawaflua/aoyorouter/internal/driver/middlewares"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/apipb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -17,7 +20,15 @@ func (a *AoyoRouterService) GetError(context.Context, *aoyorouter.GetErrorReques
 }
 
 // GetErrors implements [aoyorouter.AoyoRouterServiceServer].
-func (a *AoyoRouterService) GetErrors(context.Context, *aoyorouter.GetErrorsRequest) (*aoyorouter.GetErrorsResponse, error) {
+func (a *AoyoRouterService) GetErrors(ctx context.Context, req *aoyorouter.GetErrorsRequest) (*aoyorouter.GetErrorsResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
+
 	dir, err := os.ReadDir("auth/logs")
 	if err != nil {
 		if os.IsNotExist(err) {

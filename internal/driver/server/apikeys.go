@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
+	"github.com/yawaflua/aoyorouter/internal/driver/middlewares"
 	"github.com/yawaflua/aoyorouter/internal/models"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 	"google.golang.org/grpc/codes"
@@ -15,6 +16,13 @@ import (
 
 // EditApiKey implements [aoyorouter.AoyoRouterServiceServer].
 func (a *AoyoRouterService) EditApiKey(ctx context.Context, req *aoyorouter.EditApiKeyRequest) (*aoyorouter.EditApiKeyResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
 	input := req.GetApiKey()
 	if input == nil || strings.TrimSpace(input.GetName()) == "" {
 		return nil, status.Error(codes.InvalidArgument, "api_key.name is required")
@@ -58,6 +66,14 @@ func (a *AoyoRouterService) EditApiKey(ctx context.Context, req *aoyorouter.Edit
 }
 
 func (a *AoyoRouterService) CreateApiKey(ctx context.Context, req *aoyorouter.CreateApiKeyRequest) (*aoyorouter.CreateApiKeyResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
+
 	key, err := a.ApiKeyRepo.CreateApiKey(ctx, req.GetName(), req.GetIsAdmin())
 	if err != nil {
 		return nil, err
@@ -75,6 +91,14 @@ func (a *AoyoRouterService) CreateApiKey(ctx context.Context, req *aoyorouter.Cr
 }
 
 func (a *AoyoRouterService) DeleteApiKey(ctx context.Context, req *aoyorouter.DeleteApiKeyRequest) (*aoyorouter.DeleteApiKeyResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
+
 	keys, err := a.ApiKeyRepo.GetApiKeys(ctx)
 	if err != nil {
 		return nil, err
@@ -107,21 +131,47 @@ func (a *AoyoRouterService) DeleteApiKey(ctx context.Context, req *aoyorouter.De
 }
 
 func (a *AoyoRouterService) GetApiKeyList(ctx context.Context, _ *aoyorouter.GetApiKeyListRequest) (*aoyorouter.GetApiKeyListResponse, error) {
-	keys, err := a.ApiKeyRepo.GetApiKeys(ctx)
-	if err != nil {
-		return nil, err
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
 	}
+	result := make([]*aoyorouter.ApiKey, 0)
+	if requesterKey == nil || requesterKey.IsAdmin {
 
-	result := make([]*aoyorouter.ApiKey, 0, len(keys))
-	for _, key := range keys {
-		result = append(result, &aoyorouter.ApiKey{
-			Id: key.ID, Name: key.Name, IsActive: key.IsActive, QuotaSetted: key.QuotaSetted,
-			ReservedTokens: key.ReservedTokens, QuotaUsed: key.QuotaTokens,
-			QuotaResetAt: timestamppb.New(key.QuotaResetAt), QuotaResetStrategy: quotaResetStrategy(key.QuotaPeriod),
-			RestrictedProviders: append([]string(nil), key.RestrictedProviders...),
-			RestrictedModels:    append([]string(nil), key.RestrictedModels...),
-			IsAdmin:             key.IsAdmin,
-		})
+		keys, err := a.ApiKeyRepo.GetApiKeys(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		result := make([]*aoyorouter.ApiKey, 0, len(keys))
+		for _, key := range keys {
+			result = append(result, &aoyorouter.ApiKey{
+				Id: key.ID, Name: key.Name, IsActive: key.IsActive, QuotaSetted: key.QuotaSetted,
+				ReservedTokens: key.ReservedTokens, QuotaUsed: key.QuotaTokens,
+				QuotaResetAt: timestamppb.New(key.QuotaResetAt), QuotaResetStrategy: quotaResetStrategy(key.QuotaPeriod),
+				RestrictedProviders: append([]string(nil), key.RestrictedProviders...),
+				RestrictedModels:    append([]string(nil), key.RestrictedModels...),
+				IsAdmin:             key.IsAdmin,
+			})
+		}
+	} else {
+		keys, err := a.ApiKeyRepo.GetApiKeys(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, key := range keys {
+			if key.ID != requesterKey.ID {
+				continue
+			}
+			result = append(result, &aoyorouter.ApiKey{
+				Id: key.ID, Name: key.Name, IsActive: key.IsActive, QuotaSetted: key.QuotaSetted,
+				ReservedTokens: key.ReservedTokens, QuotaUsed: key.QuotaTokens,
+				QuotaResetAt: timestamppb.New(key.QuotaResetAt), QuotaResetStrategy: quotaResetStrategy(key.QuotaPeriod),
+				RestrictedProviders: append([]string(nil), key.RestrictedProviders...),
+				RestrictedModels:    append([]string(nil), key.RestrictedModels...),
+				IsAdmin:             key.IsAdmin,
+			})
+		}
 	}
 
 	return &aoyorouter.GetApiKeyListResponse{ApiKeys: result}, nil
@@ -132,6 +182,16 @@ func (a *AoyoRouterService) RecreateApiKey(ctx context.Context, req *aoyorouter.
 	if req.GetApiKeyId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "key id should to be provided")
 	}
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		if req.GetApiKeyId() != requesterKey.ID {
+			return nil, status.Error(codes.PermissionDenied, "permission denied")
+		}
+	}
+
 	apiKey, err := a.ApiKeyRepo.RecreateApiKey(ctx, req.GetApiKeyId())
 	if err != nil {
 		return nil, err

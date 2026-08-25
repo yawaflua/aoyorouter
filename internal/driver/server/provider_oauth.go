@@ -9,6 +9,7 @@ import (
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/api"
 	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
+	"github.com/yawaflua/aoyorouter/internal/driver/middlewares"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,6 +18,14 @@ import (
 const providerOAuthPending = "pending"
 
 func (a *AoyoRouterService) CreateProviderAuthorization(ctx context.Context, req *aoyorouter.CreateProviderAuthorizationRequest) (*aoyorouter.CreateProviderAuthorizationResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
+
 	name := strings.TrimSpace(req.GetName())
 	if name == "" {
 		return nil, status.Error(codes.InvalidArgument, "provider name is required")
@@ -58,6 +67,14 @@ func (a *AoyoRouterService) CreateProviderAuthorization(ctx context.Context, req
 }
 
 func (a *AoyoRouterService) CompleteProviderAuthorization(ctx context.Context, req *aoyorouter.CompleteProviderAuthorizationRequest) (*aoyorouter.ProviderAuthorizationStatusResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
+
 	state := strings.TrimSpace(req.GetState())
 
 	provider, _, ok := a.providerOAuthSession(state)
@@ -94,6 +111,14 @@ func (a *AoyoRouterService) CompleteProviderAuthorization(ctx context.Context, r
 }
 
 func (a *AoyoRouterService) GetProviderAuthorizationStatus(ctx context.Context, req *aoyorouter.GetProviderAuthorizationStatusRequest) (*aoyorouter.ProviderAuthorizationStatusResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
+
 	state := strings.TrimSpace(req.GetState())
 
 	cursorOAuthMu.Lock()

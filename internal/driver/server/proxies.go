@@ -4,13 +4,21 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/yawaflua/aoyorouter/internal/driver/middlewares"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 // GetProxies implements [aoyorouter.AoyoRouterServiceServer].
-func (a *AoyoRouterService) GetProxies(context.Context, *aoyorouter.GetProxiesRequest) (*aoyorouter.GetProxiesResponse, error) {
+func (a *AoyoRouterService) GetProxies(ctx context.Context, _ *aoyorouter.GetProxiesRequest) (*aoyorouter.GetProxiesResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
 	proxies := a.warp.Proxies()
 	resp := aoyorouter.GetProxiesResponse{}
 	resp.AvailableEndpoints = make([]*aoyorouter.ProxyEndpoint, 0, len(a.warp.Endpoints()))

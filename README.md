@@ -184,6 +184,7 @@ Common environment variables:
 | `WARP_LIMIT` | `10` | Maximum managed WARP proxy count |
 | `RUN_MIGRATIONS` | `true` in container | Run Goose migrations before container startup |
 | `ILL_NOT_USE_CLOUDFLARE_REALLY_NOT_NEEDED` | `false` | Skips getting cf endpoints, improves startup speed, but proxies will not work |
+| `ENABLE_EFFORT_PRESETS` | `false` | Enables effort presets for provider models(will be shown as provider/model-effort) |
 
 Do not expose dashboard or gateway publicly with default database credentials or weak `INITIAL_PASSWORD`. Put TLS-enabled reverse proxy in front for internet-facing deployments.
 

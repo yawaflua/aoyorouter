@@ -2,8 +2,10 @@ package server
 
 import (
 	"context"
+	"slices"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
+	"github.com/yawaflua/aoyorouter/internal/driver/middlewares"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -11,6 +13,14 @@ import (
 )
 
 func (a *AoyoRouterService) CreateProvider(ctx context.Context, req *aoyorouter.CreateProviderRequest) (*aoyorouter.CreateProviderResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
+
 	cfg, err := a.providerVendor.ProviderOAuthConfig(req.GetType())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "provider not supported")
@@ -37,6 +47,14 @@ func (a *AoyoRouterService) CreateProvider(ctx context.Context, req *aoyorouter.
 }
 
 func (a *AoyoRouterService) DeleteProvider(ctx context.Context, req *aoyorouter.DeleteProviderRequest) (*aoyorouter.DeleteProviderResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
+
 	provider, err := a.ProviderRepo.GetProvider(ctx, req.GetProviderId())
 	if err != nil {
 		return nil, err
@@ -54,8 +72,16 @@ func (a *AoyoRouterService) DeleteProvider(ctx context.Context, req *aoyorouter.
 }
 
 func (a *AoyoRouterService) GetProvider(ctx context.Context, req *aoyorouter.GetProviderRequest) (*aoyorouter.GetProviderResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		if slices.Contains(requesterKey.RestrictedProviders, req.GetProviderId()) {
+			return nil, status.Error(codes.PermissionDenied, "permission denied")
+		}
+	}
 	provider, err := a.ProviderRepo.GetProvider(ctx, req.GetProviderId())
-
 	if err != nil {
 		return nil, err
 	}
@@ -68,10 +94,20 @@ func (a *AoyoRouterService) GetProvidersList(ctx context.Context, _ *aoyorouter.
 	if err != nil {
 		return nil, err
 	}
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+
 
 	result := make([]*aoyorouter.Provider, 0, len(providers))
 	for _, provider := range providers {
 		item := providerToProto(provider)
+		if requesterKey != nil && !requesterKey.IsAdmin {
+			if slices.Contains(requesterKey.RestrictedProviders, provider.ID) {
+				continue
+			}
+		}
 		if providerOAuthReady(provider.ClientSecret, provider.Credentials) {
 			if quota, err := a.loadQuota(provider, ctx); err == nil {
 				item.Quota = quota
@@ -84,6 +120,13 @@ func (a *AoyoRouterService) GetProvidersList(ctx context.Context, _ *aoyorouter.
 }
 
 func (a *AoyoRouterService) ReloadProviders(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		return nil, status.Error(codes.PermissionDenied, "permission denied, ask admin to reload providers")
+	}
 	if a.cpapiRestarter == nil {
 		return nil, status.Error(codes.Unimplemented, "provider reload is not configured")
 	}
@@ -94,6 +137,14 @@ func (a *AoyoRouterService) ReloadProviders(ctx context.Context, _ *emptypb.Empt
 }
 
 func (a *AoyoRouterService) UpdateProvider(ctx context.Context, req *aoyorouter.UpdateProviderRequest) (*aoyorouter.UpdateProviderResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		return nil, status.Error(codes.PermissionDenied, "permission denied, ask admin to update provider")
+	}
+	
 	cfg, err := a.providerVendor.ProviderOAuthConfig(req.GetType())
 	if err != nil {
 		return nil, err

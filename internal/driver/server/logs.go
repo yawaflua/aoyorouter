@@ -4,12 +4,25 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/yawaflua/aoyorouter/internal/driver/middlewares"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // GetProviderLogsByKeyID implements [aoyorouter.AoyoRouterServiceServer].
 func (a *AoyoRouterService) GetProviderLogsByKeyID(ctx context.Context, req *aoyorouter.GetProviderLogsByKeyIDRequest) (*aoyorouter.GetProviderLogsByKeyIDResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+	if requesterKey != nil && !requesterKey.IsAdmin {
+		if req.GetApiKeyId() != requesterKey.ID {
+			return nil, status.Error(codes.PermissionDenied, "permission denied")
+		}
+	}
+
 	usage, err := a.UsageEntryRepo.GetUsageEntryByApiKeyID(ctx, uuid.MustParse(req.GetApiKeyId()))
 	if err != nil {
 		return nil, err
@@ -39,12 +52,21 @@ func (a *AoyoRouterService) GetProviderLogsByKeyID(ctx context.Context, req *aoy
 
 // GetUsageLogs implements [aoyorouter.AoyoRouterServiceServer].
 func (a *AoyoRouterService) GetUsageLogs(ctx context.Context, req *aoyorouter.GetUsageLogsRequest) (*aoyorouter.GetUsageLogsResponse, error) {
+	requesterKey, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+
+
 	usage, err := a.UsageEntryRepo.GetAllUsageEntries(ctx, uint64(req.GetLimit()), uint64(req.GetOffset()))
 	if err != nil {
 		return nil, err
 	}
 	resp := aoyorouter.GetUsageLogsResponse{}
 	for _, v := range usage {
+		if requesterKey != nil && requesterKey.ID != v.ApiTokenID.String() {
+			continue
+		}
 		resp.Logs = append(resp.Logs, &aoyorouter.LogEntry{
 			Provider:        v.Provider,
 			ApiKeyId:        v.ApiTokenID.String(),

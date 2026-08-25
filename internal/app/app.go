@@ -11,6 +11,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -211,7 +212,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	restServer := runtime.NewServeMux(
 		runtime.WithMiddlewares(
 			middlewares.UserRepoToCtxInterceptor(a.provider.UserRepo(ctx)),
-			middlewares.AuthInterceptor,
+			middlewares.AuthInterceptor(false),
 			middlewares.LoggerToCtxInterceptor(a.provider.Logger()),
 			middlewares.RequestIDInterceptor,
 			middlewares.LoggerInterceptor,
@@ -230,15 +231,42 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	proxy.ErrorHandler = func(w http.ResponseWriter, _ *http.Request, err error) {
 		http.Error(w, "upstream unavailable", http.StatusBadGateway)
 	}
-	if a.provider.Config().EnableEffortPresets {
-		proxy.ModifyResponse = cliproxyapi.ModifyEffortModelsResponseWithLogger(a.provider.Logger())
+
+	proxy.ModifyResponse = func(resp *http.Response) error {
+		if strings.HasSuffix(resp.Request.URL.Path, "/v1/models") {
+			a.provider.Logger().Info("authorizing request", "path", resp.Request.URL.Path)
+			ctx, err := middlewares.AuthorizeRequest(a.provider.UserRepo(resp.Request.Context()))(resp)
+			if err != nil {
+				a.provider.Logger().Error("Failed to authorize request", "error", err)
+				return err
+			}
+			resp.Request = resp.Request.WithContext(ctx)
+			a.provider.Logger().Info("authorized request", "path", resp.Request.URL.Path)
+
+			if a.provider.Config().EnableEffortPresets {
+				err = cliproxyapi.ModifyEffortModelsResponseWithLogger(a.provider.Logger())(resp)
+				if err != nil {
+					a.provider.Logger().Error("Failed to modify effort models response", "error", err)
+					return err
+				}
+				a.provider.Logger().Info("modified effort models response", "path", resp.Request.URL.Path)
+			}
+			a.provider.Logger().Info("access provider middleware", "path", resp.Request.URL.Path)
+			err = cliproxyapi.AccessProviderMiddleware(a.provider.Logger(), a.provider.ProviderRepo(resp.Request.Context()), a.provider.ProviderVendor(resp.Request.Context()))(resp)
+			if err != nil {
+				a.provider.Logger().Error("Failed to access provider middleware", "error", err)
+				return err
+			}
+			a.provider.Logger().Info("access provider middleware succeeded", "path", resp.Request.URL.Path)
+		}
+		return nil
 	}
 
 	var v1Handler http.Handler = proxy
-	if a.provider.Config().EnableEffortPresets {
-		a.provider.Logger().Info("effort presets enabled, registering middleware")
-		v1Handler = cliproxyapi.EffortPresetMiddleware(a.provider.Logger(), proxy)
-	}
+	// if a.provider.Config().EnableEffortPresets {
+	// 	a.provider.Logger().Info("effort presets enabled, registering middleware")
+	// 	v1Handler = cliproxyapi.EffortPresetMiddleware(a.provider.Logger(), proxy)
+	// }
 
 	rootMux := http.NewServeMux()
 

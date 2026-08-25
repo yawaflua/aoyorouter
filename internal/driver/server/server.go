@@ -16,8 +16,11 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/adapter/warp"
 	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
 	"github.com/yawaflua/aoyorouter/internal/cache"
+	"github.com/yawaflua/aoyorouter/internal/driver/middlewares"
 	"github.com/yawaflua/aoyorouter/internal/models/providers"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -61,7 +64,11 @@ func (a *AoyoRouterService) mustEmbedUnimplementedAoyoRouterServiceServer() {
 }
 
 // SignIn implements [aoyorouter.AoyoRouterServiceServer].
-func (a *AoyoRouterService) SignIn(_ context.Context, req *aoyorouter.SignInRequest) (*aoyorouter.SignInResponse, error) {
+func (a *AoyoRouterService) SignIn(ctx context.Context, req *aoyorouter.SignInRequest) (*aoyorouter.SignInResponse, error) {
+	_, ok := middlewares.GetApiKeyFromCtx(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
 	return &aoyorouter.SignInResponse{Status: "ok", AuthToken: req.GetPassword()}, nil
 }
 
