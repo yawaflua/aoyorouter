@@ -15,6 +15,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/yawaflua/aoyorouter/frontend"
+	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
 	"github.com/yawaflua/aoyorouter/internal/app/provider"
 	"github.com/yawaflua/aoyorouter/internal/crons"
 	"github.com/yawaflua/aoyorouter/internal/driver/middlewares"
@@ -229,6 +230,15 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	proxy.ErrorHandler = func(w http.ResponseWriter, _ *http.Request, err error) {
 		http.Error(w, "upstream unavailable", http.StatusBadGateway)
 	}
+	if a.provider.Config().EnableEffortPresets {
+		proxy.ModifyResponse = cliproxyapi.ModifyEffortModelsResponseWithLogger(a.provider.Logger())
+	}
+
+	var v1Handler http.Handler = proxy
+	if a.provider.Config().EnableEffortPresets {
+		a.provider.Logger().Info("effort presets enabled, registering middleware")
+		v1Handler = cliproxyapi.EffortPresetMiddleware(a.provider.Logger(), proxy)
+	}
 
 	rootMux := http.NewServeMux()
 
@@ -246,10 +256,10 @@ func (a *App) initHttpServer(ctx context.Context) error {
 
 		restServer.ServeHTTP(w, r)
 	})
-	rootMux.Handle("/v1/{path...}", proxy)
-	rootMux.Handle("/v1beta/{path...}", proxy)
+	rootMux.Handle("/v1/{path...}", v1Handler)
+	rootMux.Handle("/v1beta/{path...}", v1Handler)
 	if a.provider.Config().Env != "prod" {
-		rootMux.Handle("/v0/{path...}", proxy)
+		rootMux.Handle("/v0/{path...}", v1Handler)
 	}
 	if a.provider.Config().Env == "prod" {
 		rootMux.Handle("/", frontend.Handler())
