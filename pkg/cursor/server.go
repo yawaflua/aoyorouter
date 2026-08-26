@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,6 +24,9 @@ import (
 const (
 	cursorAPIHost       = "https://api2.cursor.sh"
 	cursorAPIHostHeader = "api2.cursor.sh"
+
+	// maxFrameSize bounds a single Connect-RPC frame payload.
+	maxFrameSize = 32 << 20
 )
 
 // Server is an OpenAI-compatible HTTP bridge to the Cursor AI backend.
@@ -32,11 +36,31 @@ type Server struct {
 	http     *http.Server
 	listener net.Listener
 	port     int
-	proxies  map[string]string
+
+	// proxies maps an access token to the outbound proxy URL to use for it.
+	// Provider reloads write to it while request handlers read it, hence the
+	// lock. It is deliberately not exposed directly: the previous
+	// Proxies() *map[string]string handed callers a pointer to an
+	// uninitialised map, so the first write panicked.
+	proxyMu sync.RWMutex
+	proxies map[string]string
 }
 
-func (s *Server) Proxies() *map[string]string {
-	return &s.proxies
+// SetProxy records the outbound proxy to use for requests made with token.
+func (s *Server) SetProxy(token, proxyURL string) {
+	if token == "" {
+		return
+	}
+	s.proxyMu.Lock()
+	defer s.proxyMu.Unlock()
+	s.proxies[token] = proxyURL
+}
+
+// ProxyFor returns the proxy registered for token, or "" if there is none.
+func (s *Server) ProxyFor(token string) string {
+	s.proxyMu.RLock()
+	defer s.proxyMu.RUnlock()
+	return s.proxies[token]
 }
 
 // NewServer creates a bridge server. ProxyURL in cfg routes outbound
@@ -47,7 +71,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		logger = slog.Default()
 	}
 
-	s := &Server{cfg: cfg, logger: logger}
+	s := &Server{cfg: cfg, logger: logger, proxies: make(map[string]string)}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /v1/models", s.handleModels)
@@ -62,7 +86,10 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		writeError(w, http.StatusNotFound, "not found")
 	})
 
-	ln, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", cfg.Port))
+	// Bind loopback only: this bridge is an internal helper and BaseURL
+	// already advertises 127.0.0.1. Listening on 0.0.0.0 exposed an
+	// unauthenticated proxy to the whole network.
+	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", cfg.Port))
 	if err != nil {
 		return nil, fmt.Errorf("cursor: listen on port %d: %w", cfg.Port, err)
 	}
@@ -153,10 +180,7 @@ type ModelResponse struct {
 
 func (s *Server) HandleModels(ctx context.Context, token string, checksum string, proxyURL string) ([]ModelResponse, error) {
 	if proxyURL == "" {
-		proxy, ok := s.proxies[token]
-		if ok {
-			proxyURL = proxy
-		}
+		proxyURL = s.ProxyFor(token)
 	}
 	client, err := buildHTTPClient(proxyURL)
 	if err != nil {
@@ -206,7 +230,7 @@ func (s *Server) handleModels(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
 
-	names, err := s.HandleModels(ctx, token, r.Header.Get("x-cursor-checksum"), s.proxies[token])
+	names, err := s.HandleModels(ctx, token, r.Header.Get("x-cursor-checksum"), s.ProxyFor(token))
 	if err != nil {
 		writeError(w, http.StatusBadGateway, "cursor: "+err.Error())
 		return
@@ -248,11 +272,7 @@ func (s *Server) handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Minute)
 	defer cancel()
-	proxyURL, ok := s.proxies[token]
-	if !ok {
-		proxyURL = ""
-	}
-	client, err := buildHTTPClient(proxyURL)
+	client, err := buildHTTPClient(s.ProxyFor(token))
 	if err != nil {
 		s.logger.Error("cursor: build http client failed", slog.Any("err", err))
 		writeError(w, http.StatusInternalServerError, "internal server error")
@@ -463,7 +483,14 @@ func readFrames(body io.Reader, fn func(thinking, text string)) error {
 			return err
 		}
 		flag := header[0]
-		dataLen := int(binary.BigEndian.Uint32(header[1:]))
+		// Check the wire value before narrowing to int: a corrupt or hostile
+		// frame can claim up to 4 GiB and make(<that>) takes the process down
+		// with an unrecoverable OOM.
+		rawLen := binary.BigEndian.Uint32(header[1:])
+		if rawLen > maxFrameSize {
+			return fmt.Errorf("cursor: frame too large: %d bytes (max %d)", rawLen, maxFrameSize)
+		}
+		dataLen := int(rawLen)
 
 		var data []byte
 		if dataLen > 0 {

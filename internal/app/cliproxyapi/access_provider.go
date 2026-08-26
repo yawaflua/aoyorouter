@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -69,7 +70,10 @@ func (a AccessProvider) Authenticate(ctx context.Context, r *http.Request) (*acc
 				switch key.QuotaPeriod {
 
 				case models.QuotaPeriodForever:
-					if key.QuotaTokens > key.ReservedTokens {
+					// >= to match the periodic branch below: a key that has
+					// consumed exactly its allowance is out of quota, not
+					// entitled to one more request.
+					if key.QuotaTokens >= key.ReservedTokens {
 						return nil, &access.AuthError{Message: "quota exceeded"}
 					}
 
@@ -80,7 +84,9 @@ func (a AccessProvider) Authenticate(ctx context.Context, r *http.Request) (*acc
 					} else if key.QuotaTokens >= key.ReservedTokens && key.QuotaResetAt.Before(time.Now()) {
 
 						a.logger.Error("cron job did not update key", slog.String("key", key.ID), slog.Time("quota_reset_at", key.QuotaResetAt))
-						a.apikey_repo.UpdateApiKeyQuota(ctx, key)
+						if err := a.apikey_repo.UpdateApiKeyQuota(ctx, key); err != nil {
+							a.logger.Error("failed to reset key quota", slog.String("key", key.ID), slog.Any("err", err))
+						}
 					}
 				}
 			}
@@ -127,6 +133,8 @@ func AccessProviderMiddleware(logger *slog.Logger, providerRepo *provider_repo.P
 			return nil
 		}
 		resp.Body = io.NopCloser(bytes.NewReader(filtered))
+		resp.ContentLength = int64(len(filtered))
+		resp.Header.Set("Content-Length", fmt.Sprintf("%d", len(filtered)))
 		return nil
 	}
 }
@@ -176,8 +184,7 @@ func ExcludeRestrictedModels(resp *http.Response, logger *slog.Logger, key *mode
 				if owned == cfg.GetOAuthDefinition().Provider {
 					if len(key.RestrictedModels) != 0 && !slices.Contains(key.RestrictedModels, id) {
 						expanded = append(expanded, copyMap(item))
-					}
-					if len(key.RestrictedProviders) != 0 && !slices.Contains(key.RestrictedProviders, provider.ID) {
+					} else if len(key.RestrictedProviders) != 0 && !slices.Contains(key.RestrictedProviders, provider.ID) {
 						expanded = append(expanded, copyMap(item))
 					}
 				}

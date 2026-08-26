@@ -153,8 +153,8 @@ func (a *AoyoRouterService) providerAuthorizationStatus(ctx context.Context, sta
 	case "wait", providerOAuthPending, "":
 		return &aoyorouter.ProviderAuthorizationStatusResponse{Status: providerOAuthPending, ProviderId: provider}, nil
 	case "error":
-		a.cleanupProviderOAuth(ctx, session, "")
-		return &aoyorouter.ProviderAuthorizationStatusResponse{Status: "error", ProviderId: provider, Error: session}, nil
+		a.cleanupProviderOAuth(ctx, provider, "")
+		return &aoyorouter.ProviderAuthorizationStatusResponse{Status: "error: ", ProviderId: provider, Error: session}, nil
 	case "ok":
 		completed, err := a.completeStoredProviderAuthorization(ctx, state, provider)
 		if err != nil {

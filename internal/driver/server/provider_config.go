@@ -59,7 +59,11 @@ func (a *AoyoRouterService) addProviderConfig(ctx context.Context, cfg *config.C
 	}
 	if provider.UseProxy && provider.Proxy == "" {
 		proxy := a.warp.CreateProxy(ctx, fmt.Sprintf("%s-%s", provider.ID, provider.Name))
-		provider.Proxy = fmt.Sprintf("http://%s", proxy.Addr().String())
+		if proxy == nil {
+			a.logger.Error("Proxy is nil", "provider", provider.ID, "name", provider.Name)
+		} else {
+			provider.Proxy = fmt.Sprintf("http://%s", proxy.Addr().String())
+		}
 	}
 	if conf, err := a.providerVendor.ProviderOAuthConfig(aoyorouter.ProviderType(provider.Type)); err == nil {
 		definition := conf.GetOAuthDefinition()
@@ -84,7 +88,7 @@ func providerToProto(provider *models.Provider) *aoyorouter.Provider {
 		Name:         provider.Name,
 		Type:         aoyorouter.ProviderType(provider.Type),
 		ClientId:     provider.BaseUrl,
-		ClientSecret: provider.ClientSecret,
+		ClientSecret: "null",
 		UseProxy:     provider.UseProxy,
 		Proxy:        provider.Proxy,
 		IsCloudflare: provider.IsCloudflare,

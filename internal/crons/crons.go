@@ -16,26 +16,39 @@ type Crons struct {
 }
 
 func (r *Crons) Run() error {
+	log := r.Logger
+	if log == nil {
+		log = slog.Default()
+	}
+
 	c := cron.New()
 
-	_, err := c.AddFunc(r.Interval, func() {
-		r.Logger.Info("Executing cron job", "name", r.Name)
+	run := func() {
+		log.Info("Executing cron job", "name", r.Name)
 		if err := r.Handler(); err != nil {
-			r.Logger.Error("cron job failed", "error", err)
+			log.Error("cron job failed", "name", r.Name, "error", err)
 		}
-	})
-	if err != nil {
-		r.Logger.Error("Error adding cron job:", slog.Any("error", err))
+	}
+
+	if _, err := c.AddFunc(r.Interval, run); err != nil {
+		log.Error("Error adding cron job:", slog.String("name", r.Name), slog.Any("error", err))
 		return err
 	}
-	err = r.Handler()
-	if err != nil {
-		return err
-	}
+
 	c.Start()
-	r.Closer.Add(func() error {
-		c.Stop()
-		return nil
-	})
+	if r.Closer != nil {
+		r.Closer.Add(func() error {
+			c.Stop()
+			return nil
+		})
+	}
+
+	// The initial pass runs detached. It used to run synchronously and its
+	// error was returned all the way up through initCrons -> initDeps, so a
+	// transient database hiccup — or one slow provider, since quota_loader
+	// makes a network call per provider — stopped the process from starting
+	// at all, and left the schedule unregistered on top of that.
+	go run()
+
 	return nil
 }

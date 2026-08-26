@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httputil"
@@ -44,6 +45,9 @@ func New(ctx context.Context) (*App, error) {
 func (a *App) Start(ctx context.Context) error {
 	group, ctx := errgroup.WithContext(ctx)
 
+	// Must be set before anything below can trigger a restart, which reads it.
+	a.provider.SetAppCtx(ctx)
+
 	group.Go(func() error {
 		return a.runHTTPServer(ctx)
 	})
@@ -61,9 +65,8 @@ func (a *App) Start(ctx context.Context) error {
 	group.Go(func() error {
 		return a.provider.RunCPAPI(ctx)
 	})
-	a.provider.SetAppCtx(ctx)
 
-	return nil
+	return group.Wait()
 }
 
 func (a *App) GracefullyStop(ctx context.Context) error {
@@ -71,7 +74,9 @@ func (a *App) GracefullyStop(ctx context.Context) error {
 		a.provider.Closer().CloseAll()
 	}()
 
-	a.provider.Closer().Wait()
+	if err := a.provider.Closer().WaitTimeout(30 * time.Second); err != nil {
+		a.provider.Logger().Error("graceful shutdown incomplete", "error", err)
+	}
 
 	return nil
 }
@@ -97,7 +102,7 @@ func (a *App) initCrons(ctx context.Context) error {
 	crons := []*crons.Crons{
 		{
 			Name:     "quota_resetter",
-			Interval: "*/5 * * * *",
+			Interval: "*/1 * * * *",
 			Closer:   a.provider.Closer(),
 			Logger:   a.provider.Logger(),
 			Handler: func() error {
@@ -147,7 +152,7 @@ func (a *App) initCrons(ctx context.Context) error {
 			},
 		},
 		{
-			Name:     "ProviderRemover",
+			Name:     "provider_remover",
 			Interval: "*/5 * * * *",
 			Handler: func() error {
 				providers, err := a.provider.ProviderRepo(ctx).GetProviders(ctx)
@@ -233,12 +238,24 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	}
 
 	proxy.ModifyResponse = func(resp *http.Response) error {
+		for _, h := range []string{
+			"Access-Control-Allow-Origin",
+			"Access-Control-Allow-Credentials",
+			"Access-Control-Allow-Methods",
+			"Access-Control-Allow-Headers",
+			"Access-Control-Expose-Headers",
+			"Access-Control-Max-Age",
+		} {
+			resp.Header.Del(h)
+		}
+
 		if strings.HasSuffix(resp.Request.URL.Path, "/v1/models") {
 			a.provider.Logger().Info("authorizing request", "path", resp.Request.URL.Path)
 			ctx, err := middlewares.AuthorizeRequest(a.provider.UserRepo(resp.Request.Context()))(resp)
 			if err != nil {
 				a.provider.Logger().Error("Failed to authorize request", "error", err)
-				return err
+				rewriteResponse(resp, http.StatusUnauthorized, `{"error":{"message":"Unauthorized","type":"authentication_error"}}`)
+				return nil
 			}
 			resp.Request = resp.Request.WithContext(ctx)
 			a.provider.Logger().Info("authorized request", "path", resp.Request.URL.Path)
@@ -258,24 +275,24 @@ func (a *App) initHttpServer(ctx context.Context) error {
 				return err
 			}
 			a.provider.Logger().Info("access provider middleware succeeded", "path", resp.Request.URL.Path)
+		} else {
+
 		}
 		return nil
 	}
 
 	var v1Handler http.Handler = proxy
-	// if a.provider.Config().EnableEffortPresets {
-	// 	a.provider.Logger().Info("effort presets enabled, registering middleware")
-	// 	v1Handler = cliproxyapi.EffortPresetMiddleware(a.provider.Logger(), proxy)
-	// }
 
 	rootMux := http.NewServeMux()
 
 	rootMux.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
-		// origin := r.Header.Get("Origin")
-		r.Header.Set("Access-Control-Allow-Origin", "*")
-		r.Header.Set("Vary", "Origin")
-		r.Header.Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		r.Header.Set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-API-Key")
+		if a.provider.Config().Env != "prod" {
+			origin := r.Header.Get("Origin")
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Vary", "Origin")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-API-Key")
+		}
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
@@ -284,6 +301,14 @@ func (a *App) initHttpServer(ctx context.Context) error {
 
 		restServer.ServeHTTP(w, r)
 	})
+	
+	if a.provider.Config().Env != "prod" {
+		v1Handler = allowAllCORS(v1Handler)
+		
+	}
+	if a.provider.Config().EnableEffortPresets {
+		v1Handler = cliproxyapi.EffortPresetMiddleware(a.provider.Logger(), v1Handler)
+	}
 	rootMux.Handle("/v1/{path...}", v1Handler)
 	rootMux.Handle("/v1beta/{path...}", v1Handler)
 	if a.provider.Config().Env != "prod" {
@@ -296,6 +321,9 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", a.provider.Config().HTTP.Host, a.provider.Config().HTTP.Port),
 		Handler: rootMux,
+
+		ReadHeaderTimeout: 20 * time.Second,
+		IdleTimeout:       120 * time.Second,
 	}
 
 	a.httpServer = httpServer
@@ -311,6 +339,44 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	})
 
 	return nil
+}
+
+func rewriteResponse(resp *http.Response, status int, body string) {
+	resp.StatusCode = status
+	resp.Status = fmt.Sprintf("%d %s", status, http.StatusText(status))
+	resp.Body = io.NopCloser(strings.NewReader(body))
+	resp.ContentLength = int64(len(body))
+	resp.Header.Set("Content-Type", "application/json")
+	resp.Header.Set("Content-Length", fmt.Sprintf("%d", len(body)))
+	resp.Header.Del("Content-Encoding")
+}
+
+func allowAllCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if origin := r.Header.Get("Origin"); origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Add("Vary", "Origin")
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+		} else {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		}
+		w.Header().Set("Access-Control-Expose-Headers", "*")
+
+		if r.Method == http.MethodOptions {
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+			if h := r.Header.Get("Access-Control-Request-Headers"); h != "" {
+				w.Header().Set("Access-Control-Allow-Headers", h)
+			} else {
+				w.Header().Set("Access-Control-Allow-Headers", "*")
+			}
+			w.Header().Set("Access-Control-Max-Age", "86400")
+			w.Header().Add("Vary", "Access-Control-Request-Headers")
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (a *App) runHTTPServer(context.Context) error {

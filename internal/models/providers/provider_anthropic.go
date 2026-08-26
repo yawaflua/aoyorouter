@@ -26,6 +26,7 @@ func NewAnthropicProvider(logger *slog.Logger) *AnthropicProvider {
 const anthropicUsageURL = "https://api.anthropic.com/api/oauth/usage"
 
 type anthropicUsageWindow struct {
+	Name        string
 	Utilization *float64 `json:"utilization"`
 	ResetsAt    string   `json:"resets_at"`
 }
@@ -80,7 +81,7 @@ func (a *AnthropicProvider) LoadQuota(ctx context.Context, credentials map[strin
 	accessToken, _ := credentials["access_token"].(string)
 	accessToken = strings.TrimSpace(accessToken)
 	if accessToken == "" {
-		
+
 		return &aoyorouter.ProviderQuota{Error: "Anthropic credentials are incomplete"}
 	}
 
@@ -116,7 +117,8 @@ func (a *AnthropicProvider) LoadQuota(ctx context.Context, credentials map[strin
 		a.logger.Error("Invalid quota response", "error", err)
 		return &aoyorouter.ProviderQuota{Error: "invalid quota response"}
 	}
-
+	usage.FiveHour.Name = "rate-limit"
+	usage.SevenDay.Name = "weekly"
 	primary := anthropicQuotaWindow(usage.FiveHour, 5*60)
 	secondary := anthropicQuotaWindow(usage.SevenDay, 7*24*60)
 	if primary == nil {
@@ -148,6 +150,7 @@ func anthropicQuotaWindow(window *anthropicUsageWindow, windowMinutes int32) *ao
 		usedPercent = 100
 	}
 	return &aoyorouter.ProviderQuotaWindow{
+		Name: window.Name,
 		UsedPercent:   usedPercent,
 		ResetsAt:      window.ResetsAt,
 		WindowMinutes: windowMinutes,

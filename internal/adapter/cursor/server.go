@@ -31,8 +31,15 @@ func (s *CursorServer) GetOrCreateServer(ctx context.Context, cfg cursor.Config)
 	return s.CreateServer(ctx, cfg)
 }
 
-func (s *CursorServer) GetProxiesFromServer() *map[string]string {
-	return s.server.Proxies()
+// SetProxy registers an outbound proxy for a token on the bridge. It is a
+// no-op when the bridge has not been created yet — previously this
+// dereferenced a nil s.server.
+func (s *CursorServer) SetProxy(token, proxyURL string) {
+	if s.server == nil {
+		s.logger.Warn("cursor: SetProxy called before the bridge was created")
+		return
+	}
+	s.server.SetProxy(token, proxyURL)
 }
 
 func (s *CursorServer) CreateServer(ctx context.Context, cfg cursor.Config) (*cursor.Server, error) {

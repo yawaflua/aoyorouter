@@ -9,21 +9,21 @@ import (
 )
 
 func (p *P) UserRepo(ctx context.Context) *user_repo.UserRepo {
-	if p.userRepo == nil {
+	p.userRepoOnce.Do(func() {
 		p.userRepo = user_repo.NewUserRepo(p.DB(ctx), p.Config(), p.ApiKeyRepo(ctx))
-	}
+	})
 	return p.userRepo
 }
 func (p *P) ProviderRepo(ctx context.Context) *provider_repo.ProviderRepo {
-	if p.providerRepo == nil {
+	p.providerRepoOnce.Do(func() {
 		p.providerRepo = provider_repo.NewProviderRepo(p.DB(ctx))
-	}
+	})
 	return p.providerRepo
 }
 
 func (p *P) ApiKeyRepo(ctx context.Context) *apikey_repo.ApiKeyRepo {
-	if p.apiKeyRepo == nil {
+	p.apiKeyRepoOnce.Do(func() {
 		p.apiKeyRepo = apikey_repo.NewApiKeyRepo(p.DB(ctx), p.Logger())
-	}
+	})
 	return p.apiKeyRepo
 }

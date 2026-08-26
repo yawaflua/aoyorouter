@@ -4,6 +4,7 @@ pkgs.mkShell {
   nativeBuildInputs = with pkgs; [ ];
 
   buildInputs = with pkgs; [
+    bun
     go
     go-task
     protobuf
@@ -21,7 +22,6 @@ pkgs.mkShell {
     end
     go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
     go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
-      
 
   '';
 }

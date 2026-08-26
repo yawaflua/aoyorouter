@@ -40,6 +40,14 @@ func (a *AoyoRouterService) EditApiKey(ctx context.Context, req *aoyorouter.Edit
 		return nil, status.Error(codes.InvalidArgument, "reserved_tokens must be greater than zero")
 	}
 
+	// The admin flag was read from the request but never assigned, so it could
+	// never actually be changed. Assign it — but refuse to let a caller strip
+	// admin from their own key, which is a one-way ticket out of the panel.
+	if requesterKey != nil && requesterKey.ID == key.ID && key.IsAdmin && !input.GetIsAdmin() {
+		return nil, status.Error(codes.InvalidArgument, "cannot remove the admin flag from your own key")
+	}
+	key.IsAdmin = input.GetIsAdmin()
+
 	key.Name = strings.TrimSpace(input.GetName())
 	key.IsActive = input.GetIsActive()
 	key.QuotaSetted = input.GetQuotaSetted()
@@ -137,13 +145,11 @@ func (a *AoyoRouterService) GetApiKeyList(ctx context.Context, _ *aoyorouter.Get
 	}
 	result := make([]*aoyorouter.ApiKey, 0)
 	if requesterKey == nil || requesterKey.IsAdmin {
-
 		keys, err := a.ApiKeyRepo.GetApiKeys(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		result := make([]*aoyorouter.ApiKey, 0, len(keys))
 		for _, key := range keys {
 			result = append(result, &aoyorouter.ApiKey{
 				Id: key.ID, Name: key.Name, IsActive: key.IsActive, QuotaSetted: key.QuotaSetted,
@@ -192,8 +198,24 @@ func (a *AoyoRouterService) RecreateApiKey(ctx context.Context, req *aoyorouter.
 		}
 	}
 
+	// Read the key being replaced before it is rotated. The previous code
+	// removed requesterKey.Key from the config, so an admin rotating someone
+	// else's key revoked their own and left the stale key working.
+	oldKey, err := a.ApiKeyRepo.GetApiKeyByID(ctx, req.GetApiKeyId())
+	if err != nil {
+		return nil, err
+	}
+
 	apiKey, err := a.ApiKeyRepo.RecreateApiKey(ctx, req.GetApiKeyId())
 	if err != nil {
+		return nil, err
+	}
+	a.configMu.Lock()
+	defer a.configMu.Unlock()
+
+	a.CPAPIConfig.SDKConfig.APIKeys = removeString(a.CPAPIConfig.SDKConfig.APIKeys, oldKey.Key)
+	a.CPAPIConfig.SDKConfig.APIKeys = append(a.CPAPIConfig.SDKConfig.APIKeys, apiKey)
+	if err := config.SaveConfigPreserveComments(cpapiConfigPath, a.CPAPIConfig); err != nil {
 		return nil, err
 	}
 	return &aoyorouter.RecreateApiKeyResponse{

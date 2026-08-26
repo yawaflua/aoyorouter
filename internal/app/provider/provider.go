@@ -2,8 +2,10 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
+	"sync"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/cliproxy"
 	"github.com/yawaflua/aoyorouter/internal/adapter/cursor"
@@ -20,7 +22,6 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/driver/server"
 	"github.com/yawaflua/aoyorouter/internal/models/providers"
 	"github.com/yawaflua/aoyorouter/pkg/logger"
-	"golang.org/x/sync/errgroup"
 
 	cpapi_config "github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
 )
@@ -50,6 +51,31 @@ type P struct {
 	appCtx          context.Context
 
 	warp *warp.Warp
+
+	// Each lazily-initialised dependency gets its own sync.Once. A single
+	// shared mutex would deadlock, because the getters call one another
+	// (Server -> UserRepo -> DB -> Closer -> Logger -> Config).
+	cacheOnce          sync.Once
+	configOnce         sync.Once
+	closerOnce         sync.Once
+	serverOnce         sync.Once
+	loggerOnce         sync.Once
+	dbOnce             sync.Once
+	userRepoOnce       sync.Once
+	providerRepoOnce   sync.Once
+	apiKeyRepoOnce     sync.Once
+	usageEntryRepoOnce sync.Once
+	usagePluginOnce    sync.Once
+	managementOnce     sync.Once
+	cursorOnce         sync.Once
+	providerVendorOnce sync.Once
+	warpOnce           sync.Once
+
+	// cpapiMu guards the CLIProxyAPI lifecycle fields (cliproxy,
+	// cliproxy_config, selectorCancel, cpapiCloserSet, appCtx). Unlike the
+	// fields above these are re-assigned at runtime by RestartCPAPI, which
+	// runs on an HTTP handler goroutine while request handlers read them.
+	cpapiMu sync.Mutex
 }
 
 func New() *P {
@@ -57,31 +83,31 @@ func New() *P {
 }
 
 func (p *P) Cache() *cache.Cache {
-	if p.cache == nil {
+	p.cacheOnce.Do(func() {
 		p.cache = cache.NewCache(p.Logger())
-	}
+	})
 
 	return p.cache
 }
 
 func (p *P) Config() *config.C {
-	if p.config == nil {
+	p.configOnce.Do(func() {
 		p.config = config.MustLoad()
-	}
+	})
 
 	return p.config
 }
 
 func (p *P) Closer() *closer.C {
-	if p.closer == nil {
+	p.closerOnce.Do(func() {
 		p.closer = closer.New(p.Logger())
-	}
+	})
 
 	return p.closer
 }
 
 func (p *P) Server(ctx context.Context) *server.AoyoRouterService {
-	if p.server == nil {
+	p.serverOnce.Do(func() {
 		p.server = server.NewAoyoRouterService(server.Dependencies{
 			UserRepo:       p.UserRepo(ctx),
 			ProviderRepo:   p.ProviderRepo(ctx),
@@ -95,21 +121,21 @@ func (p *P) Server(ctx context.Context) *server.AoyoRouterService {
 			ProviderVendor: p.ProviderVendor(ctx),
 			CpapiRestarter: p.RestartCPAPI,
 		})
-	}
+	})
 
 	return p.server
 }
 
 func (p *P) Logger() *slog.Logger {
-	if p.logger == nil {
+	p.loggerOnce.Do(func() {
 		p.logger = logger.InitLogger(p.Config().Env)
-	}
+	})
 
 	return p.logger
 }
 
 func (p *P) DB(ctx context.Context) *postgres.DB {
-	if p.db == nil {
+	p.dbOnce.Do(func() {
 		db, err := postgres.New(ctx, &p.Config().Postgres)
 		if err != nil {
 			panic(err)
@@ -123,71 +149,89 @@ func (p *P) DB(ctx context.Context) *postgres.DB {
 		})
 
 		p.db = db
-	}
+	})
 
 	return p.db
 }
 
 func (p *P) UsageEntryRepo(ctx context.Context) *usage_entry_repo.UsageEntryRepo {
-	if p.usageEntryRepo == nil {
+	p.usageEntryRepoOnce.Do(func() {
 		p.usageEntryRepo = usage_entry_repo.NewUsageEntryRepo(p.DB(ctx), p.ApiKeyRepo(ctx), p.Logger())
-	}
+	})
 
 	return p.usageEntryRepo
 }
 
 func (p *P) UsagePlugin(ctx context.Context) *cliproxyapi.UsagePlugin {
-	if p.usagePlugin == nil {
+	p.usagePluginOnce.Do(func() {
 		p.usagePlugin = cliproxyapi.NewUsagePlugin(p.ApiKeyRepo(ctx), p.UsageEntryRepo(ctx), p.Logger())
-	}
+	})
 
 	return p.usagePlugin
 }
 
 func (p *P) Warp(ctx context.Context) *warp.Warp {
-	if p.warp == nil {
+	p.warpOnce.Do(func() {
 		p.warp = warp.New(ctx, p.Logger(), p.Closer(), p.Config())
-	}
+	})
 
 	return p.warp
 }
 
 func (p *P) Management(ctx context.Context) *cliproxyapi.Management {
-	if p.management == nil {
+	p.managementOnce.Do(func() {
 		p.management = cliproxyapi.NewManagement(p.Config(), p.Logger())
-	}
+	})
 
 	return p.management
 }
 
 func (p *P) ProviderVendor(ctx context.Context) *providers.ProviderVendor {
-	if p.providerVendor == nil {
+	p.providerVendorOnce.Do(func() {
 		p.providerVendor = providers.NewProviderVendor(p.Logger(), p.Warp(ctx), p.Cursor(ctx))
-	}
+	})
 
 	return p.providerVendor
 }
 
 func (p *P) SetSelectorCancel(cncl context.CancelFunc) {
+	p.cpapiMu.Lock()
+	defer p.cpapiMu.Unlock()
 	p.selectorCancel = cncl
 }
 
 func (p *P) SetAppCtx(ctx context.Context) {
+	p.cpapiMu.Lock()
+	defer p.cpapiMu.Unlock()
 	p.appCtx = ctx
 }
 
+// AppCtx returns the process-wide context. It falls back to context.Background
+// so that a restart triggered before Start finished wiring things up does not
+// hand a nil context to context.WithCancel.
 func (p *P) AppCtx() context.Context {
+	p.cpapiMu.Lock()
+	defer p.cpapiMu.Unlock()
+	if p.appCtx == nil {
+		return context.Background()
+	}
 	return p.appCtx
 }
 
-func (a *P) RunCPAPI(ctx context.Context) error {
-	group, ctx := errgroup.WithContext(ctx)
+// RunCPAPI starts the embedded CLIProxyAPI service and blocks until it stops.
+//
+// It deliberately does not surface the Run error to its caller's errgroup:
+// RestartCPAPI cancels this context on purpose, so a context.Canceled here is
+// routine and must not bring the whole process down.
+func (p *P) RunCPAPI(ctx context.Context) error {
+	runCtx, cancel := context.WithCancel(ctx)
+	p.SetSelectorCancel(cancel)
 
-	group.Go(func() error {
-		ctx, cancel := context.WithCancel(ctx)
-		a.SetSelectorCancel(cancel)
-		return a.CLIProxyAPI(ctx).Run(ctx)
-	})
+	if err := p.CLIProxyAPI(runCtx).Run(runCtx); err != nil && !errors.Is(err, context.Canceled) {
+		p.Logger().Error("cliproxyapi stopped with error", "error", err)
+		return err
+	}
 
+	p.Logger().Info("cliproxyapi stopped")
 	return nil
 }

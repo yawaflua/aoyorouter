@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/yawaflua/aoyorouter/internal/driver/middlewares"
+	"github.com/yawaflua/aoyorouter/internal/models"
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -22,8 +23,14 @@ func (a *AoyoRouterService) GetProviderLogsByKeyID(ctx context.Context, req *aoy
 			return nil, status.Error(codes.PermissionDenied, "permission denied")
 		}
 	}
+	apiKeyUuid, err := uuid.Parse(req.GetApiKeyId())
+	if err != nil {
+		return nil, err
+	}
 
-	usage, err := a.UsageEntryRepo.GetUsageEntryByApiKeyID(ctx, uuid.MustParse(req.GetApiKeyId()))
+	// This RPC has no paging fields; 0 selects the repo's default limit rather
+	// than reading the key's entire history.
+	usage, err := a.UsageEntryRepo.GetUsageEntriesByApiKeyID(ctx, apiKeyUuid, 0, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +65,30 @@ func (a *AoyoRouterService) GetUsageLogs(ctx context.Context, req *aoyorouter.Ge
 	}
 
 
-	usage, err := a.UsageEntryRepo.GetAllUsageEntries(ctx, uint64(req.GetLimit()), uint64(req.GetOffset()))
+	// Ownership is filtered in SQL, not after the fact. Applying LIMIT/OFFSET
+	// first and then dropping other people's rows in Go meant every page came
+	// back short — and an admin holding a real key saw only their own logs,
+	// because the check never consulted IsAdmin.
+	var (
+		usage []*models.UsageEntry
+		err   error
+	)
+	if requesterKey == nil || requesterKey.IsAdmin {
+		usage, err = a.UsageEntryRepo.GetAllUsageEntries(ctx, uint64(req.GetLimit()), uint64(req.GetOffset()))
+	} else {
+		var ownerID uuid.UUID
+		ownerID, err = uuid.Parse(requesterKey.ID)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "malformed api key id")
+		}
+		usage, err = a.UsageEntryRepo.GetUsageEntriesByApiKeyID(ctx, ownerID, uint64(req.GetLimit()), uint64(req.GetOffset()))
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	resp := aoyorouter.GetUsageLogsResponse{}
 	for _, v := range usage {
-		if requesterKey != nil && requesterKey.ID != v.ApiTokenID.String() {
-			continue
-		}
 		resp.Logs = append(resp.Logs, &aoyorouter.LogEntry{
 			Provider:        v.Provider,
 			ApiKeyId:        v.ApiTokenID.String(),

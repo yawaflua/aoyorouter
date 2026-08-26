@@ -5,10 +5,12 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"path"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	coreauth "github.com/router-for-me/CLIProxyAPI/v7/sdk/cliproxy/auth"
@@ -22,10 +24,18 @@ type accessPolicy struct {
 	restrictedModels    []string
 }
 
+// providerFingerprintTTL bounds how long a resolved provider fingerprint is
+// reused. Set() runs on every authenticate, and without this it issued one
+// GetProvider query per restricted provider per request.
+const providerFingerprintTTL = 30 * time.Second
+
 type AccessPolicyStore struct {
 	policies             sync.Map
 	providerFingerprints sync.Map
 	providerRepo         *provider_repo.ProviderRepo
+
+	// resolvedAt records when each provider ID was last looked up.
+	resolvedAt sync.Map
 }
 
 type RestrictedSelector struct {
@@ -66,10 +76,18 @@ func (s *AccessPolicyStore) resolveProviderFingerprints(ctx context.Context, pro
 	if s == nil || s.providerRepo == nil {
 		return
 	}
+	now := time.Now()
 	for _, providerID := range providerIDs {
 		if _, err := uuid.Parse(providerID); err != nil {
 			continue
 		}
+		if last, ok := s.resolvedAt.Load(providerID); ok {
+			if t, ok := last.(time.Time); ok && now.Sub(t) < providerFingerprintTTL {
+				continue
+			}
+		}
+		s.resolvedAt.Store(providerID, now)
+
 		provider, err := s.providerRepo.GetProvider(ctx, providerID)
 		if err != nil || provider == nil || strings.HasPrefix(provider.ClientSecret, "oauth:") {
 			s.providerFingerprints.Delete(providerID)
@@ -226,7 +244,15 @@ func restrictedMatch(restrictions []string, value string) bool {
 	for _, restriction := range restrictions {
 		for _, variant := range variants {
 			matched, err := path.Match(restriction, variant)
-			if (err == nil && matched) || restriction == variant {
+			if err != nil {
+				// Fail closed. Treating ErrBadPattern as "no match" meant a
+				// single malformed restriction silently granted access to
+				// everything it was supposed to block.
+				slog.Warn("access policy: malformed restriction pattern, denying",
+					slog.String("pattern", restriction), slog.Any("err", err))
+				return true
+			}
+			if matched || restriction == variant {
 				return true
 			}
 		}

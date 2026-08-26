@@ -1,9 +1,11 @@
 <script lang="ts">
   import { providerLabels } from '../app'
-  import { quotaLabel, quotaReset } from '../format'
+  import { quotaLabel, quotaReset, quotaResetLabel } from '../format'
+  import { createTicker } from '../now.svelte'
   import Icon from '../Icon.svelte'
   import ProviderIcon from './ProviderIcon.svelte'
   import { providerTypeAsCLIPROXY, providerTypeAsPrefix, type Provider, type ProviderModel, type ProviderType } from '../models/providers'
+    import type { QuotaWindow } from '../models/quota';
 
   interface Props {
     providers: Provider[]
@@ -23,6 +25,7 @@
   let { providers, search, models, onClearSearch, onCreate, onEdit, onDelete, onToggleDisabled, onReload, onCopy, togglePendingId, reloadPending }: Props = $props()
   let expandedType = $state<ProviderType | null>(null)
   let expandedProviderId = $state<string | null>(null)
+  const ticker = createTicker()
 
   const grouped = $derived(() => {
     const map = new Map<ProviderType, Provider[]>()
@@ -67,6 +70,11 @@
     return result.sort((a, b) => a.id.localeCompare(b.id, undefined, { sensitivity: 'base' }))
   }
 
+  function minimalQuota(quotas: QuotaWindow[] | null | undefined): QuotaWindow | null {
+    if (!quotas || quotas.length === 0) return null
+    return quotas.reduce((min, q) => (q.usedPercent > min.usedPercent ? q : min))
+  }
+
   function copyModelName(model: ProviderModel) {
     void onCopy(model.id, `Model ${model.id} copied.`)
   }
@@ -108,9 +116,10 @@
                 >
                   <div class="entity-main"><h2>{provider.name}</h2><p><code>{provider.id}</code></p></div>
                   {#if provider.quota}
-                    <div class="quota" title={quotaReset(provider)}>
-                      <div><span style={`width:${Math.max(0, 100 - (provider.quota.quotas?.[0]?.usedPercent ?? 100))}%`}></span></div>
-                      <small>{quotaLabel(provider)}</small>
+                    {@const lowestQuota = minimalQuota(provider.quota?.quotas)}
+                    <div class="quota" title={quotaReset(lowestQuota)}>
+                      <div><span style={`width:${Math.max(0, 100 - (lowestQuota?.usedPercent ?? 100))}%`}></span></div>
+                      <small>{quotaLabel(lowestQuota)}</small>
                     </div>
                   {/if}
                   <span class:disabled={provider.disabled} class="status-dot"><i></i> {provider.disabled ? 'Disabled' : 'Connected'}</span>
@@ -144,10 +153,11 @@
                   {#if provider.quota}
                     <section class="quota-details" aria-label={`${provider.name} quotas`}>
                       {#each provider.quota?.quotas as quota}
+                        {@const resetLabel = quotaResetLabel(quota, ticker.current)}
                         <div class="quota-card">
                           <div class="quota-header">
-                            <span class="quota-name" title={quota.name}>{quota.name}</span>
-                            <small>{quotaLabel(provider)}</small>
+                            <span class="quota-name" title={resetLabel}>{#if quota.name === ""}{resetLabel}{:else}{quota.name}{/if}</span>
+                            <small>{quotaLabel(quota)}</small>
                           </div>
                           <div class="quota-progress-bar">
                             <span class="quota-progress-fill" style={`width: ${Math.max(0, 100 - (quota.usedPercent ?? 100))}%`}></span>

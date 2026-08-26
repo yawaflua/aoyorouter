@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -59,8 +60,11 @@ func providerOAuthReady(clientSecret string, credentials map[string]any) bool {
 	return providerCredentialsCompleted(credentials)
 }
 
+// removeString returns values without target. It allocates rather than reusing
+// values' backing array, which the previous values[:0] form clobbered — the
+// caller's slice was silently rewritten in place.
 func removeString(values []string, target string) []string {
-	result := values[:0]
+	result := make([]string, 0, len(values))
 	for _, value := range values {
 		if value != target {
 			result = append(result, value)
@@ -102,6 +106,17 @@ func proxyHTTPClient(useProxy bool, proxyURL string) (*http.Client, error) {
 		return nil, fmt.Errorf("unsupported default HTTP transport")
 	}
 	transport = transport.Clone()
+
+	// Bound the connection-establishment phases only. A blanket
+	// http.Client.Timeout is deliberately absent: these clients also carry
+	// long-lived streaming responses, and it would sever them mid-stream.
+	transport.DialContext = (&net.Dialer{
+		Timeout:   10 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}).DialContext
+	transport.TLSHandshakeTimeout = 10 * time.Second
+	transport.ResponseHeaderTimeout = 60 * time.Second
+	transport.ExpectContinueTimeout = 1 * time.Second
 
 	switch strings.ToLower(parsed.Scheme) {
 	case "http", "https":

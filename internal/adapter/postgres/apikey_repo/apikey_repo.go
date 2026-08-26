@@ -15,27 +15,37 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/models"
 )
 
+// ErrApiKeyNotFound is returned when a lookup matches no row. Callers must be
+// able to tell "no such key" apart from "here is a zero-valued key".
+var ErrApiKeyNotFound = errors.New("api key not found")
+
+// QuotaUsage is a delta, not a snapshot. Queueing the whole ApiKey meant the
+// consumer wrote back a quota_tokens value read before the request ran, so
+// concurrent requests overwrote each other's accounting.
+type QuotaUsage struct {
+	ApiKeyID string
+	Tokens   int64
+}
+
 type ApiKeyRepo struct {
 	DB    *postgres.DB
-	queue chan *models.ApiKey
+	queue chan QuotaUsage
 	log   *slog.Logger
 }
 
 func NewApiKeyRepo(db *postgres.DB, log *slog.Logger) *ApiKeyRepo {
-	return &ApiKeyRepo{DB: db, log: log, queue: make(chan *models.ApiKey, 1000)}
+	return &ApiKeyRepo{DB: db, log: log, queue: make(chan QuotaUsage, 1000)}
 }
 
 func (r *ApiKeyRepo) AddToQueue(
 	ctx context.Context,
-	apiKey *models.ApiKey,
+	usage QuotaUsage,
 ) error {
 	select {
-	case r.queue <- apiKey:
+	case r.queue <- usage:
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
-	default:
-		return errors.New("api key queue is full")
 	}
 }
 
@@ -43,16 +53,37 @@ func (r *ApiKeyRepo) ProcessQueue(ctx context.Context) {
 	r.log.Info("ApiKeyRepo processer registred")
 	for {
 		select {
-		case apiKey := <-r.queue:
+		case usage := <-r.queue:
 			r.log.Debug("Processing queue for apikeyrepo")
-			err := r.UpdateApiKeyQuota(ctx, apiKey)
-			if err != nil {
-				r.log.Error("failed to save usage entry", slog.Any("err", err))
+			if err := r.AddApiKeyQuotaUsage(ctx, usage.ApiKeyID, usage.Tokens); err != nil {
+				r.log.Error("failed to record quota usage", slog.Any("err", err))
 			}
 		case <-ctx.Done():
 			return
 		}
 	}
+}
+
+// AddApiKeyQuotaUsage increments the consumed quota in a single statement so
+// concurrent requests accumulate instead of clobbering one another.
+func (r *ApiKeyRepo) AddApiKeyQuotaUsage(ctx context.Context, id string, tokens int64) error {
+	if tokens == 0 {
+		return nil
+	}
+	conn := r.DB.GetConnection(ctx)
+	sql, args, err := squirrel.Update("api_keys").
+		Set("quota_tokens", squirrel.Expr("quota_tokens + ?", tokens)).
+		Set("updated_at", time.Now().UTC()).
+		Where(squirrel.Eq{"id": id}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("postgres.apikey_repo.AddApiKeyQuotaUsage: %w", err)
+	}
+	if _, err := conn.Exec(ctx, sql, args...); err != nil {
+		return fmt.Errorf("postgres.apikey_repo.AddApiKeyQuotaUsage: %w", err)
+	}
+	return nil
 }
 
 func (r *ApiKeyRepo) CreateApiKey(ctx context.Context, name string, is_admin bool) (*models.ApiKey, error) {
@@ -69,7 +100,7 @@ func (r *ApiKeyRepo) CreateApiKey(ctx context.Context, name string, is_admin boo
 
 	sql, args, err := squirrel.Insert("api_keys").
 		Columns("ID", "name", "key", "created_at", "updated_at", "is_deleted", "is_active", "is_admin").
-		Values(id, name, token, time.Now(), time.Now(), false, true, true).
+		Values(id, name, token, time.Now(), time.Now(), false, true, is_admin).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 
@@ -148,10 +179,14 @@ func (r *ApiKeyRepo) GetApiKeyByKey(ctx context.Context, key string) (*models.Ap
 	defer rows.Close()
 
 	var apiKey models.ApiKey
-	if rows.Next() {
-		if err := rows.Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.QuotaSetted, &apiKey.QuotaTokens, &apiKey.QuotaPeriod, &apiKey.QuotaResetAt, &apiKey.ReservedTokens, &apiKey.RestrictedProviders, &apiKey.RestrictedModels, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive, &apiKey.IsAdmin); err != nil {
+	if !rows.Next() {
+		if err := rows.Err(); err != nil {
 			return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeyByKey: %w", err)
 		}
+		return nil, ErrApiKeyNotFound
+	}
+	if err := rows.Scan(&apiKey.ID, &apiKey.Name, &apiKey.Key, &apiKey.QuotaSetted, &apiKey.QuotaTokens, &apiKey.QuotaPeriod, &apiKey.QuotaResetAt, &apiKey.ReservedTokens, &apiKey.RestrictedProviders, &apiKey.RestrictedModels, &apiKey.CreatedAt, &apiKey.UpdatedAt, &apiKey.IsDeleted, &apiKey.IsActive, &apiKey.IsAdmin); err != nil {
+		return nil, fmt.Errorf("postgres.apikey_repo.GetApiKeyByKey: %w", err)
 	}
 	return &apiKey, nil
 }

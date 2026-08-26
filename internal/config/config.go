@@ -8,7 +8,7 @@ import (
 )
 
 type C struct {
-	Env string `env:"ENV" env-default:"dev"`
+	Env string `env:"ENV" env-default:"prod"`
 
 	InitialPassword      string `env:"INITIAL_PASSWORD" env-default:""`
 	WarpLimit            int    `env:"WARP_LIMIT" env-default:"10"`

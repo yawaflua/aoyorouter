@@ -11,21 +11,32 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/models"
 )
 
-type userRepoKey struct{}
+// Distinct key types: a single shared key would let the authenticated
+// *models.ApiKey and the *user_repo.UserRepo overwrite one another in the
+// context, and only the middleware ordering kept that from breaking auth.
+type (
+	apiKeyCtxKey   struct{}
+	userRepoCtxKey struct{}
+)
 
 func GetApiKeyFromCtx(ctx context.Context) (*models.ApiKey, bool) {
-	user, ok := ctx.Value(userRepoKey{}).(*models.ApiKey)
+	user, ok := ctx.Value(apiKeyCtxKey{}).(*models.ApiKey)
 	return user, ok
 }
 
 func SetApiKeyInCtx(ctx context.Context, key *models.ApiKey) context.Context {
-	return context.WithValue(ctx, userRepoKey{}, key)
+	return context.WithValue(ctx, apiKeyCtxKey{}, key)
+}
+
+func GetUserRepoFromCtx(ctx context.Context) (*user_repo.UserRepo, bool) {
+	repo, ok := ctx.Value(userRepoCtxKey{}).(*user_repo.UserRepo)
+	return repo, ok
 }
 
 func UserRepoToCtxInterceptor(userRepo *user_repo.UserRepo) func(next runtime.HandlerFunc) runtime.HandlerFunc {
 	return func(next runtime.HandlerFunc) runtime.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-			ctx := context.WithValue(r.Context(), userRepoKey{}, userRepo)
+			ctx := context.WithValue(r.Context(), userRepoCtxKey{}, userRepo)
 			next(w, r.WithContext(ctx), pathParams)
 		}
 	}
@@ -75,10 +86,20 @@ func AuthInterceptor(isAdmin bool) func(next runtime.HandlerFunc) runtime.Handle
 				return
 			}
 
-			user_repo := r.Context().Value(userRepoKey{}).(*user_repo.UserRepo)
-			key, err := user_repo.LoginUser(r.Context(), auth)
-			if err != nil || key != nil && (isAdmin && !key.IsAdmin) {
-				http.Error(w, err.Error(), http.StatusUnauthorized)
+			userRepo, ok := GetUserRepoFromCtx(r.Context())
+			if !ok {
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				return
+			}
+
+			key, err := userRepo.LoginUser(r.Context(), auth)
+			if err != nil {
+				// Deliberately generic: err may carry database detail.
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+			if key != nil && isAdmin && !key.IsAdmin {
+				http.Error(w, "permission denied", http.StatusForbidden)
 				return
 			}
 			if key == nil {

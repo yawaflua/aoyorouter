@@ -47,10 +47,7 @@ func (p *ProviderCursor) AddProviderConfig(ctx context.Context, cfg *config.Conf
 			return
 		}
 		if proxyUrl != "" {
-			proxies := p.cursor.GetProxiesFromServer()
-			proxiesWithoutAddr := *proxies
-			proxiesWithoutAddr[accessToken] = proxyUrl
-			proxies = &proxiesWithoutAddr
+			p.cursor.SetProxy(accessToken, proxyUrl)
 		}
 		cfg.OpenAICompatibility[i].APIKeyEntries = append(cfg.OpenAICompatibility[i].APIKeyEntries, config.OpenAICompatibilityAPIKey{
 			APIKey: provider.ClientSecret,
@@ -94,10 +91,7 @@ func (p *ProviderCursor) AddProviderConfig(ctx context.Context, cfg *config.Conf
 		}
 
 		if proxyUrl != "" {
-			proxies := server.Proxies()
-			proxiesWithoutAddr := *proxies
-			proxiesWithoutAddr[accessToken] = proxyUrl
-			proxies = &proxiesWithoutAddr
+			server.SetProxy(accessToken, proxyUrl)
 		}
 		cfg.OpenAICompatibility = append(cfg.OpenAICompatibility, config.OpenAICompatibility{
 			Name:     provider.ID,

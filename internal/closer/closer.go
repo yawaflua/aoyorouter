@@ -1,10 +1,15 @@
 package closer
 
 import (
+	"errors"
 	"log/slog"
-	"os"
 	"sync"
+	"time"
 )
+
+// ErrCloseTimeout is returned by WaitTimeout when shutdown did not finish in
+// the allotted time.
+var ErrCloseTimeout = errors.New("closer: timed out waiting for shutdown")
 
 type C struct {
 	mu    sync.Mutex
@@ -14,7 +19,7 @@ type C struct {
 	log   *slog.Logger
 }
 
-func New(log *slog.Logger, sig ...os.Signal) *C {
+func New(log *slog.Logger) *C {
 	c := &C{
 		done: make(chan struct{}),
 		log:  log,
@@ -30,6 +35,22 @@ func (c *C) Add(f ...func() error) {
 
 func (c *C) Wait() {
 	<-c.done
+}
+
+// WaitTimeout blocks until every close function has returned, or until d
+// elapses. Without a bound a single close func that never returns — a hung
+// database handle, an in-flight upstream request — wedges shutdown forever.
+func (c *C) WaitTimeout(d time.Duration) error {
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+
+	select {
+	case <-c.done:
+		return nil
+	case <-timer.C:
+		c.log.Error("shutdown timed out, exiting anyway", slog.Duration("timeout", d))
+		return ErrCloseTimeout
+	}
 }
 
 func (c *C) CloseAll() {

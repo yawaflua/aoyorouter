@@ -17,18 +17,28 @@ import (
 	aoyorouter "github.com/yawaflua/aoyorouter/pkg/pb/api/aoyorouter/docs/api/v1"
 )
 
+// cpapiConfigPath is the on-disk location of the CLIProxyAPI config. It must
+// match the path handed to WithConfigPath below and the one the API server
+// writes under configMu.
+const cpapiConfigPath = "config.yaml"
+
 func (p *P) InitCPAPI(ctx context.Context, pbHandler http.Handler) error {
 	if pbHandler == nil {
 		panic("pbHandler is nil")
 	}
+
+	p.cpapiMu.Lock()
+	defer p.cpapiMu.Unlock()
+
 	p.pbHandler = pbHandler
 	if p.cliproxy != nil {
 		return nil
 	}
-	return p.buildCPAPI(ctx)
+	return p.buildCPAPILocked(ctx)
 }
 
-func (p *P) buildCPAPI(ctx context.Context) error {
+// buildCPAPILocked assembles the CLIProxyAPI service. Callers must hold cpapiMu.
+func (p *P) buildCPAPILocked(ctx context.Context) error {
 	if p.pbHandler == nil {
 		panic("pbHandler is nil")
 	}
@@ -37,10 +47,10 @@ func (p *P) buildCPAPI(ctx context.Context) error {
 
 	accessPolicies := cliproxyapi.NewAccessPolicyStore(p.ProviderRepo(ctx))
 	access.RegisterProvider("psql", cliproxyapi.NewAccessProvider(p.ApiKeyRepo(ctx), p.logger, p.UserRepo(ctx), accessPolicies))
-	if err := p.registerAllProviders(ctx); err != nil {
+	if err := p.registerAllProvidersLocked(ctx); err != nil {
 		return fmt.Errorf("registerAllProviders error: %w", err)
 	}
-	if err := p.registerAllKeys(ctx); err != nil {
+	if err := p.registerAllKeysLocked(ctx); err != nil {
 		return fmt.Errorf("registerAllKeys error: %w", err)
 	}
 
@@ -56,7 +66,7 @@ func (p *P) buildCPAPI(ctx context.Context) error {
 	}
 
 	svc, err := cliproxy.NewBuilder().
-		WithConfig(p.CLIProxyAPIConfig()).
+		WithConfig(p.cliProxyAPIConfigLocked()).
 		WithCoreAuthManager(coreAuthManager).
 		WithAuthManager(auth.NewManager(credentialStore, auth.NewAntigravityAuthenticator(), auth.NewClaudeAuthenticator(), auth.NewCodexAuthenticator(), auth.NewKimiAuthenticator(), auth.NewXAIAuthenticator())).
 		WithPostAuthHook(func(ctx context.Context, record *coreauth.Auth) error {
@@ -78,7 +88,7 @@ func (p *P) buildCPAPI(ctx context.Context) error {
 		}).
 		WithAPIKeyClientProvider(cliproxy.NewAPIKeyClientProvider()).
 		WithLocalManagementPassword(p.Config().InitialPassword).
-		WithConfigPath("config.yaml").
+		WithConfigPath(cpapiConfigPath).
 		Build()
 	if err != nil {
 		p.logger.Error("failed to create CLIProxyAPI", "error", err)
@@ -91,6 +101,7 @@ func (p *P) buildCPAPI(ctx context.Context) error {
 	if !p.cpapiCloserSet {
 		p.cpapiCloserSet = true
 		p.Closer().Add(func() error {
+			p.cancelSelector()
 			p.Logger().Info("cpapi shutdown")
 			return p.CLIProxyAPI(ctx).Shutdown(ctx)
 		})
@@ -98,7 +109,22 @@ func (p *P) buildCPAPI(ctx context.Context) error {
 	return nil
 }
 
+// cancelSelector cancels the currently running CLIProxyAPI context, if any.
+func (p *P) cancelSelector() {
+	p.cpapiMu.Lock()
+	cancel := p.selectorCancel
+	p.selectorCancel = nil
+	p.cpapiMu.Unlock()
+
+	if cancel != nil {
+		cancel()
+	}
+}
+
 func (p *P) CLIProxyAPI(ctx context.Context) *cliproxy.Service {
+	p.cpapiMu.Lock()
+	defer p.cpapiMu.Unlock()
+
 	if p.cliproxy == nil {
 		p.Logger().Error("provider.CLIProxyAPI method was called before provider.InitCPAPI")
 		panic("provider.CLIProxyAPI method was called before provider.InitCPAPI")
@@ -107,34 +133,48 @@ func (p *P) CLIProxyAPI(ctx context.Context) *cliproxy.Service {
 }
 
 func (p *P) RestartCPAPI(ctx context.Context) error {
-	p.logger.Info("restarting CLIProxyAPI")
+	p.Logger().Info("restarting CLIProxyAPI")
 
-	if p.cliproxy != nil {
-		p.selectorCancel()
-		if err := p.cliproxy.Shutdown(ctx); err != nil {
-			p.logger.Error("failed to shutdown CLIProxyAPI during restart, forcing restart", "error", err)
-		}
-		p.cliproxy = nil
-	}
+	appCtx := p.AppCtx()
+
+	p.cpapiMu.Lock()
 
 	if p.selectorCancel != nil {
 		p.selectorCancel()
 		p.selectorCancel = nil
 	}
 
+	if p.cliproxy != nil {
+		if err := p.cliproxy.Shutdown(ctx); err != nil {
+			p.Logger().Error("failed to shutdown CLIProxyAPI during restart, forcing restart", "error", err)
+		}
+		p.cliproxy = nil
+	}
+
 	p.cliproxy_config = nil
 
-	err := p.buildCPAPI(ctx)
-	if err != nil {
+	if err := p.buildCPAPILocked(ctx); err != nil {
+		p.cpapiMu.Unlock()
 		return err
 	}
+	p.cpapiMu.Unlock()
+
 	go func() {
-		p.RunCPAPI(p.AppCtx())
+		if err := p.RunCPAPI(appCtx); err != nil {
+			p.Logger().Error("cliproxyapi restart failed", "error", err)
+		}
 	}()
 	return nil
 }
 
 func (p *P) CLIProxyAPIConfig() *config.Config {
+	p.cpapiMu.Lock()
+	defer p.cpapiMu.Unlock()
+
+	return p.cliProxyAPIConfigLocked()
+}
+
+func (p *P) cliProxyAPIConfigLocked() *config.Config {
 	if p.cliproxy_config == nil {
 		p.cliproxy_config = &config.Config{
 			AuthDir: "auth",
@@ -145,27 +185,34 @@ func (p *P) CLIProxyAPIConfig() *config.Config {
 				APIKeys: make([]string, 0),
 			},
 			UsageStatisticsEnabled: true,
+			RequestRetry:     3,
+			MaxRetryInterval: 30,
 		}
-
+		p.cliproxy_config.QuotaExceeded.SwitchProject = true
+		p.cliproxy_config.QuotaExceeded.SwitchPreviewModel = true
+		p.cliproxy_config.QuotaExceeded.AntigravityCredits = true
 		p.cliproxy_config.Payload.Override = append(p.cliproxy_config.Payload.Override, config.PayloadRule{
-			Models: []config.PayloadModelRule{
-				{
-					Name:     "gpt-*",
-					Protocol: "codex",
-				},
-			},
 			Params: map[string]any{
 				"store":  false,
 				"stream": true,
 			},
 		})
 	}
-	config.SaveConfigPreserveComments("config.yaml", p.cliproxy_config)
 	return p.cliproxy_config
 }
 
-func (p *P) registerAllProviders(ctx context.Context) error {
-	cfg := p.CLIProxyAPIConfig()
+// saveCLIProxyAPIConfigLocked persists config.yaml. Callers must hold cpapiMu.
+func (p *P) saveCLIProxyAPIConfigLocked() {
+	if p.cliproxy_config == nil {
+		return
+	}
+	if err := config.SaveConfigPreserveComments(cpapiConfigPath, p.cliproxy_config); err != nil {
+		p.Logger().Error("failed to persist cliproxyapi config", "path", cpapiConfigPath, "error", err)
+	}
+}
+
+func (p *P) registerAllProvidersLocked(ctx context.Context) error {
+	cfg := p.cliProxyAPIConfigLocked()
 
 	cfg.CodexKey = nil
 	cfg.XAIKey = nil
@@ -195,12 +242,14 @@ func (p *P) registerAllProviders(ctx context.Context) error {
 			p.ProviderRepo(ctx).UpdateProvider(ctx, provider.ID, provider.Name, int32(provider.Type), provider.BaseUrl, provider.ClientSecret, provider.UseProxy, provider.Proxy, provider.IsCloudflare, int32(provider.Priority), provider.Disabled)
 		}
 	}
+
+	p.saveCLIProxyAPIConfigLocked()
 	return nil
 
 }
 
-func (p *P) registerAllKeys(ctx context.Context) error {
-	cfg := p.CLIProxyAPIConfig()
+func (p *P) registerAllKeysLocked(ctx context.Context) error {
+	cfg := p.cliProxyAPIConfigLocked()
 
 	cfg.APIKeys = nil
 
@@ -212,6 +261,8 @@ func (p *P) registerAllKeys(ctx context.Context) error {
 	for _, key := range keys {
 		cfg.APIKeys = append(cfg.APIKeys, key.Key)
 	}
+
+	p.saveCLIProxyAPIConfigLocked()
 	return nil
 
 }

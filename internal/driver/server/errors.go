@@ -16,7 +16,7 @@ import (
 )
 
 func (a *AoyoRouterService) GetError(context.Context, *aoyorouter.GetErrorRequest) (*aoyorouter.GetErrorResponse, error) {
-	panic("unimplemented")
+	return nil, status.Error(codes.Unimplemented, "unimplemented")
 }
 
 // GetErrors implements [aoyorouter.AoyoRouterServiceServer].
@@ -61,7 +61,7 @@ func parseErrorLog(id string, content string) *aoyorouter.Error {
 	for _, line := range strings.Split(sections["HEADERS"], "\n") {
 		line = strings.TrimSpace(line)
 		if line != "" {
-			headers = append(headers, line)
+			headers = append(headers, redactHeader(line))
 		}
 	}
 
@@ -77,6 +77,32 @@ func parseErrorLog(id string, content string) *aoyorouter.Error {
 		ResponseBody: extractResponseBody(sections["RESPONSE"]),
 		StatusCode:   int32(statusCode),
 	}
+}
+
+// sensitiveHeaders are never echoed back from an error log. These files record
+// the full inbound request, so without this the Authorization header — a live
+// upstream credential — was handed to any admin hitting GetErrors, and into
+// whatever the frontend does with it.
+var sensitiveHeaders = map[string]struct{}{
+	"authorization":       {},
+	"proxy-authorization": {},
+	"x-api-key":           {},
+	"api-key":             {},
+	"cookie":              {},
+	"set-cookie":          {},
+	"x-cursor-checksum":   {},
+}
+
+func redactHeader(line string) string {
+	idx := strings.Index(line, ":")
+	if idx == -1 {
+		return line
+	}
+	name := strings.TrimSpace(line[:idx])
+	if _, ok := sensitiveHeaders[strings.ToLower(name)]; !ok {
+		return line
+	}
+	return name + ": [REDACTED]"
 }
 
 func splitSections(content string) map[string]string {

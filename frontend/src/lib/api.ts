@@ -44,7 +44,14 @@ export class ApiClient {
     if (response.status === 204) return {}
 
     const body = await response.text()
-    return body ? record(JSON.parse(body)) : {}
+    if (!body) return {}
+    try {
+      return record(JSON.parse(body))
+    } catch {
+      // A 200 with a non-JSON body (an HTML error page from a proxy in front
+      // of us, say) used to surface as a raw SyntaxError the UI cannot render.
+      throw new ApiError('The server returned a malformed response.', response.status)
+    }
   }
 
   async getModels(): Promise<ProviderModel[]> {

@@ -44,8 +44,16 @@ func (u *UsagePlugin) HandleUsage(ctx context.Context, record usage.Record) {
 			return
 		}
 
+		// uuid.MustParse here would panic inside a bare goroutine, which
+		// takes the whole process down — net/http's recover does not apply.
+		apiTokenID, err := uuid.Parse(key.ID)
+		if err != nil {
+			u.Logger.Error("HandleUsage: malformed api key id", slog.String("id", key.ID), slog.Any("err", err))
+			return
+		}
+
 		usageEntry := &models.UsageEntry{
-			ApiTokenID:   uuid.MustParse(key.ID),
+			ApiTokenID:   apiTokenID,
 			Provider:     record.Provider,
 			Model:        record.Model,
 			InputTokens:  record.Detail.InputTokens,
@@ -54,15 +62,19 @@ func (u *UsagePlugin) HandleUsage(ctx context.Context, record usage.Record) {
 			CachedTokens: record.Detail.CachedTokens,
 			RequestedAt:  record.RequestedAt.UTC(),
 			CreatedAt:    time.Now().UTC(),
-			Latency:      int(record.Latency),
+			// record.Latency is a time.Duration (nanoseconds); the column and
+			// the frontend both treat this as milliseconds.
+			Latency:      int(record.Latency.Milliseconds()),
 			Reasoning:    record.ReasoningEffort,
 			Failed:       record.Failed,
 		}
-		if !record.Failed {
+		if record.Failed {
 			usageEntry.Error = fmt.Sprintf("%d %s", record.Fail.StatusCode, record.Fail.Body)
 		}
-		key.QuotaTokens += record.Detail.TotalTokens
-		if err := u.APIKeysRepo.AddToQueue(dbCtx, key); err != nil {
+		if err := u.APIKeysRepo.AddToQueue(dbCtx, apikey_repo.QuotaUsage{
+			ApiKeyID: key.ID,
+			Tokens:   record.Detail.TotalTokens,
+		}); err != nil {
 			u.Logger.Error("failed to add to queue", slog.Any("err", err))
 		}
 		if err := u.UsageRepo.AddToQueue(dbCtx, usageEntry); err != nil {
