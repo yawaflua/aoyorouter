@@ -76,7 +76,7 @@ func (c *CodexProvider) GetOAuthDefinition() *ProviderOAuthDefinition {
 	return &ProviderOAuthDefinition{
 		Endpoint:           "/v0/management/codex-auth-url",
 		Callback:           true,
-		Provider:           "codex",
+		Provider:           "openai",
 		CredentialProvider: "codex",
 		DefaultURL:         "https://api.openai.com",
 	}

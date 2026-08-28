@@ -97,7 +97,7 @@ export function providerTypeAsCLIPROXY(value: ProviderType): string {
 }
 
 export function providerTypeAsPrefix(value: ProviderType): string {
-  if (value === 'PROVIDER_TYPE_OPENAI') return 'openai'
+  if (value === 'PROVIDER_TYPE_OPENAI') return 'codex'
   if (value === 'PROVIDER_TYPE_ANTHROPIC') return 'claude'
   if (value === 'PROVIDER_TYPE_KIMI') return 'moonshot'
   if (value === 'PROVIDER_TYPE_GROK') return 'grok'
