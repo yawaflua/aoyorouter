@@ -25,6 +25,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const pushEventRetention = 7 * 24 * time.Hour
+
 type App struct {
 	httpServer *http.Server
 
@@ -133,6 +135,11 @@ func (a *App) initCrons(ctx context.Context) error {
 					a.provider.Logger().Error("Failed to get providers", "error", err)
 					return err
 				}
+				subscribed, err := a.provider.QuotaWatcher(ctx).SubscribedProviderIDs(ctx)
+				if err != nil {
+					a.provider.Logger().Error("Failed to get push subscriptions", "error", err)
+					subscribed = nil
+				}
 				for _, provider := range providers_db {
 					a.provider.Logger().Debug("Working on provider", "id", provider.ID)
 					if provider.Type != aoyorouter.ProviderType_PROVIDER_TYPE_CUSTOM && !provider.Disabled {
@@ -144,6 +151,9 @@ func (a *App) initCrons(ctx context.Context) error {
 							if quota != nil {
 								a.provider.Logger().Debug("Provider quota", "id", provider.ID, "quota", quota)
 								a.provider.Cache().SaveQuota(provider.ID, quota)
+								if _, ok := subscribed[provider.ID]; ok {
+									a.provider.QuotaWatcher(ctx).Observe(ctx, provider.ID, provider.Name, quota)
+								}
 							}
 						}
 					}
@@ -170,6 +180,19 @@ func (a *App) initCrons(ctx context.Context) error {
 			},
 			Closer: a.provider.Closer(),
 			Logger: a.provider.Logger(),
+		},
+		{
+			Name:     "push_events_pruner",
+			Interval: "0 4 * * *",
+			Closer:   a.provider.Closer(),
+			Logger:   a.provider.Logger(),
+			Handler: func() error {
+				if err := a.provider.PushRepo(ctx).PruneEvents(ctx, time.Now().Add(-pushEventRetention)); err != nil {
+					a.provider.Logger().Error("Failed to prune push events", "error", err)
+					return err
+				}
+				return nil
+			},
 		},
 	}
 
@@ -301,10 +324,10 @@ func (a *App) initHttpServer(ctx context.Context) error {
 
 		restServer.ServeHTTP(w, r)
 	})
-	
+
 	if a.provider.Config().Env != "prod" {
 		v1Handler = allowAllCORS(v1Handler)
-		
+
 	}
 	if a.provider.Config().EnableEffortPresets {
 		v1Handler = cliproxyapi.EffortPresetMiddleware(a.provider.Logger(), v1Handler)

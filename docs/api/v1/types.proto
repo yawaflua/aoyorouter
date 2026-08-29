@@ -314,3 +314,76 @@ message WARPInfo {
     string server_location = 4;
     string tls = 5;
 }
+
+message PushKeys {
+  string p256dh = 1;
+  string auth = 2;
+}
+
+message Subscription {
+  string endpoint = 1;
+  PushKeys keys = 2;
+  optional int64 expiration_time = 3;
+}
+
+// subject names the topic being subscribed to. Provider quota topics are
+// formatted "provider-quota:<provider_id>".
+message SubscribeRequest {
+  string subject = 1;
+  Subscription subscription = 2;
+  string user_agent = 3;
+  map<string, string> labels = 4;
+}
+
+message SubscribeResponse {
+  string subscription_id = 1;
+  bool created = 2;
+}
+
+message UnsubscribeRequest {
+  string subject = 1;
+  string endpoint = 2;
+}
+
+message UnsubscribeResponse {
+  bool removed = 1;
+}
+
+message ListSubscriptionsRequest {
+  string endpoint = 1;
+}
+
+message ListSubscriptionsResponse {
+  repeated string subjects = 1;
+}
+
+message GetPushConfigRequest {
+}
+
+message GetPushConfigResponse {
+  string vapid_public_key = 1;
+  bool enabled = 2;
+}
+
+message NotificationEvent {
+  int64 id = 1;
+  string subject = 2;
+  string title = 3;
+  string body = 4;
+  string tag = 5;
+  string provider_id = 6;
+  string url = 7;
+  string created_at = 8;
+}
+
+// Polled by clients whose browser cannot reach a push service. Endpoints
+// created for this path are prefixed "inapp:" and carry no encryption keys.
+message ListNotificationEventsRequest {
+  string endpoint = 1;
+  int64 after_id = 2;
+}
+
+message ListNotificationEventsResponse {
+  repeated NotificationEvent events = 1;
+  int64 last_id = 2;
+}

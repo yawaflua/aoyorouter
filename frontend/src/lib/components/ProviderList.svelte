@@ -20,9 +20,14 @@
     onCopy: (value: string, success: string) => void
     togglePendingId: string
     reloadPending: boolean
+    subscribedProviderIds: Set<string>
+    subscriptionPendingId: string
+    pushEnabled: boolean
+    pushFallback?: boolean
+    onToggleSubscription: (provider: Provider) => void
   }
 
-  let { providers, search, models, onClearSearch, onCreate, onEdit, onDelete, onToggleDisabled, onReload, onCopy, togglePendingId, reloadPending }: Props = $props()
+  let { providers, search, models, onClearSearch, onCreate, onEdit, onDelete, onToggleDisabled, onReload, onCopy, togglePendingId, reloadPending, subscribedProviderIds, subscriptionPendingId, pushEnabled, pushFallback = false, onToggleSubscription }: Props = $props()
   let expandedType = $state<ProviderType | null>(null)
   let expandedProviderId = $state<string | null>(null)
   const ticker = createTicker()
@@ -124,6 +129,19 @@
                   {/if}
                   <span class:disabled={provider.disabled} class="status-dot"><i></i> {provider.disabled ? 'Disabled' : 'Connected'}</span>
                   <span class:expanded={providerExpanded} class="expand-icon" aria-hidden="true"><Icon name="chevron" size={19} /></span>
+                  {#if pushEnabled}
+                    {@const subscribed = subscribedProviderIds.has(provider.id)}
+                    <button
+                      class:subscribed
+                      class="icon-button provider-subscribe"
+                      disabled={subscriptionPendingId === provider.id}
+                      onclick={(event) => { event.stopPropagation(); onToggleSubscription(provider) }}
+                      aria-label={`${subscribed ? 'Unsubscribe from' : 'Subscribe to'} quota updates for ${provider.name}`}
+                      title={`${subscribed ? 'Unsubscribe from' : 'Subscribe to'} quota updates for ${provider.name}${pushFallback ? ' — this browser cannot reach its push service, so alerts only arrive while this tab is open' : ''}`}
+                    >
+                      <Icon name="bell" size={20} />
+                    </button>
+                  {/if}
                   <button
                     class:enable={provider.disabled}
                     class="icon-button provider-toggle"

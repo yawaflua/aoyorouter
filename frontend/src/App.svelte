@@ -26,6 +26,19 @@
   import { providerUsesApiKey, type Provider, type ProviderModel, type ProviderType, type UpdateProviderInput } from './lib/models/providers'
   import { validateProxy } from './lib/models/proxy'
     import ProxyEditDialog from './lib/components/ProxyEditDialog.svelte';
+  import {
+    currentSubscription,
+    ensureSubscription,
+    inAppEndpoint,
+    inAppSubscription,
+    notificationsPermitted,
+    pushSupported,
+    type PushSubscriptionPayload,
+    quotaSubject,
+    registerServiceWorker,
+    serializeSubscription,
+    showLocalNotification,
+  } from './lib/push'
   import { createThemeStore } from './lib/theme.svelte'
   import ThemeToggle from './lib/components/ThemeToggle.svelte'
 
@@ -63,6 +76,20 @@
 
   let models = $state<ProviderModel[]>([])
 
+  let pushEnabled = $state(false)
+  let vapidPublicKey = $state('')
+  let pushEndpoint = $state('')
+  let subscribedProviderIds = $state(new Set<string>())
+  let subscriptionPending = $state('')
+  let pushFallback = $state(false)
+  let notificationAfterId = $state(0)
+  let pushInitialized = false
+  let eventsSeeded = false
+  let eventTimer = 0
+
+  const EVENT_POLL_INTERVAL = 25000
+  const EVENT_PAGE_LIMIT = 50
+
   const theme = createThemeStore()
 
   const client = $derived(new ApiClient(password))
@@ -83,6 +110,144 @@
   $effect(() => {
     if (password) void loadSection(section)
   })
+
+  $effect(() => {
+    if (!password || pushInitialized) return
+    pushInitialized = true
+    void initPush(client)
+  })
+
+  $effect(() => () => stopEventPolling())
+
+  async function initPush(api: ApiClient) {
+    try {
+      const config = await api.getPushConfig()
+      if (!config.enabled || !config.vapidPublicKey) return
+      vapidPublicKey = config.vapidPublicKey
+
+      let endpoint = ''
+      if (pushSupported() && Notification.permission === 'granted') {
+        try {
+          await registerServiceWorker()
+          endpoint = (await ensureSubscription(config.vapidPublicKey)).endpoint
+        } catch {
+          endpoint = ''
+        }
+      }
+
+      let fallback = false
+      let subjects: string[] = []
+      if (endpoint) {
+        subjects = await api.getPushSubscriptions(endpoint).catch(() => [] as string[])
+      } else {
+        const candidate = inAppEndpoint()
+        subjects = await api.getPushSubscriptions(candidate).catch(() => [] as string[])
+        if (subjects.length > 0) {
+          fallback = true
+          endpoint = candidate
+        }
+      }
+
+      pushEnabled = true
+      pushFallback = fallback
+      pushEndpoint = endpoint
+
+      const prefix = quotaSubject('')
+      subscribedProviderIds = new Set(subjects.filter((subject) => subject.startsWith(prefix)).map((subject) => subject.slice(prefix.length)))
+
+      if (fallback) startEventPolling(api)
+    } catch {
+      pushEnabled = false
+      pushFallback = false
+      stopEventPolling()
+    }
+  }
+
+  function startEventPolling(api: ApiClient) {
+    stopEventPolling()
+    eventsSeeded = false
+    void pollNotificationEvents(api)
+    eventTimer = window.setInterval(() => void pollNotificationEvents(api), EVENT_POLL_INTERVAL)
+  }
+
+  function stopEventPolling() {
+    if (eventTimer) window.clearInterval(eventTimer)
+    eventTimer = 0
+  }
+
+  async function pollNotificationEvents(api: ApiClient) {
+    if (!pushFallback || !pushEndpoint) return
+    try {
+      if (!eventsSeeded) {
+        let cursor = notificationAfterId
+        for (let guard = 0; guard < 20; guard += 1) {
+          const page = await api.listNotificationEvents(pushEndpoint, cursor)
+          let highest = page.lastId > cursor ? page.lastId : cursor
+          for (const event of page.events) {
+            if (event.id > highest) highest = event.id
+          }
+          if (highest === cursor) break
+          cursor = highest
+          if (page.events.length < EVENT_PAGE_LIMIT) break
+        }
+        notificationAfterId = cursor
+        eventsSeeded = true
+        return
+      }
+
+      const page = await api.listNotificationEvents(pushEndpoint, notificationAfterId)
+      let highest = notificationAfterId
+      for (const event of page.events) {
+        showLocalNotification(event.title || 'Aoyo Router', event.body, event.tag)
+        if (event.id > highest) highest = event.id
+      }
+      if (page.lastId > highest) highest = page.lastId
+      notificationAfterId = highest
+    } catch {
+      return
+    }
+  }
+
+  async function toggleSubscription(provider: Provider) {
+    if (subscriptionPending) return
+    subscriptionPending = provider.id
+    const subscribed = subscribedProviderIds.has(provider.id)
+    try {
+      if (subscribed) {
+        const endpoint = pushEndpoint || (pushFallback ? inAppEndpoint() : (await currentSubscription())?.endpoint) || ''
+        if (!endpoint) throw new Error('This browser is not subscribed to notifications.')
+        await client.unsubscribeFromProvider(provider.id, endpoint)
+        const next = new Set(subscribedProviderIds)
+        next.delete(provider.id)
+        subscribedProviderIds = next
+        notice = `Quota updates for “${provider.name}” turned off.`
+      } else {
+        const payload = await subscriptionPayload()
+        await client.subscribeToProvider(provider.id, payload, navigator.userAgent)
+        pushEndpoint = payload.endpoint
+        subscribedProviderIds = new Set(subscribedProviderIds).add(provider.id)
+        if (pushFallback && !eventTimer) startEventPolling(client)
+        notice = pushFallback
+          ? `Quota updates for “${provider.name}” turned on. This browser cannot reach a push service, so alerts arrive only while this tab is open.`
+          : `Quota updates for “${provider.name}” turned on.`
+      }
+    } catch (error) {
+      notice = errorMessage(error)
+    } finally {
+      subscriptionPending = ''
+    }
+  }
+
+  async function subscriptionPayload(): Promise<PushSubscriptionPayload> {
+    if (pushFallback) return inAppSubscription()
+    try {
+      return serializeSubscription(await ensureSubscription(vapidPublicKey))
+    } catch (error) {
+      if (!(await notificationsPermitted())) throw error
+      pushFallback = true
+      return inAppSubscription()
+    }
+  }
 
   function errorMessage(error: unknown): string {
     if (error instanceof ApiError && error.status === 401) {
@@ -113,6 +278,16 @@
     proxies = []
     logs = []
     errors = []
+    pushEnabled = false
+    pushEndpoint = ''
+    vapidPublicKey = ''
+    subscribedProviderIds = new Set<string>()
+    subscriptionPending = ''
+    pushFallback = false
+    notificationAfterId = 0
+    pushInitialized = false
+    eventsSeeded = false
+    stopEventPolling()
     closeDialog()
     if (showNotice) notice = 'Signed out.'
   }
@@ -524,6 +699,11 @@
             onCopy={copy}
             togglePendingId={providerTogglePending}
             reloadPending={providerReloadPending}
+            {subscribedProviderIds}
+            subscriptionPendingId={subscriptionPending}
+            {pushEnabled}
+            {pushFallback}
+            onToggleSubscription={toggleSubscription}
           />
         {:else if section === 'proxies'}
           <ProxyList proxies={filteredProxies} {search} onEdit={requestProxyEdit} onClearSearch={() => (search = '')} onCopy={copy} />

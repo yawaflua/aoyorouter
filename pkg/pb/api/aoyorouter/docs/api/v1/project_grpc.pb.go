@@ -42,6 +42,11 @@ const (
 	AoyoRouterService_GetProviderLogsByKeyID_FullMethodName         = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProviderLogsByKeyID"
 	AoyoRouterService_GetProxies_FullMethodName                     = "/aoyorouter.docs.api.v1.AoyoRouterService/GetProxies"
 	AoyoRouterService_UpdateProxy_FullMethodName                    = "/aoyorouter.docs.api.v1.AoyoRouterService/UpdateProxy"
+	AoyoRouterService_Subscribe_FullMethodName                      = "/aoyorouter.docs.api.v1.AoyoRouterService/Subscribe"
+	AoyoRouterService_Unsubscribe_FullMethodName                    = "/aoyorouter.docs.api.v1.AoyoRouterService/Unsubscribe"
+	AoyoRouterService_ListSubscriptions_FullMethodName              = "/aoyorouter.docs.api.v1.AoyoRouterService/ListSubscriptions"
+	AoyoRouterService_GetPushConfig_FullMethodName                  = "/aoyorouter.docs.api.v1.AoyoRouterService/GetPushConfig"
+	AoyoRouterService_ListNotificationEvents_FullMethodName         = "/aoyorouter.docs.api.v1.AoyoRouterService/ListNotificationEvents"
 )
 
 // AoyoRouterServiceClient is the client API for AoyoRouterService service.
@@ -70,6 +75,11 @@ type AoyoRouterServiceClient interface {
 	GetProviderLogsByKeyID(ctx context.Context, in *GetProviderLogsByKeyIDRequest, opts ...grpc.CallOption) (*GetProviderLogsByKeyIDResponse, error)
 	GetProxies(ctx context.Context, in *GetProxiesRequest, opts ...grpc.CallOption) (*GetProxiesResponse, error)
 	UpdateProxy(ctx context.Context, in *UpdateProxyRequest, opts ...grpc.CallOption) (*UpdateProxyResponse, error)
+	Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (*SubscribeResponse, error)
+	Unsubscribe(ctx context.Context, in *UnsubscribeRequest, opts ...grpc.CallOption) (*UnsubscribeResponse, error)
+	ListSubscriptions(ctx context.Context, in *ListSubscriptionsRequest, opts ...grpc.CallOption) (*ListSubscriptionsResponse, error)
+	GetPushConfig(ctx context.Context, in *GetPushConfigRequest, opts ...grpc.CallOption) (*GetPushConfigResponse, error)
+	ListNotificationEvents(ctx context.Context, in *ListNotificationEventsRequest, opts ...grpc.CallOption) (*ListNotificationEventsResponse, error)
 }
 
 type aoyoRouterServiceClient struct {
@@ -300,6 +310,56 @@ func (c *aoyoRouterServiceClient) UpdateProxy(ctx context.Context, in *UpdatePro
 	return out, nil
 }
 
+func (c *aoyoRouterServiceClient) Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (*SubscribeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SubscribeResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_Subscribe_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aoyoRouterServiceClient) Unsubscribe(ctx context.Context, in *UnsubscribeRequest, opts ...grpc.CallOption) (*UnsubscribeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnsubscribeResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_Unsubscribe_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aoyoRouterServiceClient) ListSubscriptions(ctx context.Context, in *ListSubscriptionsRequest, opts ...grpc.CallOption) (*ListSubscriptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSubscriptionsResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_ListSubscriptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aoyoRouterServiceClient) GetPushConfig(ctx context.Context, in *GetPushConfigRequest, opts ...grpc.CallOption) (*GetPushConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPushConfigResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_GetPushConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aoyoRouterServiceClient) ListNotificationEvents(ctx context.Context, in *ListNotificationEventsRequest, opts ...grpc.CallOption) (*ListNotificationEventsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListNotificationEventsResponse)
+	err := c.cc.Invoke(ctx, AoyoRouterService_ListNotificationEvents_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AoyoRouterServiceServer is the server API for AoyoRouterService service.
 // All implementations must embed UnimplementedAoyoRouterServiceServer
 // for forward compatibility.
@@ -326,6 +386,11 @@ type AoyoRouterServiceServer interface {
 	GetProviderLogsByKeyID(context.Context, *GetProviderLogsByKeyIDRequest) (*GetProviderLogsByKeyIDResponse, error)
 	GetProxies(context.Context, *GetProxiesRequest) (*GetProxiesResponse, error)
 	UpdateProxy(context.Context, *UpdateProxyRequest) (*UpdateProxyResponse, error)
+	Subscribe(context.Context, *SubscribeRequest) (*SubscribeResponse, error)
+	Unsubscribe(context.Context, *UnsubscribeRequest) (*UnsubscribeResponse, error)
+	ListSubscriptions(context.Context, *ListSubscriptionsRequest) (*ListSubscriptionsResponse, error)
+	GetPushConfig(context.Context, *GetPushConfigRequest) (*GetPushConfigResponse, error)
+	ListNotificationEvents(context.Context, *ListNotificationEventsRequest) (*ListNotificationEventsResponse, error)
 	mustEmbedUnimplementedAoyoRouterServiceServer()
 }
 
@@ -401,6 +466,21 @@ func (UnimplementedAoyoRouterServiceServer) GetProxies(context.Context, *GetProx
 }
 func (UnimplementedAoyoRouterServiceServer) UpdateProxy(context.Context, *UpdateProxyRequest) (*UpdateProxyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateProxy not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) Subscribe(context.Context, *SubscribeRequest) (*SubscribeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) Unsubscribe(context.Context, *UnsubscribeRequest) (*UnsubscribeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Unsubscribe not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) ListSubscriptions(context.Context, *ListSubscriptionsRequest) (*ListSubscriptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSubscriptions not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) GetPushConfig(context.Context, *GetPushConfigRequest) (*GetPushConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPushConfig not implemented")
+}
+func (UnimplementedAoyoRouterServiceServer) ListNotificationEvents(context.Context, *ListNotificationEventsRequest) (*ListNotificationEventsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListNotificationEvents not implemented")
 }
 func (UnimplementedAoyoRouterServiceServer) mustEmbedUnimplementedAoyoRouterServiceServer() {}
 func (UnimplementedAoyoRouterServiceServer) testEmbeddedByValue()                           {}
@@ -819,6 +899,96 @@ func _AoyoRouterService_UpdateProxy_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AoyoRouterService_Subscribe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubscribeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).Subscribe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_Subscribe_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).Subscribe(ctx, req.(*SubscribeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AoyoRouterService_Unsubscribe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnsubscribeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).Unsubscribe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_Unsubscribe_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).Unsubscribe(ctx, req.(*UnsubscribeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AoyoRouterService_ListSubscriptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSubscriptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).ListSubscriptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_ListSubscriptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).ListSubscriptions(ctx, req.(*ListSubscriptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AoyoRouterService_GetPushConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPushConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).GetPushConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_GetPushConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).GetPushConfig(ctx, req.(*GetPushConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AoyoRouterService_ListNotificationEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNotificationEventsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AoyoRouterServiceServer).ListNotificationEvents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AoyoRouterService_ListNotificationEvents_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AoyoRouterServiceServer).ListNotificationEvents(ctx, req.(*ListNotificationEventsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AoyoRouterService_ServiceDesc is the grpc.ServiceDesc for AoyoRouterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -913,6 +1083,26 @@ var AoyoRouterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateProxy",
 			Handler:    _AoyoRouterService_UpdateProxy_Handler,
+		},
+		{
+			MethodName: "Subscribe",
+			Handler:    _AoyoRouterService_Subscribe_Handler,
+		},
+		{
+			MethodName: "Unsubscribe",
+			Handler:    _AoyoRouterService_Unsubscribe_Handler,
+		},
+		{
+			MethodName: "ListSubscriptions",
+			Handler:    _AoyoRouterService_ListSubscriptions_Handler,
+		},
+		{
+			MethodName: "GetPushConfig",
+			Handler:    _AoyoRouterService_GetPushConfig_Handler,
+		},
+		{
+			MethodName: "ListNotificationEvents",
+			Handler:    _AoyoRouterService_ListNotificationEvents_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

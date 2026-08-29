@@ -10,10 +10,14 @@ import (
 type C struct {
 	Env string `env:"ENV" env-default:"prod"`
 
-	InitialPassword      string `env:"INITIAL_PASSWORD" env-default:""`
-	WarpLimit            int    `env:"WARP_LIMIT" env-default:"10"`
-	NotUseCloudflare     bool   `env:"ILL_NOT_USE_CLOUDFLARE_REALLY_NOT_NEEDED" env-default:"false"`
-	EnableEffortPresets  bool   `env:"ENABLE_EFFORT_PRESETS" env-default:"false"`
+	InitialPassword     string `env:"INITIAL_PASSWORD" env-default:""`
+	WarpLimit           int    `env:"WARP_LIMIT" env-default:"10"`
+	NotUseCloudflare    bool   `env:"ILL_NOT_USE_CLOUDFLARE_REALLY_NOT_NEEDED" env-default:"false"`
+	EnableEffortPresets bool   `env:"ENABLE_EFFORT_PRESETS" env-default:"false"`
+
+	VapidPublicKey  string `env:"VAPID_PUBLIC_KEY" env-default:""`
+	VapidPrivateKey string `env:"VAPID_PRIVATE_KEY" env-default:""`
+	VapidSubject    string `env:"VAPID_SUBJECT" env-default:"mailto:admin@aoyorouter.local"`
 
 	GRPC     GRPCConfig
 	HTTP     HTTPConfig

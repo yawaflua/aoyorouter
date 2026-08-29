@@ -536,6 +536,21 @@ h3 {
 	background: color-mix(in srgb, var(--success) 14%, transparent);
 	color: var(--success);
 }
+.icon-button.provider-subscribe {
+	color: var(--muted);
+}
+.icon-button.provider-subscribe:hover {
+	background: color-mix(in srgb, var(--primary) 12%, transparent);
+	color: var(--primary);
+}
+.icon-button.provider-subscribe.subscribed {
+	background: var(--primary-container);
+	color: var(--on-primary-container);
+}
+.icon-button.provider-subscribe.subscribed:hover {
+	background: color-mix(in srgb, var(--primary-container) 88%, var(--on-primary-container));
+	color: var(--on-primary-container);
+}
 .data-list {
     overflow: hidden;
     border: 1px solid var(--outline-variant);

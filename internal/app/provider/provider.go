@@ -12,10 +12,12 @@ import (
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/apikey_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/provider_repo"
+	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/push_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/usage_entry_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/user_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/warp"
 	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
+	"github.com/yawaflua/aoyorouter/internal/app/push"
 	"github.com/yawaflua/aoyorouter/internal/cache"
 	"github.com/yawaflua/aoyorouter/internal/closer"
 	"github.com/yawaflua/aoyorouter/internal/config"
@@ -37,6 +39,10 @@ type P struct {
 	providerRepo   *provider_repo.ProviderRepo
 	apiKeyRepo     *apikey_repo.ApiKeyRepo
 	usageEntryRepo *usage_entry_repo.UsageEntryRepo
+	pushRepo       *push_repo.PushRepo
+
+	notifier     *push.Notifier
+	quotaWatcher *push.QuotaWatcher
 
 	cliproxy        *cliproxy.Service
 	cliproxy_config *cpapi_config.Config
@@ -65,6 +71,9 @@ type P struct {
 	providerRepoOnce   sync.Once
 	apiKeyRepoOnce     sync.Once
 	usageEntryRepoOnce sync.Once
+	pushRepoOnce       sync.Once
+	notifierOnce       sync.Once
+	quotaWatcherOnce   sync.Once
 	usagePluginOnce    sync.Once
 	managementOnce     sync.Once
 	cursorOnce         sync.Once
@@ -119,6 +128,8 @@ func (p *P) Server(ctx context.Context) *server.AoyoRouterService {
 			Logger:         p.Logger(),
 			Cache:          p.Cache(),
 			ProviderVendor: p.ProviderVendor(ctx),
+			PushRepo:       p.PushRepo(ctx),
+			Notifier:       p.Notifier(ctx),
 			CpapiRestarter: p.RestartCPAPI,
 		})
 	})
@@ -160,6 +171,30 @@ func (p *P) UsageEntryRepo(ctx context.Context) *usage_entry_repo.UsageEntryRepo
 	})
 
 	return p.usageEntryRepo
+}
+
+func (p *P) PushRepo(ctx context.Context) *push_repo.PushRepo {
+	p.pushRepoOnce.Do(func() {
+		p.pushRepo = push_repo.NewPushRepo(p.DB(ctx))
+	})
+
+	return p.pushRepo
+}
+
+func (p *P) Notifier(ctx context.Context) *push.Notifier {
+	p.notifierOnce.Do(func() {
+		p.notifier = push.NewNotifier(p.PushRepo(ctx), p.Config(), p.Logger())
+	})
+
+	return p.notifier
+}
+
+func (p *P) QuotaWatcher(ctx context.Context) *push.QuotaWatcher {
+	p.quotaWatcherOnce.Do(func() {
+		p.quotaWatcher = push.NewQuotaWatcher(p.Notifier(ctx), p.PushRepo(ctx), p.Logger())
+	})
+
+	return p.quotaWatcher
 }
 
 func (p *P) UsagePlugin(ctx context.Context) *cliproxyapi.UsagePlugin {

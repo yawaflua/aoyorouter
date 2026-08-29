@@ -11,10 +11,12 @@ import (
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/config"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/apikey_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/provider_repo"
+	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/push_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/usage_entry_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/postgres/user_repo"
 	"github.com/yawaflua/aoyorouter/internal/adapter/warp"
 	"github.com/yawaflua/aoyorouter/internal/app/cliproxyapi"
+	"github.com/yawaflua/aoyorouter/internal/app/push"
 	"github.com/yawaflua/aoyorouter/internal/cache"
 	"github.com/yawaflua/aoyorouter/internal/driver/middlewares"
 	"github.com/yawaflua/aoyorouter/internal/models/providers"
@@ -37,6 +39,8 @@ type Dependencies struct {
 	Logger         *slog.Logger
 	Cache          *cache.Cache
 	ProviderVendor *providers.ProviderVendor
+	PushRepo       *push_repo.PushRepo
+	Notifier       *push.Notifier
 	CpapiRestarter func(ctx context.Context) error
 }
 
@@ -52,11 +56,11 @@ type AoyoRouterService struct {
 	logger         *slog.Logger
 	cache          *cache.Cache
 	providerVendor *providers.ProviderVendor
+	pushRepo       *push_repo.PushRepo
+	notifier       *push.Notifier
 	cpapiRestarter func(ctx context.Context) error
 	aoyorouter.UnimplementedAoyoRouterServiceServer
 }
-
-
 
 // mustEmbedUnimplementedAoyoRouterServiceServer implements [aoyorouter.AoyoRouterServiceServer].
 func (a *AoyoRouterService) mustEmbedUnimplementedAoyoRouterServiceServer() {
@@ -126,6 +130,7 @@ func NewAoyoRouterService(deps Dependencies) *AoyoRouterService {
 	return &AoyoRouterService{
 		UserRepo: deps.UserRepo, ProviderRepo: deps.ProviderRepo, ApiKeyRepo: deps.ApiKeyRepo, UsageEntryRepo: deps.UsageEntryRepo,
 		CPAPIConfig: deps.CPAPIConfig, Management: deps.Management, warp: deps.Warp, logger: deps.Logger, cache: deps.Cache,
-		providerVendor: deps.ProviderVendor, cpapiRestarter: deps.CpapiRestarter,
+		providerVendor: deps.ProviderVendor, pushRepo: deps.PushRepo, notifier: deps.Notifier,
+		cpapiRestarter: deps.CpapiRestarter,
 	}
 }

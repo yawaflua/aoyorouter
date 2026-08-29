@@ -322,6 +322,123 @@
         ]
       }
     },
+    "/api/aoyo/v1/notifications/config": {
+      "get": {
+        "operationId": "AoyoRouterService_GetPushConfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPushConfigResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
+    "/api/aoyo/v1/notifications/subscribe": {
+      "post": {
+        "operationId": "AoyoRouterService_Subscribe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SubscribeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "subject names the topic being subscribed to. Provider quota topics are\nformatted \"provider-quota:\u003cprovider_id\u003e\".",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SubscribeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
+    "/api/aoyo/v1/notifications/subscriptions": {
+      "get": {
+        "operationId": "AoyoRouterService_ListSubscriptions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListSubscriptionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "endpoint",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
+    "/api/aoyo/v1/notifications/unsubscribe": {
+      "post": {
+        "operationId": "AoyoRouterService_Unsubscribe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UnsubscribeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1UnsubscribeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AoyoRouterService"
+        ]
+      }
+    },
     "/api/aoyo/v1/providers": {
       "get": {
         "operationId": "AoyoRouterService_GetProvidersList",
@@ -1182,6 +1299,17 @@
         }
       }
     },
+    "v1GetPushConfigResponse": {
+      "type": "object",
+      "properties": {
+        "vapidPublicKey": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
     "v1GetUsageLogsResponse": {
       "type": "object",
       "properties": {
@@ -1201,6 +1329,17 @@
           "type": "string"
         },
         "issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1ListSubscriptionsResponse": {
+      "type": "object",
+      "properties": {
+        "subjects": {
           "type": "array",
           "items": {
             "type": "string"
@@ -1397,6 +1536,17 @@
         }
       }
     },
+    "v1PushKeys": {
+      "type": "object",
+      "properties": {
+        "p256dh": {
+          "type": "string"
+        },
+        "auth": {
+          "type": "string"
+        }
+      }
+    },
     "v1QuotaResetStrategy": {
       "type": "string",
       "enum": [
@@ -1440,6 +1590,72 @@
         },
         "authToken": {
           "type": "string"
+        }
+      }
+    },
+    "v1SubscribeRequest": {
+      "type": "object",
+      "properties": {
+        "subject": {
+          "type": "string"
+        },
+        "subscription": {
+          "$ref": "#/definitions/v1Subscription"
+        },
+        "userAgent": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "subject names the topic being subscribed to. Provider quota topics are\nformatted \"provider-quota:\u003cprovider_id\u003e\"."
+    },
+    "v1SubscribeResponse": {
+      "type": "object",
+      "properties": {
+        "subscriptionId": {
+          "type": "string"
+        },
+        "created": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1Subscription": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string"
+        },
+        "keys": {
+          "$ref": "#/definitions/v1PushKeys"
+        },
+        "expirationTime": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "v1UnsubscribeRequest": {
+      "type": "object",
+      "properties": {
+        "subject": {
+          "type": "string"
+        },
+        "endpoint": {
+          "type": "string"
+        }
+      }
+    },
+    "v1UnsubscribeResponse": {
+      "type": "object",
+      "properties": {
+        "removed": {
+          "type": "boolean"
         }
       }
     },

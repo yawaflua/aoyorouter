@@ -150,4 +150,36 @@ service AoyoRouterService {
         };
     }
 
+    rpc Subscribe(SubscribeRequest) returns (SubscribeResponse) {
+        option (google.api.http) = {
+            post: "/api/aoyo/v1/notifications/subscribe"
+            body: "*"
+        };
+    }
+
+    rpc Unsubscribe(UnsubscribeRequest) returns (UnsubscribeResponse) {
+        option (google.api.http) = {
+            post: "/api/aoyo/v1/notifications/unsubscribe"
+            body: "*"
+        };
+    }
+
+    rpc ListSubscriptions(ListSubscriptionsRequest) returns (ListSubscriptionsResponse) {
+        option (google.api.http) = {
+            get: "/api/aoyo/v1/notifications/subscriptions"
+        };
+    }
+
+    rpc GetPushConfig(GetPushConfigRequest) returns (GetPushConfigResponse) {
+        option (google.api.http) = {
+            get: "/api/aoyo/v1/notifications/config"
+        };
+    }
+
+    rpc ListNotificationEvents(ListNotificationEventsRequest) returns (ListNotificationEventsResponse) {
+        option (google.api.http) = {
+            get: "/api/aoyo/v1/notifications/events"
+        };
+    }
+
 }

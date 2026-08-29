@@ -17,9 +17,41 @@ import {
   type ProviderType,
   type UpdateProviderInput,
 } from './models/providers'
+import { quotaSubject, type PushSubscriptionPayload } from './push'
 import { record, text, type JsonRecord } from './utils'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
+
+export interface NotificationEvent {
+  id: number
+  subject: string
+  title: string
+  body: string
+  tag: string
+  providerId: string
+  url: string
+  createdAt: string
+}
+
+export interface NotificationEventPage {
+  events: NotificationEvent[]
+  lastId: number
+}
+
+function parseNotificationEvent(value: unknown): NotificationEvent {
+  const item = record(value)
+  const id = Number(item.id ?? 0)
+  return {
+    id: Number.isFinite(id) ? id : 0,
+    subject: text(item.subject),
+    title: text(item.title),
+    body: text(item.body),
+    tag: text(item.tag),
+    providerId: text(item.providerId ?? item.provider_id),
+    url: text(item.url),
+    createdAt: text(item.createdAt ?? item.created_at),
+  }
+}
 
 export class ApiClient {
   constructor(private readonly password: string) {}
@@ -244,5 +276,49 @@ export class ApiClient {
       logs: Array.isArray(response.logs) ? response.logs.map(parseLogEntry).slice(0, 10) : [],
       totalTokens: Number(response.totalTokens ?? response.total_tokens ?? 0),
     }
+  }
+
+  async getPushConfig(): Promise<{ vapidPublicKey: string, enabled: boolean }> {
+    const response = await this.request('/api/aoyo/v1/notifications/config')
+    return {
+      vapidPublicKey: text(response.vapidPublicKey ?? response.vapid_public_key),
+      enabled: Boolean(response.enabled),
+    }
+  }
+
+  async getPushSubscriptions(endpoint: string): Promise<string[]> {
+    const query = new URLSearchParams({ endpoint })
+    const response = await this.request(`/api/aoyo/v1/notifications/subscriptions?${query}`)
+    return Array.isArray(response.subjects) ? response.subjects.map(text).filter(Boolean) : []
+  }
+
+  async subscribeToProvider(providerId: string, subscription: PushSubscriptionPayload, userAgent: string): Promise<void> {
+    await this.request('/api/aoyo/v1/notifications/subscribe', {
+      method: 'POST',
+      body: JSON.stringify({
+        subject: quotaSubject(providerId),
+        subscription,
+        userAgent,
+        labels: { providerId },
+      }),
+    })
+  }
+
+  async listNotificationEvents(endpoint: string, afterId: number): Promise<NotificationEventPage> {
+    const query = new URLSearchParams({ endpoint, afterId: String(afterId) })
+    const response = await this.request(`/api/aoyo/v1/notifications/events?${query}`)
+    const events = Array.isArray(response.events) ? response.events.map(parseNotificationEvent) : []
+    const reported = Number(response.lastId ?? response.last_id ?? 0)
+    const lastId = Number.isFinite(reported) && reported > 0
+      ? reported
+      : events.reduce((max, event) => (event.id > max ? event.id : max), afterId)
+    return { events, lastId }
+  }
+
+  async unsubscribeFromProvider(providerId: string, endpoint: string): Promise<void> {
+    await this.request('/api/aoyo/v1/notifications/unsubscribe', {
+      method: 'POST',
+      body: JSON.stringify({ subject: quotaSubject(providerId), endpoint }),
+    })
   }
 }

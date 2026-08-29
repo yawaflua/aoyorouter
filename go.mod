@@ -21,6 +21,7 @@ require (
 require (
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
+	github.com/SherClockHolmes/webpush-go v1.4.0 // indirect
 	github.com/amnezia-vpn/amneziawg-go v0.2.13 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/avast/retry-go v3.0.0+incompatible // indirect
@@ -40,6 +41,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

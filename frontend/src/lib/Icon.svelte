@@ -30,6 +30,8 @@
     <path d="M4 7h16m-10 4v5m4-5v5M9 7l1-3h4l1 3m3 0-1 13H7L6 7"></path>
   {:else if name === 'power'}
     <path d="M12 3v9"></path><path d="M7.1 5.7a8 8 0 1 0 9.8 0"></path>
+  {:else if name === 'bell'}
+    <path d="M18 9a6 6 0 0 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"></path><path d="M13.7 20a2 2 0 0 1-3.4 0"></path>
   {:else if name === 'search'}
     <circle cx="11" cy="11" r="6"></circle><path d="m16 16 4 4"></path>
   {:else if name === 'copy'}
