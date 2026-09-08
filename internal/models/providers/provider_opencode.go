@@ -151,6 +151,9 @@ func addOpencodeProviderConfig(logger *slog.Logger, cfg *config.Config, provider
 				},
 				Models:   openaiModels,
 				Disabled: provider.Disabled,
+				Headers: map[string]string{
+					"x-opencode-session": provider.ClientSecret,
+				},
 			},
 		)
 	}
