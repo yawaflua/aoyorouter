@@ -4,12 +4,13 @@ go 1.26.6
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/SherClockHolmes/webpush-go v1.4.0
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/router-for-me/CLIProxyAPI/v7 v7.2.133
+	github.com/router-for-me/CLIProxyAPI/v7 v7.2.157
 	github.com/yawaflua/cloudflare-warp v1.2.1
 	golang.org/x/net v0.57.0
 	golang.org/x/sync v0.22.0
@@ -21,7 +22,6 @@ require (
 require (
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
-	github.com/SherClockHolmes/webpush-go v1.4.0 // indirect
 	github.com/amnezia-vpn/amneziawg-go v0.2.13 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/avast/retry-go v3.0.0+incompatible // indirect

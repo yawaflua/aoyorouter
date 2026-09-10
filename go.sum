@@ -167,8 +167,8 @@ github.com/robfig/cron/v3 v3.0.1/go.mod h1:eQICP3HwyT7UooqI/z+Ov+PtYAWygg1TEWWzG
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
 github.com/rogpeppe/go-internal v1.16.0 h1:O9DK+vNMDVGLr2BeZqmpLeMjiMNkuXfcqntWbZV6S5g=
 github.com/rogpeppe/go-internal v1.16.0/go.mod h1:DrUVZyrJU+txYW5/1kwtXQSMFio52ZOxX7yM1VHvnxs=
-github.com/router-for-me/CLIProxyAPI/v7 v7.2.133 h1:TeFrEctzhSuPRNdYkiAFpFj4W1IICcvN+ot9HVnaEgw=
-github.com/router-for-me/CLIProxyAPI/v7 v7.2.133/go.mod h1:lTHwMAGajc1wKGQiRtDvYbwV0FWsM7sy+N0ZU5/gxJQ=
+github.com/router-for-me/CLIProxyAPI/v7 v7.2.157 h1:ctp0AJ+QmK9SEcYVOue5AOtGQsXdDw2d/PJvYjBW2rg=
+github.com/router-for-me/CLIProxyAPI/v7 v7.2.157/go.mod h1:lTHwMAGajc1wKGQiRtDvYbwV0FWsM7sy+N0ZU5/gxJQ=
 github.com/shahradelahi/wiresocks v0.0.0-20250819105937-eada7aea2058 h1:hNrh5t3t5AiQnmVKrWV5lHm5j9sABu8k8kBOrzpx5Y8=
 github.com/shahradelahi/wiresocks v0.0.0-20250819105937-eada7aea2058/go.mod h1:FV5GSSd5nMYkTEl1k7+jhRb1n+Ea/z25AGaxiEteyuE=
 github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ=
