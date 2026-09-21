@@ -10,7 +10,7 @@ require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/router-for-me/CLIProxyAPI/v7 v7.2.157
+	github.com/router-for-me/CLIProxyAPI/v7 v7.3.11
 	github.com/yawaflua/cloudflare-warp v1.2.1
 	golang.org/x/net v0.57.0
 	golang.org/x/sync v0.22.0
@@ -55,7 +55,9 @@ require (
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/libp2p/zeroconf/v2 v2.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/miekg/dns v1.1.43 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/noql-net/certpool v0.0.0-20250713011742-73291c48ecc1 // indirect

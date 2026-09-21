@@ -1,7 +1,6 @@
 volumes:
   psql:
     driver: local
-  aoyorouter:
 
 services:
   psql:
@@ -22,6 +21,9 @@ services:
 
   aoyorouter:
     image: ghcr.io/yawaflua/aoyorouter:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
@@ -36,5 +38,6 @@ services:
       psql:
         condition: service_healthy
     volumes:
-      - aoyorouter:/app/auth
-      - aoyorouter:/app/proxy
+      - ./auth:/app/auth
+      - ./proxy:/app/proxy
+      - ./config.yaml:/app/config.yaml
