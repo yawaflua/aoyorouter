@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -36,10 +37,18 @@ func (a *AoyoRouterService) GetErrors(ctx context.Context, req *aoyorouter.GetEr
 		}
 		return nil, err
 	}
+	sort.Slice(dir, func(i, j int) bool {
+		return dir[i].Name() < dir[j].Name()
+	})
 	var errors []*aoyorouter.Error
+	var file_count int
 	for _, entry := range dir {
 		if entry.IsDir() {
 			continue
+		}
+		file_count++
+		if file_count > 10 {
+			break
 		}
 		content, err := os.ReadFile("auth/logs/" + entry.Name())
 		if err != nil {
